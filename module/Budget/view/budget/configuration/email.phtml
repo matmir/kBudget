@@ -1,0 +1,46 @@
+<?php
+
+$title = 'kBudget - Zmiana adresu e-mail';
+$this->headTitle($title);
+?>
+<h1><?php echo $this->escapeHtml($title); ?></h1>
+
+<!-- Linki do poszczególnych ustawień -->
+<div class="span-24">
+<p>
+    <a href="<?php echo $this->url('configuration-category');?>">Ustawienia kategorii</a>
+    <a href="<?php echo $this->url('configuration-email');?>">Zmiana adresu e-mail</a>
+    <a href="<?php echo $this->url('configuration-pass');?>">Zmiana hasła</a>
+</p>
+</div>
+
+<div class="span-24">&nbsp;</div>
+
+<div class="span-24">
+    
+    <p>
+        Aktualny adres e-mail: <b><?php echo $this->escapeHtml($actual_email); ?></b>
+    </p>
+    
+    <?php if ($ERR==1): ?>
+    <div class="error" style="width: 30%;">
+        Podany e-mail istnieje w bazie danych.
+    </div>
+    <?php elseif ($ERR==2): ?>
+    <div class="success" style="width: 30%;">
+        Adres e-mail został zmieniony.
+    </div>
+    <?php endif; ?>
+    
+    <?php
+    $form = $this->form;
+    $form->setAttribute('action', $this->url('configuration-email'));
+    $form->prepare();
+    
+    echo $this->form()->openTag($form);
+    echo $this->formRow($form->get('email')).'<br />';
+    echo $this->formSubmit($form->get('submit'));
+    echo $this->form()->closeTag(); 
+    ?>
+
+</div>

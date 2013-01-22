@@ -1,0 +1,44 @@
+<?php
+
+$title = 'kBudget - Internetowy menadżer finansów';
+$this->headTitle($title);
+?>
+<h1><?php echo $this->escapeHtml($title); ?></h1>
+
+<div class="span-24">
+    
+    <p>
+        kBudget jest internetowym menadżerem finansów. Serwis pozwala użytkownikowi na rejestrowanie jego
+        transakcji, a następnie umożliwia wygenerowanie analizy wydatków i przychodów w postaci wykresów
+        czasowych, bilansu oraz wykresów kołowych prezentujących to na co wydajemy najwięcej pieniędy.<br />
+        <br />
+        Poniżej przedstawione zostały przykładowe wykresy:
+    </p>
+    
+    <div class="span-24">&nbsp;</div>
+    
+    <!-- Lewy obrazek -->
+    <div class="span-12">
+        <img src="images/example_charts/time1.png" alt="Wykres1" title="Wykres czasowy" />
+    </div>
+        
+    <!-- Prawy obrazek -->
+    <div class="span-12 last">
+        <img src="images/example_charts/category1.png" alt="Wykres2" title="Wykres kołowy" />
+    </div>
+    
+    <div class="span-24">&nbsp;</div>
+    
+    <p>
+        Serwis jest całkowicie darmowy i może z niego korzystać każdy. Wystarczy się
+        <a href="<?php echo $this->url('user-register');?>">zarejsetrować</a>.<br />
+        Do rejestracji jest wymagane podanie loginu oraz adresu e-mail. Adres e-mail jest wykorzystywany gdy
+        użytkownik zapomni Swoje hasło do serwisu (na e-mail zostaje przesłane nowe hasło).<br />
+        <br />
+        W sieci istnieje wiele tego typu serwisów. Moim celem nie było i nie jest konkurowanie z żadnym z nich.
+        Potrzebowałem czegoś prostego, więc to stworzyłem :)<br />
+        Aplikacja jest jeszcze w fazie rozwoju. Wygląda jak wygląda, nie wiem czy coś w wyglądzie się zmieni.
+        Ma być użyteczna ;)
+    </p>
+
+</div>

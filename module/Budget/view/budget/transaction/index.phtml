@@ -1,0 +1,115 @@
+<?php
+
+$title = 'kBudget - Transakcje';
+$this->headTitle($title);
+?>
+<h1><?php echo $this->escapeHtml($title); ?></h1>
+
+<!-- Knefle dodające transakcje -->
+<div class="span-24">
+    <div class="transaction-add-links">
+        <a href="<?php echo $this->url('transaction-add',
+                array('type'=>0));?>"><div class="transaction-add-profit">Dodaj przychód</div></a>
+                
+        <a href="<?php echo $this->url('transaction-add',
+                array('type'=>1));?>"><div class="transaction-add-expense">Dodaj wydatek</div></a>
+    </div>
+</div>
+
+<div class="span-24">&nbsp;</div>
+
+<!-- Filtracja -->
+<div class="span-24">
+    <div class="FilterBox">
+    Filtracja:
+    <?php
+    
+    $form = $this->formRange;
+    $form->setAttribute('action', $this->url('transaction_filter'));
+    $form->prepare();
+    
+    echo $this->form()->openTag($form);
+    echo $this->formRow($form->get('month')).'<br />';
+    echo $this->formRow($form->get('year')).'<br />';
+    echo $this->formSubmit($form->get('submit'));
+    echo $this->form()->closeTag();
+    
+    ?>
+    </div>
+</div>
+
+<div class="span-24">&nbsp;</div>
+
+<!-- Transakcje (lewa strona) -->
+<div class="span-18">
+    
+<p>Twoje transakcje:</p>
+    
+<div class="transactions-box">
+
+    <?php if (count($transactions)) : ?>
+    <table>
+    <tr>
+        <th>Typ</th>
+        <th>data</th>
+        <th>wartość</th>
+        <th>opis</th>
+        <th>kategoria</th>
+        <th>&nbsp;</th>
+    </tr>
+    <?php foreach ($transactions as $transaction) : ?>
+    <tr>
+        <?php if ($transaction->t_type==0): ?>
+        <td><div class="profit">Przychód</div></td>
+        <?php else: ?>
+        <td><div class="expense">Wydatek</div></td>
+        <?php endif; ?>
+        <td><?php echo $this->escapeHtml($transaction->t_date);?></td>
+        <td><?php echo (($transaction->t_type==0)?('+'):('-')).$this->escapeHtml($transaction->t_value);?>zł</td>
+        <td><?php echo $this->escapeHtml($transaction->t_content);?></td>
+        <td><?php echo $this->escapeHtml($transaction->c_name);?></td>
+        <td>
+            <a href="<?php echo $this->url('transaction-edit',
+                array('month'=>$dt['month'], 'year'=>$dt['year'], 'tid' => $transaction->tid));?>">Edytuj</a>
+            <a href="<?php echo $this->url('transaction-delete',
+                array('month'=>$dt['month'], 'year'=>$dt['year'], 'tid' => $transaction->tid));?>">Usuń</a>
+        </td>
+    </tr>
+    <?php endforeach; ?>
+    </table>
+    <?php else: ?>
+    <p>Brak transakcji!</p>
+    <?php endif; ?>
+
+</div>
+
+</div>
+
+<!-- Bilans (prawa strona) -->
+<div class="span-6 last">
+    
+<p>Bilans wybranego miesiąca:</p>
+
+<div class="transactions-box">
+
+    <table>
+        <tr>
+            <td colspan="2" style="text-align: center;"><b>Bilans</b></td>
+        </tr>
+        <tr>
+            <td><div class="profit">Przychód</div></td>
+            <td>+<?php echo $sum_profit; ?>zł</td>
+        </tr>
+        <tr>
+            <td><div class="expense">Wydatki</div></td>
+            <td>-<?php echo $sum_expense; ?>zł</td>
+        </tr>
+        <tr>
+            <td><b>Oszczędności</b></td>
+            <td><?php echo $balance; ?>zł</td>
+        </tr>
+    </table>
+    
+</div>
+
+</div>

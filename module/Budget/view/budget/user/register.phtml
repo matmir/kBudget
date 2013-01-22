@@ -1,0 +1,52 @@
+<?php
+
+$title = 'Rejestracja nowego użytkownika';
+$this->headTitle($title);
+?>
+<h1><?php echo $this->escapeHtml($title); ?></h1>
+
+<div class="span-24">
+    
+    <?php if ($this->CONFIRM) : ?>
+    
+    <div class="success" style="width: 50%;">
+        Rejestracja została wykonana poprawnie.<br />
+        Teraz możesz się <a href="<?php echo $this->url('user-login');?>">zalogować</a> na Swoje konto.
+    </div>
+    
+    <?php else: ?>
+    
+    <?php if ($this->ERR==1) : ?>
+    <!-- Błąd podczas rejestracji -->
+    <div class="error" style="width: 30%;">
+        Podany login już istnieje.
+    </div>
+    <?php elseif ($this->ERR==2) : ?>
+    <div class="error" style="width: 30%;">
+        Podany e-mail istnieje w bazie danych.
+    </div>
+    <?php elseif ($this->ERR==3) : ?>
+    <div class="error" style="width: 30%;">
+        Podane hasła są niezgodne!
+    </div>
+    <?php endif; ?>
+    
+    <?php
+    $form = $this->form;
+    $form->setAttribute('action', $this->url('user-register'));
+    $form->prepare();
+    
+    echo $this->form()->openTag($form);
+    echo $this->formRow($form->get('login')).'<br />';
+    echo $this->formRow($form->get('email')).'<br />';
+    echo $this->formRow($form->get('pass1')).'<br />';
+    echo $this->formRow($form->get('pass2')).'<br />';
+    echo $this->formRow($form->get('captcha')).'<br />';
+    echo $this->formHidden($form->get('csrf'));
+    echo $this->formSubmit($form->get('submit'));
+    echo $this->form()->closeTag();
+    ?>
+    
+    <?php endif; ?>
+
+</div>

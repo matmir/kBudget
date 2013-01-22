@@ -1,0 +1,172 @@
+<?php
+
+$title = 'kBudget - Analiza transakcji z podziałem na kategorie';
+$this->headTitle($title);
+?>
+<h1><?php echo $this->escapeHtml($title); ?></h1>
+
+<script language="javascript">
+ 
+function Zakryj() {
+    if ($('#filter_type').val()=='between') {
+        $('#month_filter').hide();
+        $('#between_filter').show();
+    } else if ($('#filter_type').val()=='all') {
+        $('#month_filter').hide();
+        $('#between_filter').hide();
+    } else {
+        $('#month_filter').show();
+        $('#between_filter').hide();
+    }
+};
+ 
+// Załadowanie dokumentu
+$(document).ready(function(){
+    
+    // Domyślne formatki
+    Zakryj();
+    
+    // Zmieniono selekta od typu filtracji
+    $('#filter_type').change(function(){
+        if ($('option:selected', this).val() == 'month') {
+            $('#month_filter').show();
+            $('#between_filter').hide();
+        }
+        if ($('option:selected', this).val() == 'between') {
+            $('#month_filter').hide();
+            $('#between_filter').show();
+        }
+        if ($('option:selected', this).val() == 'all') {
+            $('#month_filter').hide();
+            $('#between_filter').hide();
+        }
+    });
+ 
+});
+</script>
+
+<div class="span-24">
+<p>
+    <a href="<?php echo $this->url('analysis');?>">Powrót</a>
+</p>
+</div>
+
+<!-- Filtracja -->
+<div class="span-24">
+    <div class="FilterBox">
+        
+        <p>Filtracja:</p>
+        
+        <?php
+        
+        $form = $this->form;
+        $form->setAttribute('action', $this->url('analysis-category'));
+        $form->prepare();
+        
+        echo $this->form()->openTag($form);
+        echo $this->formRow($form->get('filter_type')).'<br />';
+        echo '<div id="month_filter">';
+        echo $this->formRow($form->get('month')).'<br />';
+        echo $this->formRow($form->get('year')).'<br />';
+        echo '</div>';
+        echo '<div id="between_filter">';
+        echo $this->formRow($form->get('date_from')).'<br />';
+        echo $this->formRow($form->get('date_to')).'<br />';
+        echo '</div>';
+        echo $this->formSubmit($form->get('submit'));
+        echo $this->form()->closeTag();
+        
+        ?>
+
+    </div>
+</div>
+
+<div class="span-24">&nbsp;</div>
+
+<div class="span-24">
+    <p>
+        <a href="<?php echo $this->url('analysis-category');?>">Wyświetl aktualny miesiąc</a>
+    </p>
+</div>
+
+<!-- Wydatki -->
+<div class="span-24">
+
+    <!-- Wykresy (lewa strona) -->
+    <div class="span-16">
+        <div style="text-align: center;">
+            <?php if (!$img_expense): ?>
+                Brak wydatków w wybranym okresie!
+            <?php else: ?>
+                <img src="<?php echo $img_expense; ?>" />
+            <?php endif; ?>
+        </div>
+    </div>
+    
+    <!-- Tabelka z kategoriami (prawa strona) -->
+    <div class="span-6 last">
+        
+        <?php if (!$dt_expense): ?>
+            Brak wydatków w wybranym okresie!
+        <?php else: ?>
+            <table>
+                <tr>
+                    <td colspan="2"><b>Wydatki</b></td>
+                </tr>
+                <tr>
+                    <td><b>Kategoria</b></td>
+                    <td><b>Kwota</b></td>
+                </tr>
+                <?php for ($i=0; $i<count($dt_expense['labels']); $i++): ?>
+                <tr>
+                    <td><?php echo $dt_expense['labels'][$i] ?></td>
+                    <td><?php echo $dt_expense['data'][$i] ?>zł</td>
+                </tr>
+                <?php endfor; ?>
+            </table>
+        <?php endif; ?>
+        
+    </div>
+
+</div>
+
+<!-- Przychody -->
+<div class="span-24">
+
+    <!-- Wykresy (lewa strona) -->
+    <div class="span-16">
+        <div style="text-align: center;">
+            <?php if (!$img_profit): ?>
+                Brak przychodów w wybranym okresie!
+            <?php else: ?>
+                <img src="<?php echo $img_profit; ?>" />
+            <?php endif; ?>
+        </div>
+    </div>
+    
+    <!-- Tabelka z kategoriami (prawa strona) -->
+    <div class="span-6 last">
+        
+        <?php if (!$dt_profit): ?>
+            Brak przychodów w wybranym okresie!
+        <?php else: ?>
+            <table border="1">
+                <tr>
+                    <td colspan="2"><b>Przychody</b></td>
+                </tr>
+                <tr>
+                    <td><b>Kategoria</b></td>
+                    <td><b>Kwota</b></td>
+                </tr>
+                <?php for ($i=0; $i<count($dt_profit['labels']); $i++): ?>
+                <tr>
+                    <td><?php echo $dt_profit['labels'][$i] ?></td>
+                    <td><?php echo $dt_profit['data'][$i] ?>zł</td>
+                </tr>
+                <?php endfor; ?>
+            </table>
+        <?php endif; ?>
+        
+    </div>
+
+</div>
