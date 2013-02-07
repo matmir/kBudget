@@ -47,6 +47,9 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
                                                             'title' => $title));
         // Przekazanie loginu
         $e->getViewModel()->setVariable('user_name', $dt->login);
+	
+	// Przekazanie flagi admina
+	$e->getViewModel()->setVariable('admin', ($dt->u_type==1)?(true):(false));
     }
     
     public function getAutoloaderConfig()
@@ -89,7 +92,8 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
                         return $auth->getIdentity();
                     } else {
                         return (object)array('uid' => 0,
-                                     'login' => 'anonymous');
+                                     'login' => 'anonymous',
+				     'u_type' => -1);
                     }
                 },
                 

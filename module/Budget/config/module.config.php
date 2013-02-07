@@ -11,6 +11,7 @@ return array(
             'Budget\Controller\Analysis' => 'Budget\Controller\AnalysisController',
             'Budget\Controller\User' => 'Budget\Controller\UserController',
             'Budget\Controller\Configuration' => 'Budget\Controller\ConfigurationController',
+            'Budget\Controller\Admin' => 'Budget\Controller\AdminController',
         ),
     ),
     
@@ -268,6 +269,57 @@ return array(
                         'controller' => 'Budget\Controller\Analysis',
                         'action'     => 'time',
                     ),
+                ),
+            ),
+            
+            // Administracja serwisem
+            'admin' => array(
+                'type'    => 'literal',
+                'options' => array(
+                    'route'    => '/admin.html',
+                    'defaults' => array(
+                        'controller' => 'Budget\Controller\Admin',
+                        'action'     => 'index',
+                    ),
+                ),
+            ),
+            
+            // Admin - użytkownicy
+            'admin-users' => array(
+                'type'    => 'regex',
+                'options' => array(
+                    'regex' => '/admin-users-(?<page>[0-9_-]+)\.html',
+                    'defaults' => array(
+                        'controller' => 'Budget\Controller\Admin',
+                        'action'     => 'users',
+                    ),
+                    'spec' => '/admin-users-%page%.html',
+                ),
+            ),
+            
+            // Admin - aktywacja/deaktywacja usera
+            'admin-user-activate' => array(
+                'type'    => 'regex',
+                'options' => array(
+                    'regex' => '/admin-user-activate-(?<uid>[0-9_-]+)-(?<active>[0-9_-]+)-(?<page>[0-9_-]+)\.html',
+                    'defaults' => array(
+                        'controller' => 'Budget\Controller\Admin',
+                        'action'     => 'useractivate',
+                    ),
+                    'spec' => '/admin-user-activate-%uid%-%active%-%page%.html',
+                ),
+            ),
+            
+            // Admin - zmiana hasła usera
+            'admin-user-pass' => array(
+                'type'    => 'regex',
+                'options' => array(
+                    'regex' => '/admin-user-pass-(?<uid>[0-9_-]+)-(?<page>[0-9_-]+)\.html',
+                    'defaults' => array(
+                        'controller' => 'Budget\Controller\Admin',
+                        'action'     => 'userpass',
+                    ),
+                    'spec' => '/admin-user-pass-%uid%-%page%.html',
                 ),
             ),
             

@@ -12,6 +12,9 @@ use Zend\Db\Adapter\Adapter;
 
 use Budget\Model\User;
 
+use Zend\Paginator\Paginator;
+use Zend\Paginator\Adapter\DbSelect;
+
 class UserMapper
 {
     protected $adapter;
@@ -124,6 +127,7 @@ class UserMapper
             'passs'=> $dynamicSalt,
             'u_type' => 0,
             'active' => 1,
+            'register_date' => date('Y-m-d H:i:s'),
         );
         
         $sql = new Sql($this->adapter);
@@ -191,6 +195,50 @@ class UserMapper
     }
     
     /**
+        Ustawia flagę aktywacji usera
+        @param int $uid Identyfikator usera
+        @param int $act Flaga aktywacji (0 lub 1)
+    */
+    public function setUserActive($uid, $act)
+    {
+        if (!($act==0 || $act==1)) {
+            throw new \Exception("Błędna wartość flagi aktywacji użytkownika!");
+        }
+        
+        // Złożenie danych usera
+        $data = array(
+            'active' => (int)$act,
+        );
+        
+        $sql = new Sql($this->adapter);
+
+        $update = $sql->update();
+        $update->table('users');
+        $update->set($data);
+        $update->where(array('uid' => (int)$uid));
+        
+        $statement = $sql->prepareStatementForSqlObject($update);
+        $statement->execute();
+    }
+    
+    /**
+        Ustawia datę ostatniego logowania usera
+        @param int $uid Identyfikator usera
+    */
+    public function setUserLoginDate($uid)
+    {
+        $sql = new Sql($this->adapter);
+
+        $update = $sql->update();
+        $update->table('users');
+        $update->set(array('last_login_date' => date('Y-m-d H:i:s')));
+        $update->where(array('uid' => (int)$uid));
+        
+        $statement = $sql->prepareStatementForSqlObject($update);
+        $statement->execute();
+    }
+    
+    /**
         Pobranie danych usera
         @param int $uid Identyfikator usera
         @return User Zwraca obiekt reprezentujący usera
@@ -214,6 +262,29 @@ class UserMapper
         $user->exchangeArray($row->current());
         
         return $user;
+    }
+    
+    /**
+        Pobiera wszystkich userów z systemu
+        @param int $pg Numer aktualnej strony do wyświetlenia
+        @return Paginator
+    */
+    public function getUsers($pg)
+    {
+        if ($pg <=0) {
+            throw new \Exception("Niepoprawny numer strony!");
+        }
+        
+        $sql = new Sql($this->adapter);
+        $select = $sql->select();
+        
+        $select->from(array('u' => 'users'));
+        
+        $paginator = new Paginator(new DbSelect($select, $sql));
+        $paginator->setItemCountPerPage(20);
+        $paginator->setCurrentPageNumber((int)$pg);
+        
+        return $paginator;
     }
 
 }

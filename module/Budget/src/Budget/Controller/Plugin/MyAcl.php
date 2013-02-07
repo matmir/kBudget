@@ -63,11 +63,13 @@ class MyAcl extends AbstractPlugin
         $acl->addResource(new Resource('Analysis'));
         $acl->addResource(new Resource('User'));
         $acl->addResource(new Resource('Configuration'));
+        $acl->addResource(new Resource('Admin'));
         
         // Gość
         $acl->deny('anonymous', 'Transaction');
         $acl->deny('anonymous', 'Analysis');
         $acl->deny('anonymous', 'Configuration');
+        $acl->deny('anonymous', 'Admin');
         $acl->allow('anonymous', 'Main');
         $acl->allow('anonymous', 'User');
         
@@ -75,6 +77,7 @@ class MyAcl extends AbstractPlugin
         $acl->allow('user',
             array('Main', 'Transaction', 'Analysis', 'User', 'Configuration')
         );
+        $acl->deny('user', 'Admin');
         
         // Admin
         $acl->allow('admin', null);

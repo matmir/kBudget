@@ -19,6 +19,14 @@ div.MenuItem {
     font-weight: bold;
 }
 
+div.AdminMenuItem {
+    display: inline;
+    padding: 2px;
+    font-size: 150%;
+    font-weight: bold;
+    color: red;
+}
+
 div.transaction-add-profit {
     display: inline;
     padding: 2px;

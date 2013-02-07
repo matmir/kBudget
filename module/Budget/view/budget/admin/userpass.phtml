@@ -1,0 +1,38 @@
+<?php
+
+$title = 'kBudget - Zmiana hasła wybranego użytkownika';
+$this->headTitle($title);
+?>
+<h1><?php echo $this->escapeHtml($title); ?></h1>
+
+<div class="span-24">
+
+    <?php if ($ERR==2): ?>
+    <div class="error" style="width: 30%;">
+        Nowe hasła nie są zgodne!
+    </div>
+    <?php elseif ($ERR==3): ?>
+    <div class="success" style="width: 30%;">
+        Hasło zostało zmienione!
+        <a href="<?php echo $this->url('admin-users', array(
+                                                            'page' => $this->page,
+                                                    ));?>">OK</a>
+    </div>
+    <?php endif; ?>
+    
+    <?php
+    $form = $this->form;
+    $form->setAttribute('action', $this->url('admin-user-pass',array(
+                                                                'uid' => $this->uid,
+                                                                'page' => $this->page,
+                                                            )));
+    $form->prepare();
+    
+    echo $this->form()->openTag($form);
+    echo $this->formRow($form->get('pass1')).'<br />';
+    echo $this->formRow($form->get('pass2')).'<br />';
+    echo $this->formSubmit($form->get('submit'));
+    echo $this->form()->closeTag(); 
+    ?>
+
+</div>

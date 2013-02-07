@@ -112,6 +112,9 @@ class UserController extends AbstractActionController
                             'u_type',
                         )));
                     
+                    // Data logowania
+                    $this->getUserMapper()->setUserLoginDate($storage->read()->uid);
+                    
                     // Przekierowanie do listy transakcji
                     return $this->redirect()->toRoute('transaction', array(
                                                                            'month' => (int)date('m'),

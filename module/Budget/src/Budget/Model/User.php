@@ -17,6 +17,8 @@ class User
     public $passs;
     public $u_type;     // Typ usera 0 - user, 1 - admin
     public $active;     // flaga aktywności usera 0/1
+    public $register_date;
+    public $last_login_date;
 
     /**
         Rozbija tablicę w poszczególne pola obiektu
@@ -31,6 +33,8 @@ class User
         $this->passs = (isset($data['passs'])) ? $data['passs'] : null;
         $this->u_type = (isset($data['u_type'])) ? $data['u_type'] : null;
         $this->active = (isset($data['active'])) ? $data['active'] : null;
+        $this->register_date = (isset($data['register_date'])) ? $data['register_date'] : null;
+        $this->last_login_date = (isset($data['last_login_date'])) ? $data['last_login_date'] : null;
     }
     
     /**
