@@ -119,6 +119,7 @@ class UserController extends AbstractActionController
                     return $this->redirect()->toRoute('transaction', array(
                                                                            'month' => (int)date('m'),
                                                                            'year' => (int)date('Y'),
+                                                                           'page' => 1,
                                                                            ));
                 } else { // Błąd w logowaniu
                     $ERR = 1;

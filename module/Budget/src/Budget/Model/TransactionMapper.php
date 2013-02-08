@@ -11,6 +11,9 @@ use Zend\Db\Sql\Sql;
 use Zend\Db\Sql\Expression;
 use Zend\Db\Adapter\Adapter;
 
+use Zend\Paginator\Paginator;
+use Zend\Paginator\Adapter\DbSelect;
+
 use Budget\Model\Transaction;
 
 class TransactionMapper
@@ -34,9 +37,11 @@ class TransactionMapper
                                                         'dt_month' => 'yyyy-mm' dla mieniąca lub 'dt_up' i 'dt_down' dla zakresu
                                                     }
         @param int $t_type Typ transakcji (-1 - wszystkie, 0 - przychód, 1 - wydatek)
+        @param int $pg Numer przeglądanej strony
+        @param bool $pagged Flaga czy zwracać Paginator (true) czy tablicę transakcji (false)
         @return array() Tablica zawierająca transakcje (Transaction)
     */
-    public function getTransactions($uid, $dt_param, $t_type=-1)
+    public function getTransactions($uid, $dt_param, $t_type=-1, $pg=1, $pagged=false)
     {
         // Spr czy parametr z datą jest tablicą
         if (!is_array($dt_param)) {
@@ -45,6 +50,10 @@ class TransactionMapper
         // Spr. pola z typem
         if (!isset($dt_param['type'])) {
             throw new \Exception("Brak typu daty w parametrach z tablicą!");
+        }
+        // Spr. pola z numerem strony
+        if ($pg <= 0) {
+            throw new \Exception("Numer strony musi być liczbą dodatnią!");
         }
         
         $sql = new Sql($this->adapter);
@@ -96,20 +105,33 @@ class TransactionMapper
             
         }
         
-        $statement = $sql->prepareStatementForSqlObject($select);
-        $results = $statement->execute();
+        // Czy zwracać paginator
+        if ($pagged) {
+            
+            $paginator = new Paginator(new DbSelect($select, $sql));
+            $paginator->setItemCountPerPage(20);
+            $paginator->setCurrentPageNumber((int)$pg);
+            
+            return $paginator;
+            
+        } else { // Zwracać tablicę transakcji
+            
+            $statement = $sql->prepareStatementForSqlObject($select);
+            $results = $statement->execute();
+            
+            $retObj = array();
+            
+            // Przelatuję po wynikach
+            while (($tbl=$results->current())!=null)
+            {
+                $ob = new Transaction();
+                $ob->exchangeArray($tbl);
+                array_push($retObj, $ob);
+            }
+            
+            return $retObj;
         
-        $retObj = array();
-        
-        // Przelatuję po wynikach
-        while (($tbl=$results->current())!=null)
-        {
-            $ob = new Transaction();
-            $ob->exchangeArray($tbl);
-            array_push($retObj, $ob);
         }
-        
-        return $retObj;
     }
     
     /**

@@ -70,9 +70,19 @@ $this->headTitle($title);
         <td><?php echo $this->escapeHtml($transaction->c_name);?></td>
         <td>
             <a href="<?php echo $this->url('transaction-edit',
-                array('month'=>$dt['month'], 'year'=>$dt['year'], 'tid' => $transaction->tid));?>">Edytuj</a>
+                array(
+                    'month'=>$dt['month'],
+                    'year'=>$dt['year'],
+                    'tid' => $transaction->tid,
+                    'page' => $this->page,
+                    ));?>">Edytuj</a>
             <a href="<?php echo $this->url('transaction-delete',
-                array('month'=>$dt['month'], 'year'=>$dt['year'], 'tid' => $transaction->tid));?>">Usuń</a>
+                array(
+                    'month'=>$dt['month'],
+                    'year'=>$dt['year'],
+                    'tid' => $transaction->tid,
+                    'page' => $this->page,
+                    ));?>">Usuń</a>
         </td>
     </tr>
     <?php endforeach; ?>
@@ -82,6 +92,15 @@ $this->headTitle($title);
     <?php endif; ?>
 
 </div>
+
+<p>
+    <?php echo $this->paginationControl($this->transactions,
+                                    'Sliding',
+                                    'budget/paginator_transactions_control.phtml', array(
+                                                                                    'month' => $dt['month'],
+                                                                                    'year' => $dt['year'],
+                                                                                    )); ?>
+</p>
 
 </div>
 

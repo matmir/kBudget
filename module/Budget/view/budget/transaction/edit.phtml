@@ -23,7 +23,9 @@ $this->headTitle($title);
         $form->setAttribute('action', $this->url('transaction-edit', array(
                                                                            'month'=>$dt['month'],
                                                                            'year'=>$dt['year'],
-                                                                           'tid' => $this->tid)));
+                                                                           'tid' => $this->tid,
+                                                                           'page' => $this->page,
+                                                                           )));
         $form->prepare();
         
         echo $this->form()->openTag($form);
@@ -47,7 +49,11 @@ $this->headTitle($title);
     
     <p>
         <a href="<?php echo $this->url('transaction',
-                    array('month'=>$dt['month'], 'year'=>$dt['year']));?>">Powrót</a>
+                    array(
+                        'month'=>$dt['month'],
+                        'year'=>$dt['year'],
+                        'page' => $this->page,
+                        ));?>">Powrót</a>
     </p>
     
 </div>

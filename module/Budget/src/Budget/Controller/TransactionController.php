@@ -55,6 +55,9 @@ class TransactionController extends AbstractActionController
         // Identyfikator zalogowanego usera
         $uid = $this->getServiceLocator()->get('user_data')->uid;
         
+        // Pobranie numeru strony
+        $page = (int) $this->params()->fromRoute('page', 1);
+        
         // Formularz od wyboru zakresu transakcji
         $formRange = new TransactionRangeSelectForm();
         
@@ -91,12 +94,13 @@ class TransactionController extends AbstractActionController
         $balance = $sum_profit - $sum_expense;
         
         return array(
-            'transactions' => $this->getTransactionMapper()->getTransactions($uid, $date_param),
+            'transactions' => $this->getTransactionMapper()->getTransactions($uid, $date_param, -1, $page, true),
             'formRange' => $formRange,
             'dt' => array('month' => $m, 'year' => $Y),
             'sum_expense' => $sum_expense,
             'sum_profit' => $sum_profit,
             'balance' => $balance,
+            'page' => $page,
         );
     }
     
@@ -127,12 +131,14 @@ class TransactionController extends AbstractActionController
                 return $this->redirect()->toRoute('transaction', array(
                                                                        'month' => (int)$m,
                                                                        'year' => (int)$Y,
+                                                                       'page' => 1,
                                                                        ));
             } else { // Błąd formularze (ktoś coś kombinuje)
                 // Przekierowanie do głównej strony
                 return $this->redirect()->toRoute('transaction', array(
                                                                     'month' => date('m'),
                                                                     'year' => date('Y'),
+                                                                    'page' => 1,
                                                                     ));
             }
         } else { // Brak parametrów
@@ -140,6 +146,7 @@ class TransactionController extends AbstractActionController
             return $this->redirect()->toRoute('transaction', array(
                                                                     'month' => date('m'),
                                                                     'year' => date('Y'),
+                                                                    'page' => 1,
                                                                     ));
         }
     }
@@ -220,6 +227,7 @@ class TransactionController extends AbstractActionController
                 return $this->redirect()->toRoute('transaction', array(
                                                                        'month' => $t_dt[1],
                                                                        'year' => $t_dt[0],
+                                                                       'page' => 1,
                                                                        ));
             }
         }
@@ -234,6 +242,9 @@ class TransactionController extends AbstractActionController
     {
         // Identyfikator zalogowanego usera
         $uid = $this->getServiceLocator()->get('user_data')->uid;
+        
+        // Pobranie numeru strony
+        $page = (int) $this->params()->fromRoute('page', 1);
         
         // Pobranie miesiąca z adresu
         $m = (int) $this->params()->fromRoute('month', date('m'));
@@ -312,6 +323,7 @@ class TransactionController extends AbstractActionController
                 return $this->redirect()->toRoute('transaction', array(
                                                                        'month' => $t_dt[1],
                                                                        'year' => $t_dt[0],
+                                                                       'page' => $page,
                                                                        ));
             }
         }
@@ -321,6 +333,7 @@ class TransactionController extends AbstractActionController
             'form' => $form,
             'dt' => array('month' => $m, 'year' => $Y),
             't_type' => $transaction->t_type,
+            'page' => $page,
         );
     }
 
@@ -329,6 +342,9 @@ class TransactionController extends AbstractActionController
     {
         // Identyfikator zalogowanego usera
         $uid = $this->getServiceLocator()->get('user_data')->uid;
+        
+        // Pobranie numeru strony
+        $page = (int) $this->params()->fromRoute('page', 1);
         
         // Identyfikator transakcji
         $tid = (int) $this->params()->fromRoute('tid', 0);
@@ -354,13 +370,15 @@ class TransactionController extends AbstractActionController
             return $this->redirect()->toRoute('transaction', array(
                                                                    'month' => (int)$m,
                                                                    'year' => (int)$Y,
+                                                                   'page' => $page,
                                                                    ));
         }
 
         return array(
             'tid'    => $tid,
             'dt' => array('month' => $m, 'year' => $Y),
-            'transaction' => $this->getTransactionMapper()->getTransaction($tid, $uid)
+            'transaction' => $this->getTransactionMapper()->getTransaction($tid, $uid),
+            'page' => $page,
         );
     }
 }

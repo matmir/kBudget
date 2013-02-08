@@ -1,0 +1,32 @@
+<?php if ($this->pageCount): ?>
+<div class="paginationControl">
+<!-- Previous page link -->
+<?php if (isset($this->previous)): ?>
+  <a href="<?php echo $this->url($this->route, array('month' => $this->month, 'year' => $this->year, 'page' => $this->previous)); ?>">
+    < Poprzednia
+  </a> |
+<?php else: ?>
+  <span class="disabled">< Poprzednia</span> |
+<?php endif; ?>
+
+<!-- Numbered page links -->
+<?php foreach ($this->pagesInRange as $page): ?>
+  <?php if ($page != $this->current): ?>
+    <a href="<?php echo $this->url($this->route, array('month' => $this->month, 'year' => $this->year, 'page' => $page)); ?>">
+        <?php echo $page; ?>
+    </a> |
+  <?php else: ?>
+    <?php echo $page; ?> |
+  <?php endif; ?>
+<?php endforeach; ?>
+
+<!-- Next page link -->
+<?php if (isset($this->next)): ?>
+  <a href="<?php echo $this->url($this->route, array('month' => $this->month, 'year' => $this->year, 'page' => $this->next)); ?>">
+    Następna >
+  </a>
+<?php else: ?>
+  <span class="disabled">Następna ></span>
+<?php endif; ?>
+</div>
+<?php endif; ?>

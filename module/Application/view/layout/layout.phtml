@@ -26,7 +26,11 @@
             <!-- Menu -->
             <div class="span-24">
                 <a href="<?php echo $this->url('main');?>"><div class="MenuItem">Start</div></a>
-                <a href="<?php echo $this->url('transaction', array('month'=>(int)date('m'), 'year'=>(int)date('Y')));?>"><div class="MenuItem">Transakcje</div></a>
+                <a href="<?php echo $this->url('transaction', array(
+                                                                'month'=>(int)date('m'),
+                                                                'year'=>(int)date('Y'),
+                                                                'page' => 1,
+                                                                ));?>"><div class="MenuItem">Transakcje</div></a>
                 <a href="<?php echo $this->url('analysis');?>"><div class="MenuItem">Analiza</div></a>
                 <a href="<?php echo $this->url('configuration');?>"><div class="MenuItem">Ustawienia</div></a>
                 <a href="<?php echo $this->url('user-register');?>"><div class="MenuItem">Zarejestruj nowego użytkownika</div></a>

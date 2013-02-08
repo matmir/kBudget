@@ -42,12 +42,12 @@ return array(
             'transaction' => array(
                 'type'    => 'regex',
                 'options' => array(
-                    'regex' => '/transactions-(?<month>[0-9_-]+)-(?<year>[0-9_-]+)\.html',
+                    'regex' => '/transactions-(?<month>[0-9_-]+)-(?<year>[0-9_-]+)-(?<page>[0-9_-]+)\.html',
                     'defaults' => array(
                         'controller' => 'Budget\Controller\Transaction',
                         'action'     => 'index',
                     ),
-                    'spec' => '/transactions-%month%-%year%.html',
+                    'spec' => '/transactions-%month%-%year%-%page%.html',
                 ),
             ),
             
@@ -68,12 +68,12 @@ return array(
             'transaction-edit' => array(
                 'type'    => 'regex',
                 'options' => array(
-                    'regex' => '/transaction-edit-(?<month>[0-9_-]+)-(?<year>[0-9_-]+)-(?<tid>[0-9_-]+)\.html',
+                    'regex' => '/transaction-edit-(?<month>[0-9_-]+)-(?<year>[0-9_-]+)-(?<tid>[0-9_-]+)-(?<page>[0-9_-]+)\.html',
                     'defaults' => array(
                         'controller' => 'Budget\Controller\Transaction',
                         'action'     => 'edit',
                     ),
-                    'spec' => '/transaction-edit-%month%-%year%-%tid%.html',
+                    'spec' => '/transaction-edit-%month%-%year%-%tid%-%page%.html',
                 ),
             ),
             
@@ -81,12 +81,12 @@ return array(
             'transaction-delete' => array(
                 'type'    => 'regex',
                 'options' => array(
-                    'regex' => '/transaction-delete-(?<month>[0-9_-]+)-(?<year>[0-9_-]+)-(?<tid>[0-9_-]+)\.html',
+                    'regex' => '/transaction-delete-(?<month>[0-9_-]+)-(?<year>[0-9_-]+)-(?<tid>[0-9_-]+)-(?<page>[0-9_-]+)\.html',
                     'defaults' => array(
                         'controller' => 'Budget\Controller\Transaction',
                         'action'     => 'delete',
                     ),
-                    'spec' => '/transaction-delete-%month%-%year%-%tid%.html',
+                    'spec' => '/transaction-delete-%month%-%year%-%tid%-%page%.html',
                 ),
             ),
             
