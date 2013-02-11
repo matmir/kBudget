@@ -2,7 +2,11 @@
 <div class="paginationControl">
 <!-- Previous page link -->
 <?php if (isset($this->previous)): ?>
+  <?php if (isset($this->AddrParams)): ?>
+  <a href="<?php echo $this->url($this->route, array_merge($this->AddrParams, array('page' => $this->previous))); ?>">
+  <?php else: ?>
   <a href="<?php echo $this->url($this->route, array('page' => $this->previous)); ?>">
+  <?php endif; ?>
     < Poprzednia
   </a> |
 <?php else: ?>
@@ -12,7 +16,11 @@
 <!-- Numbered page links -->
 <?php foreach ($this->pagesInRange as $page): ?>
   <?php if ($page != $this->current): ?>
+    <?php if (isset($this->AddrParams)): ?>
+    <a href="<?php echo $this->url($this->route, array_merge($this->AddrParams, array('page' => $page))); ?>">
+    <?php else: ?>
     <a href="<?php echo $this->url($this->route, array('page' => $page)); ?>">
+    <?php endif; ?>
         <?php echo $page; ?>
     </a> |
   <?php else: ?>
@@ -22,7 +30,11 @@
 
 <!-- Next page link -->
 <?php if (isset($this->next)): ?>
+  <?php if (isset($this->AddrParams)): ?>
+  <a href="<?php echo $this->url($this->route, array_merge($this->AddrParams, array('page' => $this->next))); ?>">
+  <?php else: ?>
   <a href="<?php echo $this->url($this->route, array('page' => $this->next)); ?>">
+  <?php endif; ?>
     Następna >
   </a>
 <?php else: ?>

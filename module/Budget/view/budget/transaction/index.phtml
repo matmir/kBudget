@@ -96,9 +96,10 @@ $this->headTitle($title);
 <p>
     <?php echo $this->paginationControl($this->transactions,
                                     'Sliding',
-                                    'budget/paginator_transactions_control.phtml', array(
-                                                                                    'month' => $dt['month'],
-                                                                                    'year' => $dt['year'],
+                                    'budget/paginator_control.phtml', array('AddrParams' => array(
+                                                                                            'month' => $dt['month'],
+                                                                                            'year' => $dt['year'],
+                                                                                        )
                                                                                     )); ?>
 </p>
 
