@@ -39,4 +39,13 @@ return array(
         'time_expense' => '_time_expense',
         'time_profit' => '_time_profit',
     ),
+    
+    // Konfiguracja do ładowania wyciągów bankowych
+    'upload_banking' => array(
+        'upload_dir' => 'import/',
+        'maxFileSize' => '20kB',
+        'fileExtension' => 'csv',
+        'fileType' => 'text/plain',
+        'maxParseLines' => 10, // Liczba jednorazowo przetwarzanych linii
+    ),
 );
