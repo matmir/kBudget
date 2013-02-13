@@ -111,7 +111,8 @@ class ImportController extends AbstractActionController
                     $upload = new Http();
                     
                     // Typ ładowanego pliku
-                    $file_type = $upload->getFileInfo()['upload_file']['type'];
+                    $file_info = $upload->getFileInfo();
+                    $file_type = $file_info['upload_file']['type'];
                     
                     // Spr. zgodności typów
                     if ($file_type == $upload_config['fileType']) {
