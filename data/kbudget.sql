@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Czas wygenerowania: 07 Lut 2013, 14:18
+-- Czas wygenerowania: 13 Lut 2013, 09:23
 -- Wersja serwera: 5.5.25a
 -- Wersja PHP: 5.4.4
 
@@ -37,6 +37,23 @@ CREATE TABLE IF NOT EXISTS `category` (
 -- --------------------------------------------------------
 
 --
+-- Struktura tabeli dla tabeli `imports`
+--
+
+CREATE TABLE IF NOT EXISTS `imports` (
+  `uid` int(10) unsigned NOT NULL COMMENT 'Identyfikator usera',
+  `fname` varchar(50) NOT NULL COMMENT 'nazwa załadowanego pliku',
+  `bank` varchar(50) NOT NULL COMMENT 'nazwa banku',
+  `fpos` int(10) unsigned NOT NULL COMMENT 'pozycja w pliku',
+  `nfpos` int(10) unsigned NOT NULL COMMENT 'Nowa pozycja w pliku po zapisie transakcji',
+  `count` int(10) unsigned NOT NULL COMMENT 'Liczba wszystkich transakcji w pliku',
+  `counted` int(10) unsigned NOT NULL COMMENT 'Liczba zaimportowanych transakcji',
+  PRIMARY KEY (`uid`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin2;
+
+-- --------------------------------------------------------
+
+--
 -- Struktura tabeli dla tabeli `transaction`
 --
 
@@ -49,7 +66,7 @@ CREATE TABLE IF NOT EXISTS `transaction` (
   `t_content` varchar(200) NOT NULL COMMENT 'opis transakcji',
   `t_value` decimal(10,2) NOT NULL COMMENT 'kwota transakcji',
   PRIMARY KEY (`tid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin2 AUTO_INCREMENT=70 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin2 AUTO_INCREMENT=74 ;
 
 -- --------------------------------------------------------
 

@@ -1,0 +1,70 @@
+<?php
+
+$title = 'kBudget - Import wyciągu bankowego';
+$this->headTitle($title);
+?>
+<h1><?php echo $this->escapeHtml($title); ?></h1>
+
+<div class="span-24">
+
+<div class="notice" style="width: 25%;">
+        Przetworzono <b><?php echo $this->TR_COUNTED; ?></b> z <b><?php echo $this->ALL_TR_COUNT; ?></b> transakcji.
+</div>
+
+<?php if ($this->ERR == 0) : ?>
+    
+<?php
+$form = $this->form;
+$form->setAttribute('action', $this->url('import-commit'));
+$form->prepare();
+?>
+
+<?php
+    echo $this->form()->openTag($form);
+?>
+<table>
+    <tr>
+        <th>Typ</th>
+        <th>Kategoria</th>
+        <th>Nowa kategoria</th>
+        <th>Data</th>
+        <th>Opis</th>
+        <th>Wartość</th>
+        <th>Ignoruj</th>
+    </tr>
+    <?php for ($i=0; $i<$this->TR_COUNT; $i++): ?>
+    <tr>
+        <td>
+        <?php
+            echo $this->formHidden($form->get('t_type'.$i));
+            if ($this->form->get('t_type'.$i)->getValue()==0) {
+                echo '<div class="profit">Przychód</div>';
+            } else {
+                echo '<div class="expense">Wydatek</div>';
+            }
+        ?>
+        </td>
+        <td><?php echo $this->formRow($form->get('cid'.$i)); ?></td>
+        <td><?php echo $this->formRow($form->get('c_name'.$i)); ?></td>
+        <td><?php echo $this->formRow($form->get('t_date'.$i)); ?></td>
+        <td><?php echo $this->formRow($form->get('t_content'.$i)); ?></td>
+        <td><?php echo $this->formRow($form->get('t_value'.$i)); ?></td>
+        <td><?php echo $this->formRow($form->get('ignore'.$i)); ?></td>
+    </tr>
+    <?php endfor; ?>
+</table>
+<?php
+    echo $this->formRow($form->get('submit'));
+    echo $this->form()->closeTag(); 
+?>
+
+<a href="<?php echo $this->url('import-cancel');?>">Anuluj importowanie</a>
+    
+<?php else: ?>
+    <div class="error" style="width: 30%;">
+        Wystąpił błąd podczas przetwarzania pliku!<br />
+        Procedura importu została zatrzymana.
+    </div>
+<?php endif; ?>
+
+</div>

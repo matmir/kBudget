@@ -120,6 +120,12 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
                     $cfg = $sm->get('Configuration');
                     return $cfg['img_names'];
                 },
+		
+		// Konfiguracja ładowania wyciągów bankowych
+                'upload_cfg' =>  function($sm) {
+                    $cfg = $sm->get('Configuration');
+                    return $cfg['upload_banking'];
+                },
             ),
         );
     }

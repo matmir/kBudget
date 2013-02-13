@@ -43,8 +43,16 @@ div.transaction-add-expense {
     color: red;
 }
 
+div.transaction-import {
+    display: inline;
+    padding: 2px;
+    font-size: 150%;
+    font-weight: bold;
+    color: blue;
+}
+
 div.transaction-add-links {
-    width: 30%;
+    width: 45%;
     border: 1px solid #209800;
     background-color: #d7edf9;
     padding: 8px;

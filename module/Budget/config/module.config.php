@@ -12,6 +12,7 @@ return array(
             'Budget\Controller\User' => 'Budget\Controller\UserController',
             'Budget\Controller\Configuration' => 'Budget\Controller\ConfigurationController',
             'Budget\Controller\Admin' => 'Budget\Controller\AdminController',
+            'Budget\Controller\Import' => 'Budget\Controller\ImportController',
         ),
     ),
     
@@ -320,6 +321,42 @@ return array(
                         'action'     => 'userpass',
                     ),
                     'spec' => '/admin-user-pass-%uid%-%page%.html',
+                ),
+            ),
+            
+            // Import - główna strona
+            'import' => array(
+                'type'    => 'literal',
+                'options' => array(
+                    'route'    => '/import.html',
+                    'defaults' => array(
+                        'controller' => 'Budget\Controller\Import',
+                        'action'     => 'index',
+                    ),
+                ),
+            ),
+            
+            // Import - zatwierdzanie transakcji
+            'import-commit' => array(
+                'type'    => 'literal',
+                'options' => array(
+                    'route'    => '/import-commit.html',
+                    'defaults' => array(
+                        'controller' => 'Budget\Controller\Import',
+                        'action'     => 'commit',
+                    ),
+                ),
+            ),
+            
+            // Import - anulowanie importu
+            'import-cancel' => array(
+                'type'    => 'literal',
+                'options' => array(
+                    'route'    => '/import-cancel.html',
+                    'defaults' => array(
+                        'controller' => 'Budget\Controller\Import',
+                        'action'     => 'cancel',
+                    ),
                 ),
             ),
             

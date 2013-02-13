@@ -1,0 +1,29 @@
+<?php
+
+$title = 'kBudget - Import wyciągu bankowego';
+$this->headTitle($title);
+?>
+<h1><?php echo $this->escapeHtml($title); ?></h1>
+
+<div class="span-24">
+
+<div class="notice">
+    Serwis umożliwia zaimportowanie transakcji z wyciągu bankowego zapisanego w formacie <b>CSV</b>.<br />
+    Wystarczy zalogować się do własnego konta bankowego i wyeksportować historię transakcji do pliku CSV.
+    Następnie z poniżeszej listy wybieramy nazwę banku oraz wskazujemy na zapisany plik i naciskamy 'Wyślij',
+    aby rozpocząć procedurę importu.
+</div>
+
+<?php
+$form = $this->form;
+$form->setAttribute('action', $this->url('import'));
+$form->prepare();
+
+echo $this->form()->openTag($form);
+echo $this->formRow($form->get('bank')).'<br />';
+echo $this->formRow($form->get('upload_file')).'<br />';
+echo $this->formSubmit($form->get('submit'));
+echo $this->form()->closeTag(); 
+?>
+
+</div>
