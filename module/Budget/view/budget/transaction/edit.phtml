@@ -29,16 +29,77 @@ $this->headTitle($title);
         $form->prepare();
         
         echo $this->form()->openTag($form);
-        echo $this->formHidden($form->get('tid'));
-        echo $this->formHidden($form->get('t_type'));
-        echo $this->formRow($form->get('cid')).'<br />';
-        echo $this->formRow($form->get('c_name')).'<br />';
-        echo $this->formRow($form->get('t_date')).'<br />';
-        echo $this->formRow($form->get('t_content')).'<br />';
-        echo $this->formRow($form->get('t_value')).'<br />';
-        echo $this->formSubmit($form->get('submit'));
-        echo $this->form()->closeTag(); 
         ?>
+        
+        <table class="TableClear">
+            <tr>
+                <td colspan="2"><?php echo $this->formHidden($form->get('tid')); ?></td>
+            </tr>
+            <tr>
+                <td colspan="2"><?php echo $this->formHidden($form->get('t_type')); ?></td>
+            </tr>
+            <tr>
+                <td><?php echo $form->get('cid')->getLabel(); ?></td>
+                <td><?php echo $this->formElement($form->get('cid')) ?></td>
+            </tr>
+            <?php
+                echo $this->formElementErrors()
+                    ->setMessageOpenFormat('<tr><td colspan="2">')
+                    ->setMessageSeparatorString('</td></tr><tr><td colspan="2">')
+                    ->setMessageCloseString('</tr>')
+                    ->render($form->get('cid'));
+            ?>
+            <tr>
+                <td><?php echo $form->get('c_name')->getLabel(); ?></td>
+                <td><?php echo $this->formElement($form->get('c_name')) ?></td>
+            </tr>
+            <?php
+                echo $this->formElementErrors()
+                    ->setMessageOpenFormat('<tr><td colspan="2">')
+                    ->setMessageSeparatorString('</td></tr><tr><td colspan="2">')
+                    ->setMessageCloseString('</tr>')
+                    ->render($form->get('c_name'));
+            ?>
+            <tr>
+                <td><?php echo $form->get('t_date')->getLabel(); ?></td>
+                <td><?php echo $this->formElement($form->get('t_date')) ?></td>
+            </tr>
+            <?php
+                echo $this->formElementErrors()
+                    ->setMessageOpenFormat('<tr><td colspan="2">')
+                    ->setMessageSeparatorString('</td></tr><tr><td colspan="2">')
+                    ->setMessageCloseString('</tr>')
+                    ->render($form->get('t_date'));
+            ?>
+            <tr>
+                <td><?php echo $form->get('t_content')->getLabel(); ?></td>
+                <td><?php echo $this->formElement($form->get('t_content')) ?></td>
+            </tr>
+            <?php
+                echo $this->formElementErrors()
+                    ->setMessageOpenFormat('<tr><td colspan="2">')
+                    ->setMessageSeparatorString('</td></tr><tr><td colspan="2">')
+                    ->setMessageCloseString('</tr>')
+                    ->render($form->get('t_content'));
+            ?>
+            <tr>
+                <td><?php echo $form->get('t_value')->getLabel(); ?></td>
+                <td><?php echo $this->formElement($form->get('t_value')) ?></td>
+            </tr>
+            <?php
+                echo $this->formElementErrors()
+                    ->setMessageOpenFormat('<tr><td colspan="2">')
+                    ->setMessageSeparatorString('</td></tr><tr><td colspan="2">')
+                    ->setMessageCloseString('</tr>')
+                    ->render($form->get('t_value'));
+            ?>
+            <tr>
+                <td colspan="2"><?php echo $this->formSubmit($form->get('submit')); ?></td>
+            </tr>
+        </table>
+        
+        <?php $this->form()->closeTag(); ?>
+        
     </div>
 
 </div>

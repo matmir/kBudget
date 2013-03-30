@@ -38,9 +38,25 @@ $this->headTitle($title);
     $form->prepare();
     
     echo $this->form()->openTag($form);
-    echo $this->formRow($form->get('email')).'<br />';
-    echo $this->formSubmit($form->get('submit'));
-    echo $this->form()->closeTag(); 
     ?>
+    
+    <table class="TableClear">
+        <tr>
+            <td><b><?php echo $form->get('email')->getLabel(); ?></b></td>
+            <td><?php echo $this->formElement($form->get('email')) ?></td>
+        </tr>
+        <?php
+            echo $this->formElementErrors()
+                ->setMessageOpenFormat('<tr><td colspan="2">')
+                ->setMessageSeparatorString('</td></tr><tr><td colspan="2">')
+                ->setMessageCloseString('</tr>')
+                ->render($form->get('email'));
+        ?>
+        <tr>
+            <td colspan="2"><?php echo $this->formSubmit($form->get('submit')); ?></td>
+        </tr>
+    </table>
+    
+    <?php $this->form()->closeTag(); ?>
 
 </div>

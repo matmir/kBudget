@@ -114,7 +114,7 @@ class RegisterForm extends Form
             'type'  => 'Zend\Form\Element\Submit',
             'name' => 'submit',
             'attributes' => array(
-                'value' => 'Zatwierdź',
+                'value' => 'Rejestruj',
                 'id' => 'submitbutton',
             ),
         ));

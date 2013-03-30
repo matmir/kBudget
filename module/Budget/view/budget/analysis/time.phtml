@@ -2,48 +2,11 @@
 
 $title = 'kBudget - Analiza czasowa transakcji';
 $this->headTitle($title);
+
+$this->headScript()->prependFile($this->basePath('/js/analysis/sort.js'));
+
 ?>
 <h1><?php echo $this->escapeHtml($title); ?></h1>
-
-<script language="javascript">
- 
-function Zakryj() {
-    if ($('#filter_type').val()=='between') {
-        $('#month_filter').hide();
-        $('#between_filter').show();
-    } else if ($('#filter_type').val()=='all') {
-        $('#month_filter').hide();
-        $('#between_filter').hide();
-    } else {
-        $('#month_filter').show();
-        $('#between_filter').hide();
-    }
-};
- 
-// Załadowanie dokumentu
-$(document).ready(function(){
-    
-    // Domyślne formatki
-    Zakryj();
-    
-    // Zmieniono selekta od typu filtracji
-    $('#filter_type').change(function(){
-        if ($('option:selected', this).val() == 'month') {
-            $('#month_filter').show();
-            $('#between_filter').hide();
-        }
-        if ($('option:selected', this).val() == 'between') {
-            $('#month_filter').hide();
-            $('#between_filter').show();
-        }
-        if ($('option:selected', this).val() == 'all') {
-            $('#month_filter').hide();
-            $('#between_filter').hide();
-        }
-    });
- 
-});
-</script>
 
 <div class="span-24">
 <p>
@@ -64,19 +27,70 @@ $(document).ready(function(){
         $form->prepare();
         
         echo $this->form()->openTag($form);
-        echo $this->formRow($form->get('filter_type')).'<br />';
-        echo '<div id="month_filter">';
-        echo $this->formRow($form->get('month')).'<br />';
-        echo $this->formRow($form->get('year')).'<br />';
-        echo '</div>';
-        echo '<div id="between_filter">';
-        echo $this->formRow($form->get('date_from')).'<br />';
-        echo $this->formRow($form->get('date_to')).'<br />';
-        echo '</div>';
-        echo $this->formSubmit($form->get('submit'));
-        echo $this->form()->closeTag();
-        
         ?>
+        
+        <table class="TableClear">
+        <tr>
+            <td><?php echo $form->get('filter_type')->getLabel(); ?></td>
+            <td><?php echo $this->formElement($form->get('filter_type')) ?></td>
+        </tr>
+        <?php
+            echo $this->formElementErrors()
+                ->setMessageOpenFormat('<tr><td colspan="2">')
+                ->setMessageSeparatorString('</td></tr><tr><td colspan="2">')
+                ->setMessageCloseString('</tr>')
+                ->render($form->get('filter_type'));
+        ?>
+        <tr class="month_filter">
+            <td><?php echo $form->get('month')->getLabel(); ?></td>
+            <td><?php echo $this->formElement($form->get('month')) ?></td>
+        </tr>
+        <?php
+            echo $this->formElementErrors()
+                ->setMessageOpenFormat('<tr class="month_filter"><td colspan="2">')
+                ->setMessageSeparatorString('</td></tr><tr class="month_filter"><td colspan="2">')
+                ->setMessageCloseString('</tr>')
+                ->render($form->get('month'));
+        ?>
+        <tr class="month_filter">
+            <td><?php echo $form->get('year')->getLabel(); ?></td>
+            <td><?php echo $this->formElement($form->get('year')) ?></td>
+        </tr>
+        <?php
+            echo $this->formElementErrors()
+                ->setMessageOpenFormat('<tr class="month_filter"><td colspan="2">')
+                ->setMessageSeparatorString('</td></tr><tr class="month_filter"><td colspan="2">')
+                ->setMessageCloseString('</tr>')
+                ->render($form->get('year'));
+        ?>
+        <tr class="between_filter">
+            <td><?php echo $form->get('date_from')->getLabel(); ?></td>
+            <td><?php echo $this->formElement($form->get('date_from')) ?></td>
+        </tr>
+        <?php
+            echo $this->formElementErrors()
+                ->setMessageOpenFormat('<tr class="between_filter"><td colspan="2">')
+                ->setMessageSeparatorString('</td></tr><tr class="between_filter"><td colspan="2">')
+                ->setMessageCloseString('</tr>')
+                ->render($form->get('date_from'));
+        ?>
+        <tr class="between_filter">
+            <td><?php echo $form->get('date_to')->getLabel(); ?></td>
+            <td><?php echo $this->formElement($form->get('date_to')) ?></td>
+        </tr>
+        <?php
+            echo $this->formElementErrors()
+                ->setMessageOpenFormat('<tr class="between_filter"><td colspan="2">')
+                ->setMessageSeparatorString('</td></tr><tr class="between_filter"><td colspan="2">')
+                ->setMessageCloseString('</tr>')
+                ->render($form->get('date_to'));
+        ?>
+        <tr>
+            <td colspan="2"><?php echo $this->formSubmit($form->get('submit')); ?></td>
+        </tr>
+    </table>
+    
+    <?php echo $this->form()->closeTag(); ?>
 
     </div>
 </div>
@@ -92,7 +106,7 @@ $(document).ready(function(){
 <!-- Wykresy (lewa strona) -->
 <div class="span-16">
     
-    <img src="<?php echo $balance_chart; ?>" />
+    <img src="<?php echo $balance_chart; ?>" alt="Bilans" title="Bilans" />
     
     <p>
         <?php if ($ONE_PROFIT): ?>
@@ -104,7 +118,7 @@ $(document).ready(function(){
         <?php else: ?>
         
             <?php if ($time_profit_chart): ?>
-            <img src="<?php echo $time_profit_chart; ?>" />
+            <img src="<?php echo $time_profit_chart; ?>" alt="Wykres czasowy przychodów" title="Wykres czasowy przychodów" />
             <?php else: ?>
             Brak przychodów w wybranym miesiącu!
             <?php endif; ?>
@@ -122,7 +136,7 @@ $(document).ready(function(){
         <?php else: ?>
         
             <?php if ($time_expense_chart): ?>
-            <img src="<?php echo $time_expense_chart; ?>" />
+            <img src="<?php echo $time_expense_chart; ?>" alt="Wykres czasowy wydatków" title="Wykres czasowy wydatków" />
             <?php else: ?>
             Brak wydatków w wybranym miesiącu!
             <?php endif; ?>

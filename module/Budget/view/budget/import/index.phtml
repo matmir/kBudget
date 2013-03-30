@@ -20,10 +20,36 @@ $form->setAttribute('action', $this->url('import'));
 $form->prepare();
 
 echo $this->form()->openTag($form);
-echo $this->formRow($form->get('bank')).'<br />';
-echo $this->formRow($form->get('upload_file')).'<br />';
-echo $this->formSubmit($form->get('submit'));
-echo $this->form()->closeTag(); 
 ?>
+
+<table class="TableClear">
+    <tr>
+        <td><?php echo $form->get('bank')->getLabel(); ?></td>
+        <td><?php echo $this->formElement($form->get('bank')) ?></td>
+    </tr>
+    <?php
+        echo $this->formElementErrors()
+            ->setMessageOpenFormat('<tr><td colspan="2">')
+            ->setMessageSeparatorString('</td></tr><tr><td colspan="2">')
+            ->setMessageCloseString('</tr>')
+            ->render($form->get('bank'));
+    ?>
+    <tr>
+        <td><?php echo $form->get('upload_file')->getLabel(); ?></td>
+        <td><?php echo $this->formElement($form->get('upload_file')) ?></td>
+    </tr>
+    <?php
+        echo $this->formElementErrors()
+            ->setMessageOpenFormat('<tr><td colspan="2">')
+            ->setMessageSeparatorString('</td></tr><tr><td colspan="2">')
+            ->setMessageCloseString('</tr>')
+            ->render($form->get('upload_file'));
+    ?>
+    <tr>
+        <td colspan="2"><?php echo $this->formSubmit($form->get('submit')); ?></td>
+    </tr>
+</table>
+
+<?php echo $this->form()->closeTag(); ?>
 
 </div>

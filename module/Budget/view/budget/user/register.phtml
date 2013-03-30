@@ -16,6 +16,10 @@ $this->headTitle($title);
     
     <?php else: ?>
     
+    <div class="notice">
+    Proszę wypełnić poniższe pola. Każdy z elementów formularza jest wymagany do rejestracji!
+    </div>
+    
     <?php if ($this->ERR==1) : ?>
     <!-- Błąd podczas rejestracji -->
     <div class="error" style="width: 30%;">
@@ -37,15 +41,73 @@ $this->headTitle($title);
     $form->prepare();
     
     echo $this->form()->openTag($form);
-    echo $this->formRow($form->get('login')).'<br />';
-    echo $this->formRow($form->get('email')).'<br />';
-    echo $this->formRow($form->get('pass1')).'<br />';
-    echo $this->formRow($form->get('pass2')).'<br />';
-    echo $this->formRow($form->get('captcha')).'<br />';
-    echo $this->formHidden($form->get('csrf'));
-    echo $this->formSubmit($form->get('submit'));
-    echo $this->form()->closeTag();
     ?>
+    
+    <table class="TableClear">
+        <tr>
+            <td><?php echo $form->get('login')->getLabel(); ?></td>
+            <td><?php echo $this->formElement($form->get('login')) ?></td>
+        </tr>
+        <?php
+            echo $this->formElementErrors()
+                ->setMessageOpenFormat('<tr><td colspan="2">')
+                ->setMessageSeparatorString('</td></tr><tr><td colspan="2">')
+                ->setMessageCloseString('</tr>')
+                ->render($form->get('login'));
+        ?>
+        <tr>
+            <td><?php echo $form->get('email')->getLabel(); ?></td>
+            <td><?php echo $this->formElement($form->get('email')) ?></td>
+        </tr>
+        <?php
+            echo $this->formElementErrors()
+                ->setMessageOpenFormat('<tr><td colspan="2">')
+                ->setMessageSeparatorString('</td></tr><tr><td colspan="2">')
+                ->setMessageCloseString('</tr>')
+                ->render($form->get('email'));
+        ?>
+        <tr>
+            <td><?php echo $form->get('pass1')->getLabel(); ?></td>
+            <td><?php echo $this->formElement($form->get('pass1')) ?></td>
+        </tr>
+        <?php
+            echo $this->formElementErrors()
+                ->setMessageOpenFormat('<tr><td colspan="2">')
+                ->setMessageSeparatorString('</td></tr><tr><td colspan="2">')
+                ->setMessageCloseString('</tr>')
+                ->render($form->get('pass1'));
+        ?>
+        <tr>
+            <td><?php echo $form->get('pass2')->getLabel(); ?></td>
+            <td><?php echo $this->formElement($form->get('pass2')) ?></td>
+        </tr>
+        <?php
+            echo $this->formElementErrors()
+                ->setMessageOpenFormat('<tr><td colspan="2">')
+                ->setMessageSeparatorString('</td></tr><tr><td colspan="2">')
+                ->setMessageCloseString('</tr>')
+                ->render($form->get('pass2'));
+        ?>
+        <tr>
+            <td><?php echo $form->get('captcha')->getLabel(); ?></td>
+            <td><?php echo $this->formElement($form->get('captcha')) ?></td>
+        </tr>
+        <?php
+            echo $this->formElementErrors()
+                ->setMessageOpenFormat('<tr><td colspan="2">')
+                ->setMessageSeparatorString('</td></tr><tr><td colspan="2">')
+                ->setMessageCloseString('</tr>')
+                ->render($form->get('captcha'));
+        ?>
+        <tr>
+            <td colspan="2"><?php echo $this->formHidden($form->get('csrf')); ?></td>
+        </tr>
+        <tr>
+            <td colspan="2"><?php echo $this->formSubmit($form->get('submit')); ?></td>
+        </tr>
+    </table>
+    
+    <?php $this->form()->closeTag(); ?>
     
     <?php endif; ?>
 
