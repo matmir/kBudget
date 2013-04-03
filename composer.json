@@ -7,6 +7,12 @@
         "finance"
     ],
     "homepage": "http://kbudget.dorothy.vot.pl",
+    "repositories": [
+                    {
+                        "type": "composer",
+                        "url": "https://packages.zendframework.com/"
+                    }
+                ],
     "require": {
         "php": ">=5.3.3",
         "zendframework/zendframework": "2.1.4"
