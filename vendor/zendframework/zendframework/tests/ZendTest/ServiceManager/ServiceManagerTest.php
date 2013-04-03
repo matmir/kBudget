@@ -3,7 +3,7 @@
  * Zend Framework (http://framework.zend.com/)
  *
  * @link      http://github.com/zendframework/zf2 for the canonical source repository
- * @copyright Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright Copyright (c) 2005-2013 Zend Technologies USA Inc. (http://www.zend.com)
  * @license   http://framework.zend.com/license/new-bsd New BSD License
  * @package   Zend_ServiceManager
  */
@@ -206,6 +206,23 @@ class ServiceManagerTest extends \PHPUnit_Framework_TestCase
     {
         $this->setExpectedException('Zend\ServiceManager\Exception\ServiceNotFoundException');
         $this->assertEquals('bar', $this->serviceManager->get('foo'));
+    }
+
+    /**
+     * @covers Zend\ServiceManager\ServiceManager::get
+     */
+    public function testGetUsesIndivualSharedSettingWhenSetAndDeviatesFromShareByDefaultSetting()
+    {
+        $this->serviceManager->setAllowOverride(true);
+        $this->serviceManager->setShareByDefault(false);
+        $this->serviceManager->setInvokableClass('foo', 'ZendTest\ServiceManager\TestAsset\Foo');
+        $this->serviceManager->setShared('foo', true);
+        $this->assertSame($this->serviceManager->get('foo'), $this->serviceManager->get('foo'));
+
+        $this->serviceManager->setShareByDefault(true);
+        $this->serviceManager->setInvokableClass('foo', 'ZendTest\ServiceManager\TestAsset\Foo');
+        $this->serviceManager->setShared('foo', false);
+        $this->assertNotSame($this->serviceManager->get('foo'), $this->serviceManager->get('foo'));
     }
 
     /**
@@ -543,6 +560,18 @@ class ServiceManagerTest extends \PHPUnit_Framework_TestCase
         $result = $this->serviceManager->addInitializer(get_class($this));
     }
 
+    public function testGetGlobIteratorServiceWorksProperly()
+    {
+        $config = new Config(array(
+            'invokables' => array(
+                'foo' => 'ZendTest\ServiceManager\TestAsset\GlobIteratorService',
+            ),
+        ));
+        $serviceManager = new ServiceManager($config);
+        $foo = $serviceManager->get('foo');
+        $this->assertInstanceOf('ZendTest\ServiceManager\TestAsset\GlobIteratorService', $foo);
+    }
+
     public function duplicateService()
     {
         $self = $this;
@@ -666,5 +695,37 @@ class ServiceManagerTest extends \PHPUnit_Framework_TestCase
         $this->serviceManager->addAbstractFactory('ZendTest\ServiceManager\TestAsset\FooAbstractFactory');
         $this->assertInstanceOf('ZendTest\ServiceManager\TestAsset\Bar', $this->serviceManager->get('bar'));
         $this->assertInstanceOf('ZendTest\ServiceManager\TestAsset\Bar', $this->serviceManager->get('bar'));
+    }
+
+    /**
+     * @covers Zend\ServiceManager\ServiceManager::setService
+     * @covers Zend\ServiceManager\ServiceManager::get
+     * @covers Zend\ServiceManager\ServiceManager::retrieveFromPeeringManagerFirst
+     * @covers Zend\ServiceManager\ServiceManager::setRetrieveFromPeeringManagerFirst
+     * @covers Zend\ServiceManager\ServiceManager::addPeeringServiceManager
+     */
+    public function testRetrieveServiceFromPeeringServiceManagerIfretrieveFromPeeringManagerFirstSetToTrueAndServiceNamesAreSame()
+    {
+        $foo1 = "foo1";
+        $boo1 = "boo1";
+        $boo2 = "boo2";
+
+        $this->serviceManager->setService($foo1, $boo1);
+        $this->assertEquals($this->serviceManager->get($foo1), $boo1);
+
+        $serviceManagerChild = new ServiceManager();
+        $serviceManagerChild->setService($foo1, $boo2);
+        $this->assertEquals($serviceManagerChild->get($foo1), $boo2);
+
+        $this->assertFalse($this->serviceManager->retrieveFromPeeringManagerFirst());
+        $this->serviceManager->setRetrieveFromPeeringManagerFirst(true);
+        $this->assertTrue($this->serviceManager->retrieveFromPeeringManagerFirst());
+
+        $this->serviceManager->addPeeringServiceManager($serviceManagerChild);
+
+        $this->assertContains($serviceManagerChild, $this->readAttribute($this->serviceManager, 'peeringServiceManagers'));
+
+        $this->assertEquals($serviceManagerChild->get($foo1), $boo2);
+        $this->assertEquals($this->serviceManager->get($foo1), $boo2);
     }
 }

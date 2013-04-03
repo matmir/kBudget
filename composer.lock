@@ -1,18 +1,18 @@
 {
-    "hash": "3d8fc311b085e1e9bc4ed181947f205d",
+    "hash": "6ddd353d6b6979f544b2123e2e9b19d6",
     "packages": [
         {
             "name": "zendframework/zendframework",
-            "version": "2.1.1",
+            "version": "2.1.4",
             "source": {
                 "type": "git",
-                "url": "git://github.com/zendframework/zf2.git",
-                "reference": "release-2.1.1"
+                "url": "https://github.com/zendframework/zf2.git",
+                "reference": "release-2.1.4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/zendframework/zf2/zipball/release-2.1.1",
-                "reference": "release-2.1.1",
+                "url": "https://api.github.com/repos/zendframework/zf2/zipball/release-2.1.4",
+                "reference": "release-2.1.4",
                 "shasum": ""
             },
             "require": {
@@ -72,16 +72,18 @@
             },
             "require-dev": {
                 "doctrine/common": ">=2.1",
+                "ircmaxell/random-lib": "dev-master",
+                "ircmaxell/security-lib": "dev-master",
                 "phpunit/phpunit": "3.7.*"
             },
             "suggest": {
                 "doctrine/common": "Doctrine\\Common >=2.1 for annotation features",
                 "ext-intl": "ext/intl for i18n features",
+                "ircmaxell/random-lib": "Fallback random byte generator for Zend\\Math\\Rand if OpenSSL/Mcrypt extensions are unavailable",
                 "pecl-weakref": "Implementation of weak references for Zend\\Stdlib\\CallbackHandler",
                 "zendframework/zendpdf": "ZendPdf for creating PDF representations of barcodes",
                 "zendframework/zendservice-recaptcha": "ZendService\\ReCaptcha for rendering ReCaptchas in Zend\\Captcha and/or Zend\\Form"
             },
-            "time": "2013-02-06 21:23:43",
             "bin": [
                 "bin/classmap_generator.php"
             ],
@@ -96,11 +98,7 @@
                 "psr-0": {
                     "Zend\\": "library/",
                     "ZendTest\\": "tests/"
-                },
-                "files": [
-                    "library/Zend/Stdlib/compatibility/autoload.php",
-                    "library/Zend/Session/compatibility/autoload.php"
-                ]
+                }
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
@@ -111,15 +109,24 @@
             "keywords": [
                 "framework",
                 "zf2"
-            ]
+            ],
+            "time": "2013-03-13 22:26:48"
         }
     ],
-    "packages-dev": null,
+    "packages-dev": [
+
+    ],
     "aliases": [
 
     ],
     "minimum-stability": "stable",
     "stability-flags": [
+
+    ],
+    "platform": {
+        "php": ">=5.3.3"
+    },
+    "platform-dev": [
 
     ]
 }
