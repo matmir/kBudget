@@ -21,8 +21,8 @@ use Budget\Form\LoadBankFileFormFilter;
 use Budget\Form\TransactionImportForm;
 use Budget\Form\TransactionImportFormFilter;
 
-use Budget\Model\Category;
-use Budget\Model\CategoryMapper;
+use User\Model\Category;
+use User\Model\CategoryMapper;
 
 use Budget\Model\Transaction;
 use Budget\Model\TransactionMapper;
@@ -154,7 +154,7 @@ class ImportController extends AbstractActionController
                             $this->getImportMapper()->setUserImport($new_import);
                             
                             // Przekierowanie do zatwierdzania transakcji
-                            return $this->redirect()->toRoute('import-commit');
+                            return $this->redirect()->toRoute('import/commit');
                             
                         }
                         
@@ -174,7 +174,7 @@ class ImportController extends AbstractActionController
         } else { // są dane
             
             // Przekierowanie do zatwierdzania transakcji
-            return $this->redirect()->toRoute('import-commit');
+            return $this->redirect()->toRoute('import/commit');
             
         }
     }
@@ -302,7 +302,7 @@ class ImportController extends AbstractActionController
                                 $t_dt[1] = date('n');
                             }
                             // Przekierowanie do listy transakcji do daty z dodawanej transakcji
-                            return $this->redirect()->toRoute('transaction', array(
+                            return $this->redirect()->toRoute('transactions', array(
                                                                                    'month' => $t_dt[1],
                                                                                    'year' => $t_dt[0],
                                                                                    'page' => 1,
@@ -318,7 +318,7 @@ class ImportController extends AbstractActionController
                         $this->getImportMapper()->setUserImport($import);
                         
                         // Przekierowanie do kolejnego zatwierdzania
-                        return $this->redirect()->toRoute('import-commit');
+                        return $this->redirect()->toRoute('import/commit');
                         
                     }
                     
@@ -434,7 +434,7 @@ class ImportController extends AbstractActionController
         }
         
         // Przekierowanie do listy transakcji
-        return $this->redirect()->toRoute('transaction', array(
+        return $this->redirect()->toRoute('transactions', array(
                                                                'month' => date('n'),
                                                                'year' => date('Y'),
                                                                'page' => 1,

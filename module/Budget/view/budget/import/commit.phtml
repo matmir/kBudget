@@ -15,7 +15,7 @@ $this->headTitle($title);
     
 <?php
 $form = $this->form;
-$form->setAttribute('action', $this->url('import-commit'));
+$form->setAttribute('action', $this->url('import/commit'));
 $form->prepare();
 ?>
 
@@ -58,7 +58,7 @@ $form->prepare();
     echo $this->form()->closeTag(); 
 ?>
 
-<a href="<?php echo $this->url('import-cancel');?>">Anuluj importowanie</a>
+<a href="<?php echo $this->url('import/cancel');?>">Anuluj importowanie</a>
     
 <?php else: ?>
     <div class="error" style="width: 30%;">

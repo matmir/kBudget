@@ -13,8 +13,8 @@ use Zend\View\Model\ViewModel;
 use Budget\Model\Transaction;
 use Budget\Model\TransactionMapper;
 
-use Budget\Model\Category;
-use Budget\Model\CategoryMapper;
+use User\Model\Category;
+use User\Model\CategoryMapper;
 
 use Budget\Form\TransactionRangeSelectForm;
 use Budget\Form\TransactionRangeSelectFilter;

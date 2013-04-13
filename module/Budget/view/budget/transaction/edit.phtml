@@ -20,7 +20,7 @@ $this->headTitle($title);
     <div class="transaction-form">
         <?php
         $form = $this->form;
-        $form->setAttribute('action', $this->url('transaction-edit', array(
+        $form->setAttribute('action', $this->url('transaction/edit', array(
                                                                            'month'=>$dt['month'],
                                                                            'year'=>$dt['year'],
                                                                            'tid' => $this->tid,
@@ -109,7 +109,7 @@ $this->headTitle($title);
 <div class="span-24">
     
     <p>
-        <a href="<?php echo $this->url('transaction',
+        <a href="<?php echo $this->url('transactions',
                     array(
                         'month'=>$dt['month'],
                         'year'=>$dt['year'],

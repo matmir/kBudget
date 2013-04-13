@@ -1,0 +1,64 @@
+<?php
+
+$title = 'Logowanie';
+$this->headTitle($title);
+?>
+<h1><?php echo $this->escapeHtml($title); ?></h1>
+
+<div class="span-24">
+    
+    <?php if ($this->ERR) : ?>
+    <div class="error" style="width: 30%;">
+        Błąd podczas logowania.
+    </div>
+    <?php endif; ?>
+    
+    <?php
+    $form = $this->form;
+    $form->setAttribute('action', $this->url('user/login'));
+    $form->prepare();
+    
+    echo $this->form()->openTag($form);
+    ?>
+    <table class="TableClear">
+        <tr>
+            <td><?php echo $form->get('login')->getLabel(); ?></td>
+            <td><?php echo $this->formElement($form->get('login')) ?></td>
+        </tr>
+        <?php
+            echo $this->formElementErrors()
+                ->setMessageOpenFormat('<tr><td colspan="2">')
+                ->setMessageSeparatorString('</td></tr><tr><td colspan="2">')
+                ->setMessageCloseString('</tr>')
+                ->render($form->get('login'));
+        ?>
+        <tr>
+            <td><?php echo $form->get('pass')->getLabel(); ?></td>
+            <td><?php echo $this->formElement($form->get('pass')) ?></td>
+        </tr>
+        <?php
+            echo $this->formElementErrors()
+                ->setMessageOpenFormat('<tr><td colspan="2">')
+                ->setMessageSeparatorString('</td></tr><tr><td colspan="2">')
+                ->setMessageCloseString('</tr>')
+                ->render($form->get('pass'));
+        ?>
+        <tr>
+            <td colspan="2"><?php echo $this->formHidden($form->get('csrf')); ?></td>
+        </tr>
+        <tr>
+            <td colspan="2"><?php echo $this->formSubmit($form->get('submit')); ?></td>
+        </tr>
+    </table>
+    
+    <?php echo $this->form()->closeTag(); ?>
+    
+</div>
+
+<div class="span-24">&nbsp;</div>
+
+<div class="span-24">
+    <p>
+        Nie pamiętasz hasła? <a href="<?php echo $this->url('user/passrst');?>">Odzyskiwanie</a> hasła.
+    </p>
+</div>

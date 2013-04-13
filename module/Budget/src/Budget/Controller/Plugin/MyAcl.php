@@ -62,24 +62,28 @@ class MyAcl extends AbstractPlugin
         $acl->addResource(new Resource('Transaction'));
         $acl->addResource(new Resource('Analysis'));
         $acl->addResource(new Resource('User'));
-        $acl->addResource(new Resource('Configuration'));
-        $acl->addResource(new Resource('Admin'));
+        $acl->addResource(new Resource('Category'));
+        $acl->addResource(new Resource('Config'));
+        $acl->addResource(new Resource('Index'));
+        $acl->addResource(new Resource('Users'));
         $acl->addResource(new Resource('Import'));
         
         // Gość
         $acl->deny('anonymous', 'Transaction');
         $acl->deny('anonymous', 'Analysis');
-        $acl->deny('anonymous', 'Configuration');
-        $acl->deny('anonymous', 'Admin');
+        $acl->deny('anonymous', 'Category');
+        $acl->deny('anonymous', 'Config');
+        $acl->deny('anonymous', 'Index');
+        $acl->deny('anonymous', 'Users');
         $acl->deny('anonymous', 'Import');
         $acl->allow('anonymous', 'Main');
         $acl->allow('anonymous', 'User');
         
         // User
         $acl->allow('user',
-            array('Main', 'Transaction', 'Analysis', 'User', 'Configuration','Import')
+            array('Main', 'Transaction', 'Analysis', 'User', 'Config', 'Category', 'Import')
         );
-        $acl->deny('user', 'Admin');
+        $acl->deny('user', array('Users', 'Index'));
         
         // Admin
         $acl->allow('admin', null);
@@ -99,7 +103,7 @@ class MyAcl extends AbstractPlugin
         
         if (!$acl->isAllowed($role, $controller, $action)){
             $router = $e->getRouter();
-            $url = $router->assemble(array('controller' => 'user-login'), array('name' => 'user-login'));
+            $url = $router->assemble(array('controller' => 'user/login'), array('name' => 'user/login'));
             
             $response = $e->getResponse();
             $response->setStatusCode(302);

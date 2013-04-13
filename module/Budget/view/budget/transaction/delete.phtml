@@ -15,7 +15,7 @@ $this->headTitle($title);
             <?php echo $this->escapeHtml($transaction->t_value); ?>zł ?
         </p>
         <?php
-        $url = $this->url('transaction-delete', array(
+        $url = $this->url('transaction/delete', array(
             'month' => $dt['month'],
             'year' => $dt['year'],
             'tid'     => $this->tid,

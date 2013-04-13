@@ -23,7 +23,7 @@ $this->headScript()->prependFile($this->basePath('/js/analysis/sort.js'));
         <?php
         
         $form = $this->form;
-        $form->setAttribute('action', $this->url('analysis-time'));
+        $form->setAttribute('action', $this->url('analysis/time'));
         $form->prepare();
         
         echo $this->form()->openTag($form);
@@ -99,7 +99,7 @@ $this->headScript()->prependFile($this->basePath('/js/analysis/sort.js'));
 
 <div class="span-24">
     <p>
-        <a href="<?php echo $this->url('analysis-time');?>">Wyświetl aktualny miesiąc</a>
+        <a href="<?php echo $this->url('analysis/time');?>">Wyświetl aktualny miesiąc</a>
     </p>
 </div>
 

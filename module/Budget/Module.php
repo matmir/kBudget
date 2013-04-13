@@ -36,10 +36,10 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
         
         // Jest zalogowany
         if ($dt->uid) {
-            $url = $router->assemble(array('controller' => 'user-logout'), array('name' => 'user-logout'));
+            $url = $router->assemble(array('controller' => 'user/logout'), array('name' => 'user/logout'));
             $title = 'Wyloguj';
         } else { // nie zalogowany
-            $url = $router->assemble(array('controller' => 'user-login'), array('name' => 'user-login'));
+            $url = $router->assemble(array('controller' => 'user/login'), array('name' => 'user/login'));
             $title = 'Zaloguj';
         }
         // Przekazanie do layout-u

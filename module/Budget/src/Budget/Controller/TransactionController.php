@@ -13,8 +13,8 @@ use Zend\View\Model\ViewModel;
 use Budget\Model\Transaction;
 use Budget\Model\TransactionMapper;
 
-use Budget\Model\Category;
-use Budget\Model\CategoryMapper;
+use User\Model\Category;
+use User\Model\CategoryMapper;
 
 use Budget\Form\TransactionForm;
 use Budget\Form\TransactionFilter;
@@ -128,14 +128,14 @@ class TransactionController extends AbstractActionController
                 $m = $formRange->get('month')->getValue();
                 
                 // Przekierowanie do listy transakcji
-                return $this->redirect()->toRoute('transaction', array(
+                return $this->redirect()->toRoute('transactions', array(
                                                                        'month' => (int)$m,
                                                                        'year' => (int)$Y,
                                                                        'page' => 1,
                                                                        ));
             } else { // Błąd formularze (ktoś coś kombinuje)
                 // Przekierowanie do głównej strony
-                return $this->redirect()->toRoute('transaction', array(
+                return $this->redirect()->toRoute('transactions', array(
                                                                     'month' => date('m'),
                                                                     'year' => date('Y'),
                                                                     'page' => 1,
@@ -143,7 +143,7 @@ class TransactionController extends AbstractActionController
             }
         } else { // Brak parametrów
             // Przekierowanie do głównej strony
-            return $this->redirect()->toRoute('transaction', array(
+            return $this->redirect()->toRoute('transactions', array(
                                                                     'month' => date('m'),
                                                                     'year' => date('Y'),
                                                                     'page' => 1,
@@ -224,7 +224,7 @@ class TransactionController extends AbstractActionController
                 $t_dt = explode('-', $transaction->t_date);
                 
                 // Przekierowanie do listy transakcji do daty z dodawanej transakcji
-                return $this->redirect()->toRoute('transaction', array(
+                return $this->redirect()->toRoute('transactions', array(
                                                                        'month' => $t_dt[1],
                                                                        'year' => $t_dt[0],
                                                                        'page' => 1,
@@ -320,7 +320,7 @@ class TransactionController extends AbstractActionController
                 $t_dt = explode('-', $transaction->t_date);
 
                 // Przekierowanie do listy transakcji do daty z edytowanej transakcji
-                return $this->redirect()->toRoute('transaction', array(
+                return $this->redirect()->toRoute('transactions', array(
                                                                        'month' => $t_dt[1],
                                                                        'year' => $t_dt[0],
                                                                        'page' => $page,
@@ -367,7 +367,7 @@ class TransactionController extends AbstractActionController
             }
 
             // Przekierowanie do listy transakcji
-            return $this->redirect()->toRoute('transaction', array(
+            return $this->redirect()->toRoute('transactions', array(
                                                                    'month' => (int)$m,
                                                                    'year' => (int)$Y,
                                                                    'page' => $page,

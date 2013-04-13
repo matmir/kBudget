@@ -7,7 +7,7 @@ return array(
     // Path to generated images
     'img_dir' => array(
         'Zend_dir' => 'public/images/charts/',  // Path for Zend
-        'browser_dir' => 'images/charts/',      // Path for browser
+        'browser_dir' => '/images/charts/',      // Path for browser
     ),
     
     // Names of generated images [md5(uid+pie_expense).img_ex]

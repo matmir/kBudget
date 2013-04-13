@@ -8,10 +8,10 @@ $this->headTitle($title);
 <!-- Knefle dodające transakcje -->
 <div class="span-24">
     <div class="transaction-add-links">
-        <a href="<?php echo $this->url('transaction-add',
+        <a href="<?php echo $this->url('transaction/add',
                 array('type'=>0));?>"><div class="transaction-add-profit">Dodaj przychód</div></a>
                 
-        <a href="<?php echo $this->url('transaction-add',
+        <a href="<?php echo $this->url('transaction/add',
                 array('type'=>1));?>"><div class="transaction-add-expense">Dodaj wydatek</div></a>
                 
         <a href="<?php echo $this->url('import');?>"><div class="transaction-import">Importuj wyciąg</div></a>
@@ -27,7 +27,7 @@ $this->headTitle($title);
     <?php
     
     $form = $this->formRange;
-    $form->setAttribute('action', $this->url('transaction_filter'));
+    $form->setAttribute('action', $this->url('transaction/filter'));
     $form->prepare();
     
     echo $this->form()->openTag($form);
@@ -84,14 +84,14 @@ $this->headTitle($title);
         <td><?php echo $this->escapeHtml($transaction->t_content);?></td>
         <td><?php echo $this->escapeHtml($transaction->c_name);?></td>
         <td>
-            <a href="<?php echo $this->url('transaction-edit',
+            <a href="<?php echo $this->url('transaction/edit',
                 array(
                     'month'=>$dt['month'],
                     'year'=>$dt['year'],
                     'tid' => $transaction->tid,
                     'page' => $this->page,
                     ));?>">Edytuj</a>
-            <a href="<?php echo $this->url('transaction-delete',
+            <a href="<?php echo $this->url('transaction/delete',
                 array(
                     'month'=>$dt['month'],
                     'year'=>$dt['year'],

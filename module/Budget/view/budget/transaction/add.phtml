@@ -20,7 +20,7 @@ $this->headTitle($title);
     <div class="transaction-form">
         <?php
         $form = $this->form;
-        $form->setAttribute('action', $this->url('transaction-add', array('type' => $t_type)));
+        $form->setAttribute('action', $this->url('transaction/add', array('type' => $t_type)));
         $form->prepare();
         
         echo $this->form()->openTag($form);

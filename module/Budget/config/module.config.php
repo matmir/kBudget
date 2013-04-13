@@ -1,371 +1,246 @@
 <?php
 
-// module/Budget/config/module.config.php:
-
 return array(
+    // Routrs
+    'router' => array(
+        'routes' => array(
+            // Main
+            'main' => array(
+                'type' => 'literal',
+                'options' => array(
+                    'route' => '/',
+                    'defaults' => array(
+                        'controller' => 'Budget\Controller\Main',
+                        'action' => 'index',
+                    ),
+                ),
+            ),
+            // Transactions list
+            'transactions' => array(
+                'type' => 'segment',
+                'description' => 'Route to Transactions list with date params',
+                'options' => array(
+                    'route' => '/transactions[/:month/:year/:page]',
+                    'constraints' => array(
+                        'month' => '\d+',
+                        'year' => '\d+',
+                        'page' => '\d+'
+                    ),
+                    'defaults' => array(
+                        'controller' => 'Budget\Controller\Transaction',
+                        'action' => 'index',
+                        'month' => date('m'),
+                        'year' => date('Y'),
+                        'page' => 1
+                    ),
+                ),
+            ),
+            // Transaction
+            'transaction' => array(
+                'type' => 'segment',
+                'description' => 'Route to Transactions list without date params',
+                'options' => array(
+                    'route' => '/transaction[/]',
+                    'defaults' => array(
+                        'controller' => 'Budget\Controller\Transaction',
+                        'action' => 'index',
+                    ),
+                ),
+                'may_terminate' => true,
+                'child_routes' => array(
+                    // Transaction - add
+                    'add' => array(
+                        'type' => 'segment',
+                        'description' => 'Route to add transaction',
+                        'options' => array(
+                            'route' => 'add/:type',
+                            'constraints' => array(
+                                'type' => '\d+',
+                            ),
+                            'defaults' => array(
+                                'controller' => 'Budget\Controller\Transaction',
+                                'action' => 'add',
+                                'type' => 1,
+                            ),
+                        ),
+                    ),
+                    // Transaction - edit
+                    'edit' => array(
+                        'type' => 'segment',
+                        'description' => 'Route to edit transaction',
+                        'options' => array(
+                            'route' => 'edit/:month/:year/:tid/:page',
+                            'constraints' => array(
+                                'month' => '\d+',
+                                'year' => '\d+',
+                                'tid' => '\d+',
+                                'page' => '\d+',
+                            ),
+                            'defaults' => array(
+                                'controller' => 'Budget\Controller\Transaction',
+                                'action' => 'edit',
+                            ),
+                        ),
+                    ),
+                    // Transaction - delete
+                    'delete' => array(
+                        'type' => 'segment',
+                        'description' => 'Route to delete transaction',
+                        'options' => array(
+                            'route' => 'delete/:month/:year/:tid/:page',
+                            'constraints' => array(
+                                'month' => '\d+',
+                                'year' => '\d+',
+                                'tid' => '\d+',
+                                'page' => '\d+',
+                            ),
+                            'defaults' => array(
+                                'controller' => 'Budget\Controller\Transaction',
+                                'action' => 'delete',
+                            ),
+                        ),
+                    ),
+                    // Transaction - filtering
+                    'filter' => array(
+                        'type' => 'literal',
+                        'description' => 'Route to filter transaction',
+                        'options' => array(
+                            'route' => 'filter',
+                            'defaults' => array(
+                                'controller' => 'Budget\Controller\Transaction',
+                                'action' => 'filter',
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+            // Analysis - main
+            'analysis' => array(
+                'type' => 'segment',
+                'description' => 'Route to analysis main site',
+                'options' => array(
+                    'route' => '/analysis[/]',
+                    'defaults' => array(
+                        'controller' => 'Budget\Controller\Analysis',
+                        'action' => 'index',
+                    ),
+                ),
+                'may_terminate' => true,
+                'child_routes' => array(
+                    // Analysis - categories
+                    'category' => array(
+                        'type' => 'segment',
+                        'description' => 'Route to categories pie charts',
+                        'options' => array(
+                            'route' => 'category[/]',
+                            'defaults' => array(
+                                'controller' => 'Budget\Controller\Analysis',
+                                'action' => 'category',
+                            ),
+                        ),
+                    ),
+                    // Analysis - time charts
+                    'time' => array(
+                        'type' => 'segment',
+                        'description' => 'Route to time charts',
+                        'options' => array(
+                            'route' => 'time[/]',
+                            'defaults' => array(
+                                'controller' => 'Budget\Controller\Analysis',
+                                'action' => 'time',
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+            // Import - main
+            'import' => array(
+                'type' => 'segment',
+                'description' => 'Route to import main site',
+                'options' => array(
+                    'route' => '/import[/]',
+                    'defaults' => array(
+                        'controller' => 'Budget\Controller\Import',
+                        'action' => 'index',
+                    ),
+                ),
+                'may_terminate' => true,
+                'child_routes' => array(
+                    // Import - commit transactions
+                    'commit' => array(
+                        'type' => 'segment',
+                        'description' => 'Route to comit imported transactions',
+                        'options' => array(
+                            'route' => 'commit[/]',
+                            'defaults' => array(
+                                'controller' => 'Budget\Controller\Import',
+                                'action' => 'commit',
+                            ),
+                        ),
+                    ),
+                    // Import - cancel importing
+                    'cancel' => array(
+                        'type' => 'segment',
+                        'description' => 'Route to cancel importing transactions',
+                        'options' => array(
+                            'route' => 'cancel[/]',
+                            'defaults' => array(
+                                'controller' => 'Budget\Controller\Import',
+                                'action' => 'cancel',
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        ),
+    ),
     // Kontrolery w module
     'controllers' => array(
         'invokables' => array(
             'Budget\Controller\Main' => 'Budget\Controller\MainController',
             'Budget\Controller\Transaction' => 'Budget\Controller\TransactionController',
             'Budget\Controller\Analysis' => 'Budget\Controller\AnalysisController',
-            'Budget\Controller\User' => 'Budget\Controller\UserController',
-            'Budget\Controller\Configuration' => 'Budget\Controller\ConfigurationController',
-            'Budget\Controller\Admin' => 'Budget\Controller\AdminController',
             'Budget\Controller\Import' => 'Budget\Controller\ImportController',
         ),
     ),
-    
     // ACL
     'controller_plugins' => array(
         'invokables' => array(
             'MyAcl' => 'Budget\Controller\Plugin\MyAcl',
         ),
     ),
-    
-    // Routing
-    'router' => array(
-        'routes' => array(
-            
-            // Główna strona
-            'main' => array(
-                'type'    => 'literal',
-                'options' => array(
-                    'route'    => '/index.html',
-                    'defaults' => array(
-                        'controller' => 'Budget\Controller\Main',
-                        'action'     => 'index',
-                    ),
-                ),
-            ),
-            
-            // Transakcje - wyświetlanie
-            'transaction' => array(
-                'type'    => 'regex',
-                'options' => array(
-                    'regex' => '/transactions-(?<month>[0-9_-]+)-(?<year>[0-9_-]+)-(?<page>[0-9_-]+)\.html',
-                    'defaults' => array(
-                        'controller' => 'Budget\Controller\Transaction',
-                        'action'     => 'index',
-                    ),
-                    'spec' => '/transactions-%month%-%year%-%page%.html',
-                ),
-            ),
-            
-            // Transakcje - dodanie
-            'transaction-add' => array(
-                'type'    => 'regex',
-                'options' => array(
-                    'regex' => '/transaction-add-(?<type>[0-9_-]+)\.html',
-                    'defaults' => array(
-                        'controller' => 'Budget\Controller\Transaction',
-                        'action'     => 'add',
-                    ),
-                    'spec' => '/transaction-add-%type%.html',
-                ),
-            ),
-            
-            // Transakcje - edycja
-            'transaction-edit' => array(
-                'type'    => 'regex',
-                'options' => array(
-                    'regex' => '/transaction-edit-(?<month>[0-9_-]+)-(?<year>[0-9_-]+)-(?<tid>[0-9_-]+)-(?<page>[0-9_-]+)\.html',
-                    'defaults' => array(
-                        'controller' => 'Budget\Controller\Transaction',
-                        'action'     => 'edit',
-                    ),
-                    'spec' => '/transaction-edit-%month%-%year%-%tid%-%page%.html',
-                ),
-            ),
-            
-            // Transakcje - usunięcie
-            'transaction-delete' => array(
-                'type'    => 'regex',
-                'options' => array(
-                    'regex' => '/transaction-delete-(?<month>[0-9_-]+)-(?<year>[0-9_-]+)-(?<tid>[0-9_-]+)-(?<page>[0-9_-]+)\.html',
-                    'defaults' => array(
-                        'controller' => 'Budget\Controller\Transaction',
-                        'action'     => 'delete',
-                    ),
-                    'spec' => '/transaction-delete-%month%-%year%-%tid%-%page%.html',
-                ),
-            ),
-            
-            // Transakcje - filtracja
-            'transaction_filter' => array(
-                'type'    => 'literal',
-                'options' => array(
-                    'route'    => '/transaction-filter.html',
-                    'defaults' => array(
-                        'controller' => 'Budget\Controller\Transaction',
-                        'action'     => 'filter',
-                    ),
-                ),
-            ),
-            
-            // User - logowanie
-            'user-login' => array(
-                'type'    => 'literal',
-                'options' => array(
-                    'route'    => '/login.html',
-                    'defaults' => array(
-                        'controller' => 'Budget\Controller\User',
-                        'action'     => 'login',
-                    ),
-                ),
-            ),
-            
-            // User - wylogowanie
-            'user-logout' => array(
-                'type'    => 'literal',
-                'options' => array(
-                    'route'    => '/logout.html',
-                    'defaults' => array(
-                        'controller' => 'Budget\Controller\User',
-                        'action'     => 'logout',
-                    ),
-                ),
-            ),
-            
-            // User - rejestracja
-            'user-register' => array(
-                'type'    => 'literal',
-                'options' => array(
-                    'route'    => '/register.html',
-                    'defaults' => array(
-                        'controller' => 'Budget\Controller\User',
-                        'action'     => 'register',
-                    ),
-                ),
-            ),
-            
-            // User - odzyskanie hasła
-            'user-passrst' => array(
-                'type'    => 'literal',
-                'options' => array(
-                    'route'    => '/password_reset.html',
-                    'defaults' => array(
-                        'controller' => 'Budget\Controller\User',
-                        'action'     => 'passrst',
-                    ),
-                ),
-            ),
-            
-            // Konfiguracja - główna strona
-            'configuration' => array(
-                'type'    => 'literal',
-                'options' => array(
-                    'route'    => '/configuration.html',
-                    'defaults' => array(
-                        'controller' => 'Budget\Controller\Configuration',
-                        'action'     => 'index',
-                    ),
-                ),
-            ),
-            
-            // Konfiguracja - lista kategorii
-            'configuration-category' => array(
-                'type'    => 'literal',
-                'options' => array(
-                    'route'    => '/configuration-category.html',
-                    'defaults' => array(
-                        'controller' => 'Budget\Controller\Configuration',
-                        'action'     => 'category',
-                    ),
-                ),
-            ),
-            
-            // Konfiguracja - zmiana e-maila
-            'configuration-email' => array(
-                'type'    => 'literal',
-                'options' => array(
-                    'route'    => '/configuration-email.html',
-                    'defaults' => array(
-                        'controller' => 'Budget\Controller\Configuration',
-                        'action'     => 'email',
-                    ),
-                ),
-            ),
-            
-            // Konfiguracja - zmiana hasła
-            'configuration-pass' => array(
-                'type'    => 'literal',
-                'options' => array(
-                    'route'    => '/configuration-password.html',
-                    'defaults' => array(
-                        'controller' => 'Budget\Controller\Configuration',
-                        'action'     => 'password',
-                    ),
-                ),
-            ),
-            
-            // Konfiguracja - dodanie kategorii
-            'configuration-category-add' => array(
-                'type'    => 'literal',
-                'options' => array(
-                    'route'    => '/configuration-category-add.html',
-                    'defaults' => array(
-                        'controller' => 'Budget\Controller\Configuration',
-                        'action'     => 'categoryadd',
-                    ),
-                ),
-            ),
-            
-            // Konfiguracja - edycja kategorii
-            'configuration-category-edit' => array(
-                'type'    => 'regex',
-                'options' => array(
-                    'regex' => '/configuration-category-edit-(?<cid>[0-9_-]+)\.html',
-                    'defaults' => array(
-                        'controller' => 'Budget\Controller\Configuration',
-                        'action'     => 'categoryedit',
-                    ),
-                    'spec' => '/configuration-category-edit-%cid%.html',
-                ),
-            ),
-            
-            // Konfiguracja - usunięcie kategorii
-            'configuration-category-del' => array(
-                'type'    => 'regex',
-                'options' => array(
-                    'regex' => '/configuration-category-del-(?<cid>[0-9_-]+)\.html',
-                    'defaults' => array(
-                        'controller' => 'Budget\Controller\Configuration',
-                        'action'     => 'categorydel',
-                    ),
-                    'spec' => '/configuration-category-del-%cid%.html',
-                ),
-            ),
-            
-            // Analiza - główna strona
-            'analysis' => array(
-                'type'    => 'literal',
-                'options' => array(
-                    'route'    => '/analysis.html',
-                    'defaults' => array(
-                        'controller' => 'Budget\Controller\Analysis',
-                        'action'     => 'index',
-                    ),
-                ),
-            ),
-            
-            // Analiza - podział na kategorie
-            'analysis-category' => array(
-                'type'    => 'literal',
-                'options' => array(
-                    'route'    => '/analysis-category.html',
-                    'defaults' => array(
-                        'controller' => 'Budget\Controller\Analysis',
-                        'action'     => 'category',
-                    ),
-                ),
-            ),
-            
-            // Analiza - wykresy czasowe
-            'analysis-time' => array(
-                'type'    => 'literal',
-                'options' => array(
-                    'route'    => '/analysis-time.html',
-                    'defaults' => array(
-                        'controller' => 'Budget\Controller\Analysis',
-                        'action'     => 'time',
-                    ),
-                ),
-            ),
-            
-            // Administracja serwisem
-            'admin' => array(
-                'type'    => 'literal',
-                'options' => array(
-                    'route'    => '/admin.html',
-                    'defaults' => array(
-                        'controller' => 'Budget\Controller\Admin',
-                        'action'     => 'index',
-                    ),
-                ),
-            ),
-            
-            // Admin - użytkownicy
-            'admin-users' => array(
-                'type'    => 'regex',
-                'options' => array(
-                    'regex' => '/admin-users-(?<page>[0-9_-]+)\.html',
-                    'defaults' => array(
-                        'controller' => 'Budget\Controller\Admin',
-                        'action'     => 'users',
-                    ),
-                    'spec' => '/admin-users-%page%.html',
-                ),
-            ),
-            
-            // Admin - aktywacja/deaktywacja usera
-            'admin-user-activate' => array(
-                'type'    => 'regex',
-                'options' => array(
-                    'regex' => '/admin-user-activate-(?<uid>[0-9_-]+)-(?<active>[0-9_-]+)-(?<page>[0-9_-]+)\.html',
-                    'defaults' => array(
-                        'controller' => 'Budget\Controller\Admin',
-                        'action'     => 'useractivate',
-                    ),
-                    'spec' => '/admin-user-activate-%uid%-%active%-%page%.html',
-                ),
-            ),
-            
-            // Admin - zmiana hasła usera
-            'admin-user-pass' => array(
-                'type'    => 'regex',
-                'options' => array(
-                    'regex' => '/admin-user-pass-(?<uid>[0-9_-]+)-(?<page>[0-9_-]+)\.html',
-                    'defaults' => array(
-                        'controller' => 'Budget\Controller\Admin',
-                        'action'     => 'userpass',
-                    ),
-                    'spec' => '/admin-user-pass-%uid%-%page%.html',
-                ),
-            ),
-            
-            // Import - główna strona
-            'import' => array(
-                'type'    => 'literal',
-                'options' => array(
-                    'route'    => '/import.html',
-                    'defaults' => array(
-                        'controller' => 'Budget\Controller\Import',
-                        'action'     => 'index',
-                    ),
-                ),
-            ),
-            
-            // Import - zatwierdzanie transakcji
-            'import-commit' => array(
-                'type'    => 'literal',
-                'options' => array(
-                    'route'    => '/import-commit.html',
-                    'defaults' => array(
-                        'controller' => 'Budget\Controller\Import',
-                        'action'     => 'commit',
-                    ),
-                ),
-            ),
-            
-            // Import - anulowanie importu
-            'import-cancel' => array(
-                'type'    => 'literal',
-                'options' => array(
-                    'route'    => '/import-cancel.html',
-                    'defaults' => array(
-                        'controller' => 'Budget\Controller\Import',
-                        'action'     => 'cancel',
-                    ),
-                ),
-            ),
-            
+    // View
+    'view_manager' => array(
+        'display_not_found_reason' => true,
+        'display_exceptions'       => true,
+        'doctype'                  => 'HTML5',
+        'not_found_template'       => 'error/404',
+        'exception_template'       => 'error/index',
+        'template_map' => array(
+            'layout/layout'           => __DIR__ . '/../view/layout/layout.phtml',
+            'application/index/index' => __DIR__ . '/../view/budget/index/index.phtml',
+            'error/404'               => __DIR__ . '/../view/error/404.phtml',
+            'error/index'             => __DIR__ . '/../view/error/index.phtml',
+        ),
+        'template_path_stack' => array(
+            __DIR__ . '/../view',
         ),
     ),
-    
-    'view_manager' => array(
-        'template_path_stack' => array(
-            'album' => __DIR__ . '/../view',
+    // Services
+    'service_manager' => array(
+        'factories' => array(
+            'translator' => 'Zend\I18n\Translator\TranslatorServiceFactory',
+        ),
+    ),
+    // Translator
+    'translator' => array(
+        'locale' => 'en_US',
+        'translation_file_patterns' => array(
+            array(
+                'type'     => 'gettext',
+                'base_dir' => __DIR__ . '/../language',
+                'pattern'  => '%s.mo',
+            ),
         ),
     ),
 );
