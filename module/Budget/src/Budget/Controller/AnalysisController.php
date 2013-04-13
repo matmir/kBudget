@@ -64,7 +64,7 @@ class AnalysisController extends AbstractActionController
     public function categoryAction()
     {
         // Identyfikator zalogowanego usera
-        $uid = $this->getServiceLocator()->get('user_data')->uid;
+        $uid = $this->getServiceLocator()->get('uid');
         
         // Ustawienia ścieżek
         $cfg = $this->getServiceLocator()->get('img_dirs');
@@ -194,7 +194,7 @@ class AnalysisController extends AbstractActionController
     public function timeAction()
     {
         // Identyfikator zalogowanego usera
-        $uid = $this->getServiceLocator()->get('user_data')->uid;
+        $uid = $this->getServiceLocator()->get('uid');
         
         // Ustawienia ścieżek
         $cfg = $this->getServiceLocator()->get('img_dirs');

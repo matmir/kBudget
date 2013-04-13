@@ -53,7 +53,7 @@ class TransactionController extends AbstractActionController
     public function indexAction()
     {
         // Identyfikator zalogowanego usera
-        $uid = $this->getServiceLocator()->get('user_data')->uid;
+        $uid = $this->getServiceLocator()->get('uid');
         
         // Pobranie numeru strony
         $page = (int) $this->params()->fromRoute('page', 1);
@@ -108,7 +108,7 @@ class TransactionController extends AbstractActionController
     public function filterAction()
     {
         // Identyfikator zalogowanego usera
-        $uid = $this->getServiceLocator()->get('user_data')->uid;
+        $uid = $this->getServiceLocator()->get('uid');
         
         // Minimalny rok w transakcjach usera
         $minYear = $this->getTransactionMapper()->getMinYearOfTransaction($uid);
@@ -155,7 +155,7 @@ class TransactionController extends AbstractActionController
     public function addAction()
     {
         // Identyfikator zalogowanego usera
-        $uid = $this->getServiceLocator()->get('user_data')->uid;
+        $uid = $this->getServiceLocator()->get('uid');
         
         // Pobranie rodzaju transakcji
         $t_type= (int) $this->params()->fromRoute('type', 1);
@@ -241,7 +241,7 @@ class TransactionController extends AbstractActionController
     public function editAction()
     {
         // Identyfikator zalogowanego usera
-        $uid = $this->getServiceLocator()->get('user_data')->uid;
+        $uid = $this->getServiceLocator()->get('uid');
         
         // Pobranie numeru strony
         $page = (int) $this->params()->fromRoute('page', 1);
@@ -341,7 +341,7 @@ class TransactionController extends AbstractActionController
     public function deleteAction()
     {
         // Identyfikator zalogowanego usera
-        $uid = $this->getServiceLocator()->get('user_data')->uid;
+        $uid = $this->getServiceLocator()->get('uid');
         
         // Pobranie numeru strony
         $page = (int) $this->params()->fromRoute('page', 1);

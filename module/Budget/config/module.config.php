@@ -203,12 +203,6 @@ return array(
             'Budget\Controller\Import' => 'Budget\Controller\ImportController',
         ),
     ),
-    // ACL
-    'controller_plugins' => array(
-        'invokables' => array(
-            'MyAcl' => 'Budget\Controller\Plugin\MyAcl',
-        ),
-    ),
     // View
     'view_manager' => array(
         'display_not_found_reason' => true,

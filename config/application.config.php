@@ -2,6 +2,7 @@
 return array(
     'modules' => array(
         'Admin',
+        'Auth',
         'Budget',
         'User',
     ),

@@ -14,42 +14,36 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
     public function onBootstrap(MvcEvent $e)
     {
         $eventManager = $e->getApplication()->getEventManager();
-        $eventManager->attach('dispatch', array($this, 'loadConfiguration'), 100);
+        $eventManager->attach('dispatch', array($this, 'loadConfiguration'), 10);
     }
 
     public function loadConfiguration(MvcEvent $e)
     {
-        $application   = $e->getApplication();
-	$sm            = $application->getServiceManager();
-	$sharedManager = $application->getEventManager()->getSharedManager();
-
-	$sharedManager->attach('Zend\Mvc\Controller\AbstractActionController','dispatch', 
-             function($e) use ($sm) {
-		$sm->get('ControllerPluginManager')->get('MyAcl')
-                   ->doAuthorization($e);
-	    }
-        );
-        
+        $application = $e->getApplication();
+	    $sm = $application->getServiceManager();
+	    
         // ---------------- Knefel do logowania/wylogowania
-        $dt = $sm->get('user_data');
         $router = $e->getRouter();
         
         // Jest zalogowany
-        if ($dt->uid) {
+        if ($sm->get('Auth\UserAuthentication')->hasIdentity()) {
             $url = $router->assemble(array('controller' => 'user/logout'), array('name' => 'user/logout'));
             $title = 'Wyloguj';
+            // Przekazanie loginu
+            $e->getViewModel()->setVariable('user_name', $sm->get('user_login'));
+            // Przekazanie flagi admina
+            $e->getViewModel()->setVariable('admin', ($sm->get('user_type')=='admin')?(true):(false));
         } else { // nie zalogowany
             $url = $router->assemble(array('controller' => 'user/login'), array('name' => 'user/login'));
             $title = 'Zaloguj';
+            // Przekazanie loginu
+            $e->getViewModel()->setVariable('user_name', 'anonymous');
+            // Przekazanie flagi admina
+            $e->getViewModel()->setVariable('admin', false);
         }
         // Przekazanie do layout-u
         $e->getViewModel()->setVariable('log_btn', array('url' => $url,
                                                             'title' => $title));
-        // Przekazanie loginu
-        $e->getViewModel()->setVariable('user_name', $dt->login);
-	
-	// Przekazanie flagi admina
-	$e->getViewModel()->setVariable('admin', ($dt->u_type==1)?(true):(false));
     }
     
     public function getAutoloaderConfig()
@@ -84,19 +78,6 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
                     return $dbAdapter;
                 },
                 
-                // Pobiera dane zalogowanego usera
-                'user_data' =>  function($sm) {
-                    $auth = new AuthenticationService();
-                    // Poprawnie zalogowany
-                    if ($auth->hasIdentity()) {
-                        return $auth->getIdentity();
-                    } else {
-                        return (object)array('uid' => 0,
-                                     'login' => 'anonymous',
-				     'u_type' => -1);
-                    }
-                },
-                
                 // Konfiguracja długości loginu/hasła usera
                 'user_login_cfg' =>  function($sm) {
                     $cfg = $sm->get('Configuration');
@@ -121,7 +102,7 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
                     return $cfg['img_names'];
                 },
 		
-		// Konfiguracja ładowania wyciągów bankowych
+		        // Konfiguracja ładowania wyciągów bankowych
                 'upload_cfg' =>  function($sm) {
                     $cfg = $sm->get('Configuration');
                     return $cfg['upload_banking'];

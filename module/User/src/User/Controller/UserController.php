@@ -28,9 +28,6 @@ use User\Form\PasswordChangeFormFilter;
 use User\Form\EmailForm;
 use User\Form\EmailFormFilter;
 
-use Zend\Authentication\Adapter\DbTable as AuthAdapter;
-use Zend\Authentication\AuthenticationService;
-
 use Zend\Mail;
 use Zend\Mail\Transport\Smtp as SmtpTransport;
 use Zend\Mail\Transport\SmtpOptions;
@@ -58,8 +55,7 @@ class UserController extends AbstractActionController
     // Wylogowanie
     public function logoutAction()
     {
-        $auth = new AuthenticationService();
-        $auth->clearIdentity();
+        $this->getServiceLocator()->get('Auth\UserAuthentication')->clearIdentity();
         
         // Przekierowanie do głownej strony
         return $this->redirect()->toRoute('main');
@@ -90,36 +86,17 @@ class UserController extends AbstractActionController
             // Spr. poprawności
             if ($form->isValid()) {
                 
-                $sm = $this->getServiceLocator();
-                // Dostęp do bazy danych
-                $dbAdapter = $sm->get('adapter');
-                
-                $authAdapter = new AuthAdapter($dbAdapter,
-                               'users',
-                               'login',
-                               'pass',
-                               //'MD5(CONCAT(?, passs)) AND active = 1' // DOPISAĆ SOLENIE!!!
-                               'MD5(?) AND active = 1'
-                               );
-                
-                $authAdapter->setIdentity($form->get('login')->getValue())
-                            ->setCredential($form->get('pass')->getValue());
-                
-                $auth = new AuthenticationService();
-                $result = $auth->authenticate($authAdapter);
+                // Authentication service
+                $userAuth = $this->getServiceLocator()->get('Auth\UserAuthentication');
                 
                 // Autoryzacja pozytywna
-                if ($result->isValid()) {
+                if ($userAuth->authenticate($form->get('login')->getValue(), $form->get('pass')->getValue())) {
                     
-                    $storage = $auth->getStorage();
-                    $storage->write($authAdapter->getResultRowObject(array(
-                            'uid',
-                            'login',
-                            'u_type',
-                        )));
+                    // User id
+                    $uid = $this->getServiceLocator()->get('uid');
                     
                     // Data logowania
-                    $this->getUserMapper()->setUserLoginDate($storage->read()->uid);
+                    $this->getUserMapper()->setUserLoginDate($uid);
                     
                     // Przekierowanie do listy transakcji
                     return $this->redirect()->toRoute('transactions', array(
@@ -146,8 +123,7 @@ class UserController extends AbstractActionController
         $cfg = $this->getServiceLocator()->get('user_login_cfg');
         
         // Wylogowanie zalogowanego usera
-        $auth = new AuthenticationService();
-        $auth->clearIdentity();
+        $this->getServiceLocator()->get('Auth\UserAuthentication')->clearIdentity();
         
         // Formularz
         $form = new RegisterForm($cfg);
@@ -225,8 +201,7 @@ class UserController extends AbstractActionController
         $cfg = $this->getServiceLocator()->get('email_cfg');
         
         // Wylogowanie zalogowanego usera
-        $auth = new AuthenticationService();
-        $auth->clearIdentity();
+        $this->getServiceLocator()->get('Auth\UserAuthentication')->clearIdentity();
         
         // Formularz
         $form = new PasswordResetForm();
@@ -301,7 +276,7 @@ class UserController extends AbstractActionController
     public function emailAction()
     {
         // Identyfikator zalogowanego usera
-        $uid = $this->getServiceLocator()->get('user_data')->uid;
+        $uid = $this->getServiceLocator()->get('uid');
     
         // Pobranie danych usera
         $user = $this->getUserMapper()->getUser($uid);
@@ -361,7 +336,7 @@ class UserController extends AbstractActionController
         $cfg = $this->getServiceLocator()->get('user_login_cfg');
     
         // Identyfikator zalogowanego usera
-        $uid = $this->getServiceLocator()->get('user_data')->uid;
+        $uid = $this->getServiceLocator()->get('uid');
     
         // Pobranie danych usera
         $user = $this->getUserMapper()->getUser($uid);

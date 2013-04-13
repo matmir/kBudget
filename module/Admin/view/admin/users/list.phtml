@@ -29,7 +29,15 @@ $this->headTitle($title);
         <td><?php echo $user->uid; ?></td>
         <td><?php echo $this->escapeHtml($user->login); ?></td>
         <td><?php echo $this->escapeHtml($user->email); ?></td>
-        <td><?php echo ($user->u_type==1)?('Administrator'):('Użytkownik'); ?></td>
+        <td><?php 
+        
+        switch ($user->u_type) {
+            case 0: echo 'Użytkownik'; break;
+            case 1: echo 'Administrator'; break;
+            case 2: echo 'Demo'; break;
+        }
+        
+        ?></td>
         <td>
         <?php if ($user->active==0): ?>
         <a href="<?php echo $this->url('admin/users/activate', array(

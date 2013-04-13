@@ -49,7 +49,7 @@ class CategoryController extends AbstractActionController
     public function listAction()
     {
         // Identyfikator zalogowanego usera
-        $uid = $this->getServiceLocator()->get('user_data')->uid;
+        $uid = $this->getServiceLocator()->get('uid');
         
         // Rozdział kategorii na przychód i wydatek
         $cat_profit = $this->getCategoryMapper()->getCategories($uid, 0);
@@ -75,7 +75,7 @@ class CategoryController extends AbstractActionController
     public function addAction()
     {
         // Identyfikator zalogowanego usera
-        $uid = $this->getServiceLocator()->get('user_data')->uid;
+        $uid = $this->getServiceLocator()->get('uid');
         
         // Formularz
         $form = new CategoryForm();
@@ -123,7 +123,7 @@ class CategoryController extends AbstractActionController
     public function editAction()
     {
         // Identyfikator zalogowanego usera
-        $uid = $this->getServiceLocator()->get('user_data')->uid;
+        $uid = $this->getServiceLocator()->get('uid');
         
         // Pobranie cid-a z adresu
         $cid = (int) $this->params()->fromRoute('cid', 0);
@@ -194,7 +194,7 @@ class CategoryController extends AbstractActionController
     public function deleteAction()
     {
         // Identyfikator zalogowanego usera
-        $uid = $this->getServiceLocator()->get('user_data')->uid;
+        $uid = $this->getServiceLocator()->get('uid');
         
         // Identyfikator kategorii
         $cid = (int) $this->params()->fromRoute('cid', 0);
