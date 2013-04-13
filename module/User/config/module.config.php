@@ -4,7 +4,6 @@ return array(
     // Routing
     'router' => array(
         'routes' => array(
-            
             'user' => array(
                 'type'    => 'segment',
                 'description' => 'Route to configuration menu',
