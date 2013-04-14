@@ -30,9 +30,9 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
             $url = $router->assemble(array('controller' => 'user/logout'), array('name' => 'user/logout'));
             $title = 'Wyloguj';
             // Przekazanie loginu
-            $e->getViewModel()->setVariable('user_name', $sm->get('user_login'));
+            $e->getViewModel()->setVariable('user_name', $sm->get('userLogin'));
             // Przekazanie flagi admina
-            $e->getViewModel()->setVariable('admin', ($sm->get('user_type')=='admin')?(true):(false));
+            $e->getViewModel()->setVariable('admin', ($sm->get('userType')=='admin')?(true):(false));
         } else { // nie zalogowany
             $url = $router->assemble(array('controller' => 'user/login'), array('name' => 'user/login'));
             $title = 'Zaloguj';

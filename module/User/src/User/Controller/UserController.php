@@ -93,7 +93,7 @@ class UserController extends AbstractActionController
                 if ($userAuth->authenticate($form->get('login')->getValue(), $form->get('pass')->getValue())) {
                     
                     // User id
-                    $uid = $this->getServiceLocator()->get('uid');
+                    $uid = $this->getServiceLocator()->get('userId');
                     
                     // Data logowania
                     $this->getUserMapper()->setUserLoginDate($uid);
@@ -276,7 +276,7 @@ class UserController extends AbstractActionController
     public function emailAction()
     {
         // Identyfikator zalogowanego usera
-        $uid = $this->getServiceLocator()->get('uid');
+        $uid = $this->getServiceLocator()->get('userId');
     
         // Pobranie danych usera
         $user = $this->getUserMapper()->getUser($uid);
@@ -336,7 +336,7 @@ class UserController extends AbstractActionController
         $cfg = $this->getServiceLocator()->get('user_login_cfg');
     
         // Identyfikator zalogowanego usera
-        $uid = $this->getServiceLocator()->get('uid');
+        $uid = $this->getServiceLocator()->get('userId');
     
         // Pobranie danych usera
         $user = $this->getUserMapper()->getUser($uid);

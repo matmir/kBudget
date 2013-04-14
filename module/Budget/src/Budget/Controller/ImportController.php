@@ -72,7 +72,7 @@ class ImportController extends AbstractActionController
     public function indexAction()
     {
         // Identyfikator zalogowanego usera
-        $uid = $this->getServiceLocator()->get('uid');
+        $uid = $this->getServiceLocator()->get('userId');
         
         // Aktualny import
         $import = $this->getImportMapper()->getUserImport($uid);
@@ -183,7 +183,7 @@ class ImportController extends AbstractActionController
     public function commitAction()
     {
         // Identyfikator zalogowanego usera
-        $uid = $this->getServiceLocator()->get('uid');
+        $uid = $this->getServiceLocator()->get('userId');
         
         // Aktualny import
         $import = $this->getImportMapper()->getUserImport($uid);
@@ -411,7 +411,7 @@ class ImportController extends AbstractActionController
     public function cancelAction()
     {
         // Identyfikator zalogowanego usera
-        $uid = $this->getServiceLocator()->get('uid');
+        $uid = $this->getServiceLocator()->get('userId');
         
         // Aktualny import
         $import = $this->getImportMapper()->getUserImport($uid);

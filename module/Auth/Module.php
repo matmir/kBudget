@@ -17,6 +17,11 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
         $sharedEvents->attach('Zend\Mvc\Controller\AbstractActionController', 'dispatch', array($this, 'authorize'), 100);
     }
     
+    /**
+     * Authorization event
+     * 
+     * @param MvcEvent $e
+     */
     public function authorize(MvcEvent $e)
     {
         $sm = $e->getApplication()->getServiceManager();
@@ -50,7 +55,7 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
                 'factories' => array(
     
                         // Get logged in user id
-                        'uid' =>  function($sm) {
+                        'userId' =>  function($sm) {
                             $userAuth = $sm->get('Auth\UserAuthentication');
                             
                             if (!($userAuth->hasIdentity())) {
@@ -60,7 +65,7 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
                             return $userAuth->getIdentity()->uid;
                         },
                         // Get logged in user type
-                        'user_type' =>  function($sm) {
+                        'userType' =>  function($sm) {
                             $userAuth = $sm->get('Auth\UserAuthentication');
                         
                             if (!($userAuth->hasIdentity())) {
@@ -80,7 +85,7 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
                             return $identity;
                         },
                         // Get logged in user login
-                        'user_login' =>  function($sm) {
+                        'userLogin' =>  function($sm) {
                             $userAuth = $sm->get('Auth\UserAuthentication');
                         
                             if (!($userAuth->hasIdentity())) {

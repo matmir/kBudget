@@ -94,7 +94,7 @@ class Authorization implements ServiceLocatorAwareInterface
         $userAuth = $this->getServiceLocator()->get('Auth\UserAuthentication');
         // User role
         if ($userAuth->hasIdentity()) {
-            $role = $this->getServiceLocator()->get('user_type');
+            $role = $this->getServiceLocator()->get('userType');
         } else {
             $role = 'anonymous';
         }
