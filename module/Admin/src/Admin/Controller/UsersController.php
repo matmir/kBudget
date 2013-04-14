@@ -7,8 +7,7 @@
 
 namespace Admin\Controller;
 
-use Zend\Mvc\Controller\AbstractActionController;
-use Zend\View\Model\ViewModel;
+use Base\Controller\BaseController;
 
 use User\Model\User;
 use User\Model\UserMapper;
@@ -16,21 +15,8 @@ use User\Model\UserMapper;
 use Admin\Form\PasswordAdminChangeForm;
 use Admin\Form\PasswordAdminChangeFormFilter;
 
-class UsersController extends AbstractActionController
+class UsersController extends BaseController
 {
-    protected $userMapper;
-    
-    // Pobiera mapper do bazy z user-ami
-    private function getUserMapper()
-    {
-        if (!$this->userMapper) {
-            $sm = $this->getServiceLocator();
-            $this->userMapper = new UserMapper($sm->get('adapter'));
-        }
-        
-        return $this->userMapper;
-    }
-    
     // Main page
     public function indexAction()
     {
@@ -45,7 +31,7 @@ class UsersController extends AbstractActionController
         $page = (int) $this->params()->fromRoute('page', 1);
         
         // Pobranie userów
-        $users = $this->getUserMapper()->getUsers($page);
+        $users = $this->get('User\UserMapper')->getUsers($page);
         
         return array(
             'users' => $users,
@@ -67,7 +53,7 @@ class UsersController extends AbstractActionController
         
         // Zmiana stanu
         if ($uid > 0) {
-            $this->getUserMapper()->setUserActive($uid, $active);
+            $this->get('User\UserMapper')->setUserActive($uid, $active);
         }
         
         // Przekierowanie do listy userów
@@ -80,7 +66,7 @@ class UsersController extends AbstractActionController
     public function passwordAction()
     {
         // Ustawienia długości loginu/hasła
-        $cfg = $this->getServiceLocator()->get('user_login_cfg');
+        $cfg = $this->get('user_login_cfg');
         
         // Pobranie identyfikatora usera, któremu zmieniam stan
         $uid = (int) $this->params()->fromRoute('uid', 0);
@@ -110,7 +96,7 @@ class UsersController extends AbstractActionController
                 if ($p1 == $p2) {
                     
                     // Zmiana hasła w bazie
-                    $this->getUserMapper()->changeUserPass($uid, $p1);
+                    $this->get('User\UserMapper')->changeUserPass($uid, $p1);
                     
                     // Hasło zmieniono
                     $ERR = 3;

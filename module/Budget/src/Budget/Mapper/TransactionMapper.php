@@ -5,30 +5,20 @@
     Klasa zajmująa się wyciągniem transakcji z bazy danych
 */
 
-namespace Budget\Model;
+namespace Budget\Mapper;
+
+use Base\Mapper\BaseMapper;
 
 use Zend\Db\Sql\Sql;
 use Zend\Db\Sql\Expression;
-use Zend\Db\Adapter\Adapter;
 
 use Zend\Paginator\Paginator;
 use Zend\Paginator\Adapter\DbSelect;
 
 use Budget\Model\Transaction;
 
-class TransactionMapper
+class TransactionMapper extends BaseMapper
 {
-    protected $adapter;
-
-    /**
-        Konstruktor.
-        @param Adapter $adp Obiekt reprezentujący adapter do bazy danych
-    */
-    public function __construct(Adapter $adp)
-    {
-        $this->adapter = $adp;
-    }
-    
     /**
         Pobiera wszystkie elementy transakcji
         @param int $uid Identyfikator usera
@@ -56,7 +46,7 @@ class TransactionMapper
             throw new \Exception("Numer strony musi być liczbą dodatnią!");
         }
         
-        $sql = new Sql($this->adapter);
+        $sql = new Sql($this->getDbAdapter());
         $select = $sql->select();
         
         $select->from(array('t' => 'transaction'))
@@ -141,7 +131,7 @@ class TransactionMapper
     */
     public function getMinYearOfTransaction($uid)
     {
-        $sql = new Sql($this->adapter);
+        $sql = new Sql($this->getDbAdapter());
         $select = $sql->select();
         
         $select->from(array('t' => 'transaction'),'MIN(t_date)')
@@ -171,7 +161,7 @@ class TransactionMapper
             't_value'  => $transaction->t_value,
         );
         
-        $sql = new Sql($this->adapter);
+        $sql = new Sql($this->getDbAdapter());
 
         $tid = (int)$transaction->tid;
         if ($tid == 0) { // dodanie nowego wpisu
@@ -207,7 +197,7 @@ class TransactionMapper
     */
     public function getTransaction($tid, $uid)
     {
-        $sql = new Sql($this->adapter);
+        $sql = new Sql($this->getDbAdapter());
         $select = $sql->select();
         
         $select->from(array('t' => 'transaction'))
@@ -235,7 +225,7 @@ class TransactionMapper
     */
     public function deleteTransaction($tid, $uid)
     {
-        $sql = new Sql($this->adapter);
+        $sql = new Sql($this->getDbAdapter());
         
         $delete = $sql->delete();
         $delete->from('transaction');
@@ -267,7 +257,7 @@ class TransactionMapper
             throw new \Exception("Brak typu daty w parametrach z tablicą!");
         }
         
-        $sql = new Sql($this->adapter);
+        $sql = new Sql($this->getDbAdapter());
         $select = $sql->select();
         
         $select->columns(array('sm' => new Expression('SUM(t.t_value)')));

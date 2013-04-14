@@ -7,8 +7,7 @@
 
 namespace Budget\Controller;
 
-use Zend\Mvc\Controller\AbstractActionController;
-use Zend\View\Model\ViewModel;
+use Base\Controller\BaseController;
 
 use Budget\Model\Transaction;
 use Budget\Model\TransactionMapper;
@@ -22,38 +21,13 @@ use Budget\Form\TransactionFilter;
 use Budget\Form\TransactionRangeSelectForm;
 use Budget\Form\TransactionRangeSelectFilter;
 
-class TransactionController extends AbstractActionController
+class TransactionController extends BaseController
 {
-    protected $transactionMapper;
-    protected $categoryMapper;
-    
-    // Pobiera mapper do bazy z transakcjami
-    private function getTransactionMapper()
-    {
-        if (!$this->transactionMapper) {
-            $sm = $this->getServiceLocator();
-            $this->transactionMapper = new TransactionMapper($sm->get('adapter'));
-        }
-        
-        return $this->transactionMapper;
-    }
-    
-    // Pobiera mapper do bazy z kategoriami
-    private function getCategoryMapper()
-    {
-        if (!$this->categoryMapper) {
-            $sm = $this->getServiceLocator();
-            $this->categoryMapper = new CategoryMapper($sm->get('adapter'));
-        }
-        
-        return $this->categoryMapper;
-    }
-    
     // Głowna akcja (strona główna transakcji)
     public function indexAction()
     {
         // Identyfikator zalogowanego usera
-        $uid = $this->getServiceLocator()->get('userId');
+        $uid = $this->get('userId');
         
         // Pobranie numeru strony
         $page = (int) $this->params()->fromRoute('page', 1);
@@ -86,15 +60,15 @@ class TransactionController extends AbstractActionController
         );
         
         // Pobranie sumy wydatków
-        $sum_expense = $this->getTransactionMapper()->getSumOfTransactions($uid, $date_param, 1);
+        $sum_expense = $this->get('Budget\TransactionMapper')->getSumOfTransactions($uid, $date_param, 1);
         // Pobranie sumy przychodów
-        $sum_profit = $this->getTransactionMapper()->getSumOfTransactions($uid, $date_param, 0);
+        $sum_profit = $this->get('Budget\TransactionMapper')->getSumOfTransactions($uid, $date_param, 0);
         
         // Bilans
         $balance = $sum_profit - $sum_expense;
         
         return array(
-            'transactions' => $this->getTransactionMapper()->getTransactions($uid, $date_param, -1, $page, true),
+            'transactions' => $this->get('Budget\TransactionMapper')->getTransactions($uid, $date_param, -1, $page, true),
             'formRange' => $formRange,
             'dt' => array('month' => $m, 'year' => $Y),
             'sum_expense' => $sum_expense,
@@ -108,10 +82,10 @@ class TransactionController extends AbstractActionController
     public function filterAction()
     {
         // Identyfikator zalogowanego usera
-        $uid = $this->getServiceLocator()->get('userId');
+        $uid = $this->get('userId');
         
         // Minimalny rok w transakcjach usera
-        $minYear = $this->getTransactionMapper()->getMinYearOfTransaction($uid);
+        $minYear = $this->get('Budget\TransactionMapper')->getMinYearOfTransaction($uid);
         
         // Formularz od wyboru zakresu transakcji
         $formRange = new TransactionRangeSelectForm();
@@ -155,7 +129,7 @@ class TransactionController extends AbstractActionController
     public function addAction()
     {
         // Identyfikator zalogowanego usera
-        $uid = $this->getServiceLocator()->get('userId');
+        $uid = $this->get('userId');
         
         // Pobranie rodzaju transakcji
         $t_type= (int) $this->params()->fromRoute('type', 1);
@@ -169,7 +143,7 @@ class TransactionController extends AbstractActionController
         $form = new TransactionForm();
         
         // Lista kategori usera
-        $user_cat = $this->getCategoryMapper()->getUserCategoriesToSelect($uid, $t_type);
+        $user_cat = $this->get('User\CategoryMapper')->getUserCategoriesToSelect($uid, $t_type);
         $form->get('cid')->setValueOptions($user_cat);
         
         // Knefel
@@ -199,16 +173,16 @@ class TransactionController extends AbstractActionController
                 $c_name = $form->get('c_name')->getValue();
                 if (($c_name!=null) && ($ncr==true)) {
                     // spr. czy taka kategoria istnieje (jeśli tak, to zwraca cid)
-                    $n_cid = $this->getCategoryMapper()->isCategoryNameExists($c_name, $t_type, $uid);
+                    $n_cid = $this->get('User\CategoryMapper')->isCategoryNameExists($c_name, $t_type, $uid);
                     if ($n_cid == 0) { // Nie istnieje - dodać nową
                         $new_category = new Category();
                         $new_category->uid = $uid;
                         $new_category->c_type = $t_type;
                         $new_category->c_name = $c_name;
                         // Dodanie
-                        $this->getCategoryMapper()->saveCategory($new_category);
+                        $this->get('User\CategoryMapper')->saveCategory($new_category);
                         // Pobranie nowego id-a kategorii
-                        $n_cid = $this->getCategoryMapper()->isCategoryNameExists($c_name, $t_type, $uid);
+                        $n_cid = $this->get('User\CategoryMapper')->isCategoryNameExists($c_name, $t_type, $uid);
                     }
                     
                     // Nadpisać pole transakcji nowym identyfikatorem kategorii
@@ -218,7 +192,7 @@ class TransactionController extends AbstractActionController
                 // uid
                 $transaction->uid = $uid;
                 // Zapis
-                $this->getTransactionMapper()->saveTransaction($transaction);
+                $this->get('Budget\TransactionMapper')->saveTransaction($transaction);
                 
                 // Data dodanej transakcji
                 $t_dt = explode('-', $transaction->t_date);
@@ -241,7 +215,7 @@ class TransactionController extends AbstractActionController
     public function editAction()
     {
         // Identyfikator zalogowanego usera
-        $uid = $this->getServiceLocator()->get('userId');
+        $uid = $this->get('userId');
         
         // Pobranie numeru strony
         $page = (int) $this->params()->fromRoute('page', 1);
@@ -258,13 +232,13 @@ class TransactionController extends AbstractActionController
         }
         
         // Pobranie danych transakcji
-        $transaction = $this->getTransactionMapper()->getTransaction($tid, $uid);
+        $transaction = $this->get('Budget\TransactionMapper')->getTransaction($tid, $uid);
 
         // Formularz
         $form  = new TransactionForm();
         
         // Lista kategori usera
-        $user_cat = $this->getCategoryMapper()->getUserCategoriesToSelect($uid, $transaction->t_type);
+        $user_cat = $this->get('User\CategoryMapper')->getUserCategoriesToSelect($uid, $transaction->t_type);
         $form->get('cid')->setValueOptions($user_cat);
         
         // Wstawienie danych do formularza
@@ -296,16 +270,16 @@ class TransactionController extends AbstractActionController
                 $c_name = $form->get('c_name')->getValue();
                 if (($c_name!=null) && ($ncr==true)) {
                     // spr. czy taka kategoria istnieje (jeśli tak, to zwraca cid)
-                    $n_cid = $this->getCategoryMapper()->isCategoryNameExists($c_name, $transaction->t_type, $uid);
+                    $n_cid = $this->get('User\CategoryMapper')->isCategoryNameExists($c_name, $transaction->t_type, $uid);
                     if ($n_cid == 0) { // Nie istnieje - dodać nową
                         $new_category = new Category();
                         $new_category->uid = $uid;
                         $new_category->c_type = $transaction->t_type;
                         $new_category->c_name = $c_name;
                         // Dodanie
-                        $this->getCategoryMapper()->saveCategory($new_category);
+                        $this->get('User\CategoryMapper')->saveCategory($new_category);
                         // Pobranie nowego id-a kategorii
-                        $n_cid = $this->getCategoryMapper()->isCategoryNameExists($c_name, $transaction->t_type, $uid);
+                        $n_cid = $this->get('User\CategoryMapper')->isCategoryNameExists($c_name, $transaction->t_type, $uid);
                     }
                     
                     // Nadpisać pole transakcji nowym identyfikatorem kategorii
@@ -314,7 +288,7 @@ class TransactionController extends AbstractActionController
                 
                 $transaction->uid = $uid;
                 // Zapis
-                $this->getTransactionMapper()->saveTransaction($transaction);
+                $this->get('Budget\TransactionMapper')->saveTransaction($transaction);
 
                 // Data dodanej transakcji
                 $t_dt = explode('-', $transaction->t_date);
@@ -341,7 +315,7 @@ class TransactionController extends AbstractActionController
     public function deleteAction()
     {
         // Identyfikator zalogowanego usera
-        $uid = $this->getServiceLocator()->get('userId');
+        $uid = $this->get('userId');
         
         // Pobranie numeru strony
         $page = (int) $this->params()->fromRoute('page', 1);
@@ -363,7 +337,7 @@ class TransactionController extends AbstractActionController
 
             if ($del == 'Yes') {
                 $tid = (int) $request->getPost('tid');
-                $this->getTransactionMapper()->deleteTransaction($tid, $uid);
+                $this->get('Budget\TransactionMapper')->deleteTransaction($tid, $uid);
             }
 
             // Przekierowanie do listy transakcji
@@ -377,7 +351,7 @@ class TransactionController extends AbstractActionController
         return array(
             'tid'    => $tid,
             'dt' => array('month' => $m, 'year' => $Y),
-            'transaction' => $this->getTransactionMapper()->getTransaction($tid, $uid),
+            'transaction' => $this->get('Budget\TransactionMapper')->getTransaction($tid, $uid),
             'page' => $page,
         );
     }

@@ -5,29 +5,18 @@
     Klasa zajmująca się operowaniem na danych usera w bazie danych.
 */
 
-namespace User\Model;
+namespace User\Mapper;
 
+use Base\Mapper\BaseMapper;
 use Zend\Db\Sql\Sql;
-use Zend\Db\Adapter\Adapter;
 
 use User\Model\User;
 
 use Zend\Paginator\Paginator;
 use Zend\Paginator\Adapter\DbSelect;
 
-class UserMapper
+class UserMapper extends BaseMapper
 {
-    protected $adapter;
-
-    /**
-        Konstruktor.
-        @param Adapter $adp Obiekt reprezentujący adapter podłączony do bazy danych
-    */
-    public function __construct(Adapter $adp)
-    {
-        $this->adapter = $adp;
-    }
-    
     /**
         Sprawdza (po loginie) czy dany user istnieje
         @param string $u_login Login usera
@@ -35,7 +24,7 @@ class UserMapper
     */
     public function isUserLoginExists($u_login)
     {
-        $sql = new Sql($this->adapter);
+        $sql = new Sql($this->getDbAdapter());
         $select = $sql->select();
         
         $select->from(array('u' => 'users'))
@@ -60,7 +49,7 @@ class UserMapper
     */
     public function isEmailExists($u_email)
     {
-        $sql = new Sql($this->adapter);
+        $sql = new Sql($this->getDbAdapter());
         $select = $sql->select();
         
         $select->from(array('u' => 'users'))
@@ -86,7 +75,7 @@ class UserMapper
     */
     public function isUserEmail($u_email, $uid)
     {
-        $sql = new Sql($this->adapter);
+        $sql = new Sql($this->getDbAdapter());
         $select = $sql->select();
         
         $select->from(array('u' => 'users'))
@@ -130,7 +119,7 @@ class UserMapper
             'register_date' => date('Y-m-d H:i:s'),
         );
         
-        $sql = new Sql($this->adapter);
+        $sql = new Sql($this->getDbAdapter());
 
         $insert = $sql->insert();
         $insert->into('users');
@@ -160,7 +149,7 @@ class UserMapper
             'passs'=> $dynamicSalt,
         );
         
-        $sql = new Sql($this->adapter);
+        $sql = new Sql($this->getDbAdapter());
 
         $update = $sql->update();
         $update->table('users');
@@ -183,7 +172,7 @@ class UserMapper
             'email' => (string)$new_email,
         );
         
-        $sql = new Sql($this->adapter);
+        $sql = new Sql($this->getDbAdapter());
 
         $update = $sql->update();
         $update->table('users');
@@ -210,7 +199,7 @@ class UserMapper
             'active' => (int)$act,
         );
         
-        $sql = new Sql($this->adapter);
+        $sql = new Sql($this->getDbAdapter());
 
         $update = $sql->update();
         $update->table('users');
@@ -227,7 +216,7 @@ class UserMapper
     */
     public function setUserLoginDate($uid)
     {
-        $sql = new Sql($this->adapter);
+        $sql = new Sql($this->getDbAdapter());
 
         $update = $sql->update();
         $update->table('users');
@@ -245,7 +234,7 @@ class UserMapper
     */
     public function getUser($uid)
     {
-        $sql = new Sql($this->adapter);
+        $sql = new Sql($this->getDbAdapter());
         $select = $sql->select();
         
         $select->from(array('u' => 'users'))
@@ -275,7 +264,7 @@ class UserMapper
             throw new \Exception("Niepoprawny numer strony!");
         }
         
-        $sql = new Sql($this->adapter);
+        $sql = new Sql($this->getDbAdapter());
         $select = $sql->select();
         
         $select->from(array('u' => 'users'));

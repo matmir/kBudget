@@ -7,8 +7,7 @@
 
 namespace Budget\Controller;
 
-use Zend\Mvc\Controller\AbstractActionController;
-use Zend\View\Model\ViewModel;
+use Base\Controller\BaseController;
 
 use Budget\Model\Transaction;
 use Budget\Model\TransactionMapper;
@@ -28,33 +27,8 @@ use Budget\Form\TransactionTimeSelectFormFilter;
 use Budget\Model\TransactionAnalyzer;
 use Budget\Model\ChartsPlotter;
 
-class AnalysisController extends AbstractActionController
+class AnalysisController extends BaseController
 {
-    protected $transactionMapper;
-    protected $categoryMapper;
-    
-    // Pobiera mapper do bazy z transakcjami
-    private function getTransactionMapper()
-    {
-        if (!$this->transactionMapper) {
-            $sm = $this->getServiceLocator();
-            $this->transactionMapper = new TransactionMapper($sm->get('adapter'));
-        }
-        
-        return $this->transactionMapper;
-    }
-    
-    // Pobiera mapper do bazy z kategoriami
-    private function getCategoryMapper()
-    {
-        if (!$this->categoryMapper) {
-            $sm = $this->getServiceLocator();
-            $this->categoryMapper = new CategoryMapper($sm->get('adapter'));
-        }
-        
-        return $this->categoryMapper;
-    }
-    
     // Główna strona
     public function indexAction()
     {
@@ -64,17 +38,17 @@ class AnalysisController extends AbstractActionController
     public function categoryAction()
     {
         // Identyfikator zalogowanego usera
-        $uid = $this->getServiceLocator()->get('userId');
+        $uid = $this->get('userId');
         
         // Ustawienia ścieżek
-        $cfg = $this->getServiceLocator()->get('img_dirs');
+        $cfg = $this->get('img_dirs');
         // Ustawienia nazw obrazków
-        $img = $this->getServiceLocator()->get('img_nm');
+        $img = $this->get('img_nm');
         
         // Formularz filtrujący
         $form = new TransactionTimeSelectForm();
         // Minimalny rok w transakcjach usera
-        $minYear = $this->getTransactionMapper()->getMinYearOfTransaction($uid);
+        $minYear = $this->get('Budget\TransactionMapper')->getMinYearOfTransaction($uid);
         // Filtracja formularza
         $formFilters = new TransactionTimeSelectFormFilter($minYear);
         
@@ -149,13 +123,13 @@ class AnalysisController extends AbstractActionController
         }
         
         // Pobranie przychodów
-        $tr_profit = $this->getTransactionMapper()->getTransactions($uid, $date_param, 0);
+        $tr_profit = $this->get('Budget\TransactionMapper')->getTransactions($uid, $date_param, 0);
         // Pobranie wydatków
-        $tr_expense = $this->getTransactionMapper()->getTransactions($uid, $date_param, 1);
+        $tr_expense = $this->get('Budget\TransactionMapper')->getTransactions($uid, $date_param, 1);
         
         // Pobranie kategorii z zyskami
-        $cat_profit = $this->getCategoryMapper()->getCategories($uid, 0);
-        $cat_expense = $this->getCategoryMapper()->getCategories($uid, 1);
+        $cat_profit = $this->get('User\CategoryMapper')->getCategories($uid, 0);
+        $cat_expense = $this->get('User\CategoryMapper')->getCategories($uid, 1);
         
         // Analizer
         $analyzer = new TransactionAnalyzer();
@@ -194,17 +168,17 @@ class AnalysisController extends AbstractActionController
     public function timeAction()
     {
         // Identyfikator zalogowanego usera
-        $uid = $this->getServiceLocator()->get('userId');
+        $uid = $this->get('userId');
         
         // Ustawienia ścieżek
-        $cfg = $this->getServiceLocator()->get('img_dirs');
+        $cfg = $this->get('img_dirs');
         // Ustawienia nazw obrazków
-        $img = $this->getServiceLocator()->get('img_nm');
+        $img = $this->get('img_nm');
         
         // Formularz filtrujący
         $form = new TransactionTimeSelectForm();
         // Minimalny rok w transakcjach usera
-        $minYear = $this->getTransactionMapper()->getMinYearOfTransaction($uid);
+        $minYear = $this->get('Budget\TransactionMapper')->getMinYearOfTransaction($uid);
         // Filtracja formularza
         $formFilters = new TransactionTimeSelectFormFilter($minYear);
         
@@ -281,9 +255,9 @@ class AnalysisController extends AbstractActionController
         /* ----------------------------- WYKRES SŁUPKOWY ----------------------------------- */
         
         // Pobranie sumy wydatków
-        $sum_expense = $this->getTransactionMapper()->getSumOfTransactions($uid, $date_param, 1);
+        $sum_expense = $this->get('Budget\TransactionMapper')->getSumOfTransactions($uid, $date_param, 1);
         // Pobranie sumy przychodów
-        $sum_profit = $this->getTransactionMapper()->getSumOfTransactions($uid, $date_param, 0);
+        $sum_profit = $this->get('Budget\TransactionMapper')->getSumOfTransactions($uid, $date_param, 0);
         
         // Bilans
         $balance = $sum_profit - $sum_expense;
@@ -307,8 +281,8 @@ class AnalysisController extends AbstractActionController
         $analyzer = new TransactionAnalyzer();
         
         // Pobranie transakcji
-        $tr_profit = $this->getTransactionMapper()->getTransactions($uid, $date_param, 0);
-        $tr_expense = $this->getTransactionMapper()->getTransactions($uid, $date_param, 1);
+        $tr_profit = $this->get('Budget\TransactionMapper')->getTransactions($uid, $date_param, 0);
+        $tr_expense = $this->get('Budget\TransactionMapper')->getTransactions($uid, $date_param, 1);
         
         // Spr. czy są zyski
         if (count($tr_profit)) {

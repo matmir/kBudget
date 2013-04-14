@@ -7,8 +7,7 @@
 
 namespace User\Controller;
 
-use Zend\Mvc\Controller\AbstractActionController;
-use Zend\View\Model\ViewModel;
+use Base\Controller\BaseController;
 
 use User\Model\Category;
 use User\Model\CategoryMapper;
@@ -19,21 +18,8 @@ use User\Form\CategoryFormFilter;
 use Zend\Authentication\Adapter\DbTable as AuthAdapter;
 use Zend\Authentication\AuthenticationService;
 
-class CategoryController extends AbstractActionController
+class CategoryController extends BaseController
 {
-    protected $categoryMapper;
-    
-    // Pobiera mapper do bazy z kategoriami
-    private function getCategoryMapper()
-    {
-        if (!$this->categoryMapper) {
-            $sm = $this->getServiceLocator();
-            $this->categoryMapper = new CategoryMapper($sm->get('adapter'));
-        }
-        
-        return $this->categoryMapper;
-    }
-    
     /**
      * Main page
      */
@@ -49,11 +35,11 @@ class CategoryController extends AbstractActionController
     public function listAction()
     {
         // Identyfikator zalogowanego usera
-        $uid = $this->getServiceLocator()->get('userId');
+        $uid = $this->get('userId');
         
         // Rozdział kategorii na przychód i wydatek
-        $cat_profit = $this->getCategoryMapper()->getCategories($uid, 0);
-        $cat_expense = $this->getCategoryMapper()->getCategories($uid, 1);
+        $cat_profit = $this->get('User\CategoryMapper')->getCategories($uid, 0);
+        $cat_expense = $this->get('User\CategoryMapper')->getCategories($uid, 1);
         
         // Formularze na dodanie kategorii
         $form_add_profit = new CategoryForm();
@@ -75,7 +61,7 @@ class CategoryController extends AbstractActionController
     public function addAction()
     {
         // Identyfikator zalogowanego usera
-        $uid = $this->getServiceLocator()->get('userId');
+        $uid = $this->get('userId');
         
         // Formularz
         $form = new CategoryForm();
@@ -98,9 +84,9 @@ class CategoryController extends AbstractActionController
                 $category->uid = $uid;
                 
                 // Spr. czy nazwa już istnieje
-                if ($this->getCategoryMapper()->isCategoryNameExists($category->c_name, $category->c_type, $uid)==0) {
+                if ($this->get('User\CategoryMapper')->isCategoryNameExists($category->c_name, $category->c_type, $uid)==0) {
                     // Zapis danych
-                    $this->getCategoryMapper()->saveCategory($category);
+                    $this->get('User\CategoryMapper')->saveCategory($category);
                 }
                 
                 // Przekierowanie do listy kategorii
@@ -123,7 +109,7 @@ class CategoryController extends AbstractActionController
     public function editAction()
     {
         // Identyfikator zalogowanego usera
-        $uid = $this->getServiceLocator()->get('userId');
+        $uid = $this->get('userId');
         
         // Pobranie cid-a z adresu
         $cid = (int) $this->params()->fromRoute('cid', 0);
@@ -131,7 +117,7 @@ class CategoryController extends AbstractActionController
         if ($cid) {
             
             // Pobranie danych kategorii
-            $category = $this->getCategoryMapper()->getCategory($cid, $uid);
+            $category = $this->get('User\CategoryMapper')->getCategory($cid, $uid);
             
             // Spr. czy jest taka kategoria
             if ($category->cid != 0) {
@@ -160,9 +146,9 @@ class CategoryController extends AbstractActionController
                         $category->uid = $uid;
                         
                         // Spr. czy nazwa już istnieje
-                        if ($this->getCategoryMapper()->isCategoryNameExists($category->c_name, $category->c_type, $uid)==0) {
+                        if ($this->get('User\CategoryMapper')->isCategoryNameExists($category->c_name, $category->c_type, $uid)==0) {
                             // Zapis danych
-                            $this->getCategoryMapper()->saveCategory($category);
+                            $this->get('User\CategoryMapper')->saveCategory($category);
                         }
                         
                         // Przekierowanie do listy kategorii
@@ -194,7 +180,7 @@ class CategoryController extends AbstractActionController
     public function deleteAction()
     {
         // Identyfikator zalogowanego usera
-        $uid = $this->getServiceLocator()->get('userId');
+        $uid = $this->get('userId');
         
         // Identyfikator kategorii
         $cid = (int) $this->params()->fromRoute('cid', 0);
@@ -203,11 +189,11 @@ class CategoryController extends AbstractActionController
         }
         
         // Spr czy kategoria jest pusta
-        $EMPTY = $this->getCategoryMapper()->isCategoryEmpty($cid, $uid);
+        $EMPTY = $this->get('User\CategoryMapper')->isCategoryEmpty($cid, $uid);
         if ($EMPTY) {
             
             // Dane kategorii
-            $category = $this->getCategoryMapper()->getCategory($cid, $uid);
+            $category = $this->get('User\CategoryMapper')->getCategory($cid, $uid);
             
             $request = $this->getRequest();
             if ($request->isPost()) {
@@ -216,7 +202,7 @@ class CategoryController extends AbstractActionController
     
                 if ($del == 'Yes') {
                     $cid = (int) $request->getPost('cid');
-                    $this->getCategoryMapper()->deleteCategory($cid, $uid);
+                    $this->get('User\CategoryMapper')->deleteCategory($cid, $uid);
                 }
     
                 // Przekierowanie do listy kategorii

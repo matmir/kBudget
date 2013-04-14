@@ -5,26 +5,16 @@
     Klasa zajmująca się rejestrowaniem przebiegu importu w bazie
 */
 
-namespace Budget\Model;
+namespace Budget\Mapper;
+
+use Base\Mapper\BaseMapper;
 
 use Zend\Db\Sql\Sql;
-use Zend\Db\Adapter\Adapter;
 
 use Budget\Model\Import;
 
-class ImportMapper
+class ImportMapper extends BaseMapper
 {
-    protected $adapter;
-
-    /**
-        Konstruktor.
-        @param Adapter $adp Obiekt reprezentujący adapter podłączony do bazy danych
-    */
-    public function __construct(Adapter $adp)
-    {
-        $this->adapter = $adp;
-    }
-    
     /**
         Pobiera informacje dotyczące aktualnego importu wyciągu
         @param int $uid Identyfikator usera
@@ -32,7 +22,7 @@ class ImportMapper
     */
     public function getUserImport($uid)
     {
-        $sql = new Sql($this->adapter);
+        $sql = new Sql($this->getDbAdapter());
         $select = $sql->select();
         
         $select->from(array('i' => 'imports'))
@@ -73,7 +63,7 @@ class ImportMapper
             'counted' => (int)$import->counted,
         );
         
-        $sql = new Sql($this->adapter);
+        $sql = new Sql($this->getDbAdapter());
 
         if ($this->getUserImport($import->uid) == null) { // dodanie nowego wpisu
             
@@ -105,7 +95,7 @@ class ImportMapper
     */
     public function delUserImport($uid)
     {
-        $sql = new Sql($this->adapter);
+        $sql = new Sql($this->getDbAdapter());
     
         $delete = $sql->delete();
         $delete->from('imports');

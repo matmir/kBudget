@@ -222,6 +222,10 @@ return array(
     ),
     // Services
     'service_manager' => array(
+        'invokables' => array(
+            'Budget\ImportMapper' => 'Budget\Mapper\ImportMapper',
+            'Budget\TransactionMapper' => 'Budget\Mapper\TransactionMapper',
+        ),
         'factories' => array(
             'translator' => 'Zend\I18n\Translator\TranslatorServiceFactory',
         ),

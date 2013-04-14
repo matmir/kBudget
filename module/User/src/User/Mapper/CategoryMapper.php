@@ -5,27 +5,16 @@
     Klasa zajmująca się wyciągniem kategorii z bazy danych
 */
 
-namespace User\Model;
+namespace User\Mapper;
 
+use Base\Mapper\BaseMapper;
 use Zend\Db\Sql\Sql;
 use Zend\Db\Sql\Expression;
-use Zend\Db\Adapter\Adapter;
 
 use User\Model\Category;
 
-class CategoryMapper
+class CategoryMapper extends BaseMapper
 {
-    protected $adapter;
-
-    /**
-        Konstruktor.
-        @param Adapter $adp Obiekt reprezentujący adapter podłączony do bazy danych
-    */
-    public function __construct(Adapter $adp)
-    {
-        $this->adapter = $adp;
-    }
-    
     /**
         Pobiera wszystkie kategorie
         @param int $uid Identyfikator usera
@@ -34,7 +23,7 @@ class CategoryMapper
     */
     public function getCategories($uid, $c_type=-1)
     {
-        $sql = new Sql($this->adapter);
+        $sql = new Sql($this->getDbAdapter());
         $select = $sql->select();
         
         $select->from(array('c' => 'category'))
@@ -82,7 +71,7 @@ class CategoryMapper
     */
     public function getUserCategoriesToSelect($uid, $c_type)
     {
-        $sql = new Sql($this->adapter);
+        $sql = new Sql($this->getDbAdapter());
         $select = $sql->select();
         
         $select->from(array('c' => 'category'))
@@ -116,7 +105,7 @@ class CategoryMapper
     */
     public function isCategoryNameExists($c_name, $c_type, $uid)
     {
-        $sql = new Sql($this->adapter);
+        $sql = new Sql($this->getDbAdapter());
         $select = $sql->select();
         
         $select->from(array('c' => 'category'))
@@ -149,7 +138,7 @@ class CategoryMapper
             'c_name'  => (string)$category->c_name,
         );
         
-        $sql = new Sql($this->adapter);
+        $sql = new Sql($this->getDbAdapter());
 
         $cid = (int)$category->cid;
         if ($cid == 0) { // dodanie nowego wpisu
@@ -185,7 +174,7 @@ class CategoryMapper
     */
     public function getCategory($cid, $uid)
     {
-        $sql = new Sql($this->adapter);
+        $sql = new Sql($this->getDbAdapter());
         $select = $sql->select();
         
         $select->from(array('c' => 'category'))
@@ -213,7 +202,7 @@ class CategoryMapper
     */
     public function isCategoryEmpty($cid, $uid)
     {
-        $sql = new Sql($this->adapter);
+        $sql = new Sql($this->getDbAdapter());
         $select = $sql->select();
         
         $select->columns(array('cn' => new Expression('count(*)')))
@@ -238,7 +227,7 @@ class CategoryMapper
     */
     public function deleteCategory($cid, $uid)
     {
-        $sql = new Sql($this->adapter);
+        $sql = new Sql($this->getDbAdapter());
     
         $delete = $sql->delete();
         $delete->from('category');

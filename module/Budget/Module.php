@@ -71,13 +71,6 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
         return array(
             'factories' => array(
                 
-                // Pobiera adapter do bazy danych
-                'adapter' =>  function($sm) {
-                    $config = $sm->get('Configuration');
-                    $dbAdapter = new \Zend\Db\Adapter\Adapter($config['db']);
-                    return $dbAdapter;
-                },
-                
                 // Konfiguracja długości loginu/hasła usera
                 'user_login_cfg' =>  function($sm) {
                     $cfg = $sm->get('Configuration');

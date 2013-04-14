@@ -7,8 +7,7 @@
 
 namespace Budget\Controller;
 
-use Zend\Mvc\Controller\AbstractActionController;
-use Zend\View\Model\ViewModel;
+use Base\Controller\BaseController;
 
 use Budget\Model\Banking\mBank;
 
@@ -29,59 +28,22 @@ use Budget\Model\TransactionMapper;
 
 use Zend\File\Transfer\Adapter\Http;
 
-class ImportController extends AbstractActionController
+class ImportController extends BaseController
 {
-    protected $importMapper;
-    protected $categoryMapper;
-    protected $transactionMapper;
-    
-    // Pobiera mapper do bazy z importem
-    private function getImportMapper()
-    {
-        if (!$this->importMapper) {
-            $sm = $this->getServiceLocator();
-            $this->importMapper = new ImportMapper($sm->get('adapter'));
-        }
-        
-        return $this->importMapper;
-    }
-    
-    // Pobiera mapper do bazy z kategoriami
-    private function getCategoryMapper()
-    {
-        if (!$this->categoryMapper) {
-            $sm = $this->getServiceLocator();
-            $this->categoryMapper = new CategoryMapper($sm->get('adapter'));
-        }
-        
-        return $this->categoryMapper;
-    }
-    
-    // Pobiera mapper do bazy z transakcjami
-    private function getTransactionMapper()
-    {
-        if (!$this->transactionMapper) {
-            $sm = $this->getServiceLocator();
-            $this->transactionMapper = new TransactionMapper($sm->get('adapter'));
-        }
-        
-        return $this->transactionMapper;
-    }
-    
     // Główna strona
     public function indexAction()
     {
         // Identyfikator zalogowanego usera
-        $uid = $this->getServiceLocator()->get('userId');
+        $uid = $this->get('userId');
         
         // Aktualny import
-        $import = $this->getImportMapper()->getUserImport($uid);
+        $import = $this->get('Budget\ImportMapper')->getUserImport($uid);
         
         // Spr czy są dane
         if ($import == null) {
             
             // Ustawienia ładowania wyciągów
-            $upload_config = $this->getServiceLocator()->get('upload_cfg');
+            $upload_config = $this->get('upload_cfg');
             
             // Lista obsługiwanych banków
             $bankList = Import::getBankList();
@@ -151,7 +113,7 @@ class ImportController extends AbstractActionController
                             $new_import->count = $bank->count();
                             
                             // Zapis do bazy
-                            $this->getImportMapper()->setUserImport($new_import);
+                            $this->get('Budget\ImportMapper')->setUserImport($new_import);
                             
                             // Przekierowanie do zatwierdzania transakcji
                             return $this->redirect()->toRoute('import/commit');
@@ -183,10 +145,10 @@ class ImportController extends AbstractActionController
     public function commitAction()
     {
         // Identyfikator zalogowanego usera
-        $uid = $this->getServiceLocator()->get('userId');
+        $uid = $this->get('userId');
         
         // Aktualny import
-        $import = $this->getImportMapper()->getUserImport($uid);
+        $import = $this->get('Budget\ImportMapper')->getUserImport($uid);
         
         // Flaga wystąpienia błędu (0 - ok, 1 - błąd parsowania)
         $ERR = 0;
@@ -195,7 +157,7 @@ class ImportController extends AbstractActionController
         if ($import) {
             
             // Ustawienia ładowania wyciągów
-            $upload_config = $this->getServiceLocator()->get('upload_cfg');
+            $upload_config = $this->get('upload_cfg');
             
             // Pozostałe transakcje do zaimportowania
             $not_imported_count = $import->count - $import->counted;
@@ -204,9 +166,9 @@ class ImportController extends AbstractActionController
             $tr_count = ($not_imported_count>$upload_config['maxParseLines'])?($upload_config['maxParseLines']):($not_imported_count);
             
             // Kategorie dla wydatków
-            $user_cat_expense = $this->getCategoryMapper()->getUserCategoriesToSelect($uid, 1);
+            $user_cat_expense = $this->get('User\CategoryMapper')->getUserCategoriesToSelect($uid, 1);
             // Kategorie dla przychodów
-            $user_cat_profit = $this->getCategoryMapper()->getUserCategoriesToSelect($uid, 0);
+            $user_cat_profit = $this->get('User\CategoryMapper')->getUserCategoriesToSelect($uid, 0);
             
             // Formularz
             $form = new TransactionImportForm($tr_count);
@@ -261,16 +223,16 @@ class ImportController extends AbstractActionController
                         $c_name = $form->get('c_name'.$i)->getValue();
                         if (($c_name!=null) && ($ncr[$i]==true)) {
                             // spr. czy taka kategoria istnieje (jeśli tak, to zwraca cid)
-                            $n_cid = $this->getCategoryMapper()->isCategoryNameExists($c_name, $transaction->t_type, $uid);
+                            $n_cid = $this->get('User\CategoryMapper')->isCategoryNameExists($c_name, $transaction->t_type, $uid);
                             if ($n_cid == 0) { // Nie istnieje - dodać nową
                                 $new_category = new Category();
                                 $new_category->uid = $uid;
                                 $new_category->c_type = $transaction->t_type;
                                 $new_category->c_name = $c_name;
                                 // Dodanie
-                                $this->getCategoryMapper()->saveCategory($new_category);
+                                $this->get('User\CategoryMapper')->saveCategory($new_category);
                                 // Pobranie nowego id-a kategorii
-                                $n_cid = $this->getCategoryMapper()->isCategoryNameExists($c_name, $transaction->t_type, $uid);
+                                $n_cid = $this->get('User\CategoryMapper')->isCategoryNameExists($c_name, $transaction->t_type, $uid);
                             }
                             
                             // Nadpisać pole transakcji nowym identyfikatorem kategorii
@@ -278,7 +240,7 @@ class ImportController extends AbstractActionController
                         }
                         
                         // Zapis transakcji
-                        $this->getTransactionMapper()->saveTransaction($transaction);
+                        $this->get('Budget\TransactionMapper')->saveTransaction($transaction);
                         
                     }
                     
@@ -290,7 +252,7 @@ class ImportController extends AbstractActionController
                     if ($import->counted == $import->count) {
                         
                         // Usunięcie informacji o imporcie
-                        $this->getImportMapper()->delUserImport($uid);
+                        $this->get('Budget\ImportMapper')->delUserImport($uid);
                         // Usunięcie pliku z wyciągiem
                         if (unlink($upload_config['upload_dir'].$import->fname) == true) {
                             
@@ -315,7 +277,7 @@ class ImportController extends AbstractActionController
                     } else { // jeszcze nie koniec importu
                         
                         // Aktualizacja informacji o imporcie
-                        $this->getImportMapper()->setUserImport($import);
+                        $this->get('Budget\ImportMapper')->setUserImport($import);
                         
                         // Przekierowanie do kolejnego zatwierdzania
                         return $this->redirect()->toRoute('import/commit');
@@ -370,7 +332,7 @@ class ImportController extends AbstractActionController
                     $import->nfpos = $bank->getPos();
                     
                     // Aktualizacja informacji o imporcie
-                    $this->getImportMapper()->setUserImport($import);
+                    $this->get('Budget\ImportMapper')->setUserImport($import);
                     
                 } else { // Błąd parsowania
                     
@@ -411,13 +373,13 @@ class ImportController extends AbstractActionController
     public function cancelAction()
     {
         // Identyfikator zalogowanego usera
-        $uid = $this->getServiceLocator()->get('userId');
+        $uid = $this->get('userId');
         
         // Aktualny import
-        $import = $this->getImportMapper()->getUserImport($uid);
+        $import = $this->get('Bugdet\ImportMapper')->getUserImport($uid);
         
         // Ustawienia ładowania wyciągów
-        $upload_config = $this->getServiceLocator()->get('upload_cfg');
+        $upload_config = $this->get('upload_cfg');
         
         // Czy są dane z importem
         if ($import) {

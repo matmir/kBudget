@@ -152,6 +152,13 @@ return array(
             'User\Controller\Category' => 'User\Controller\CategoryController',
         ),
     ),
+    // Services
+    'service_manager' => array(
+        'invokables' => array(
+            'User\CategoryMapper' => 'User\Mapper\CategoryMapper',
+            'User\UserMapper' => 'User\Mapper\UserMapper',
+        ),
+    ),
     // View
     'view_manager' => array(
         'template_path_stack' => array(

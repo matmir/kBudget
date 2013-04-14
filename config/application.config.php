@@ -3,6 +3,7 @@ return array(
     'modules' => array(
         'Admin',
         'Auth',
+        'Base',
         'Budget',
         'User',
     ),
