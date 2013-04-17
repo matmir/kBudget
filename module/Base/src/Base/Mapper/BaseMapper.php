@@ -2,8 +2,7 @@
 
 namespace Base\Mapper;
 
-use Zend\ServiceManager\ServiceLocatorAwareInterface;
-use Zend\ServiceManager\ServiceLocatorInterface;
+use Base\Service\BaseService;
 
 use Zend\Db\Adapter\Adapter;
 
@@ -13,13 +12,8 @@ use Zend\Db\Adapter\Adapter;
  * @author Mateusz Mirosławski
  *
  */
-class BaseMapper implements ServiceLocatorAwareInterface
+class BaseMapper extends BaseService
 {
-    /**
-     * @var \Zend\ServiceManager\ServiceLocatorInterface
-     */
-    private $serviceLocator;
-    
     /**
      * Instance of Zend db adapter
      * 
@@ -46,21 +40,5 @@ class BaseMapper implements ServiceLocatorAwareInterface
         }
         
         return $this->adapter;
-    }
-    
-    /**
-     * @param \Zend\ServiceManager\ServiceLocatorInterface $serviceLocator
-     */
-    public function setServiceLocator(ServiceLocatorInterface $serviceLocator)
-    {
-        $this->serviceLocator = $serviceLocator;
-    }
-    
-    /**
-     * @return \Zend\ServiceManager\ServiceLocatorInterface
-     */
-    public function getServiceLocator()
-    {
-        return $this->serviceLocator;
     }
 }
