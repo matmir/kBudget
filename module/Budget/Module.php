@@ -10,42 +10,6 @@ use Zend\Authentication\AuthenticationService;
 
 class Module implements AutoloaderProviderInterface, ConfigProviderInterface
 {
-    
-    public function onBootstrap(MvcEvent $e)
-    {
-        $eventManager = $e->getApplication()->getEventManager();
-        $eventManager->attach('dispatch', array($this, 'loadConfiguration'), 10);
-    }
-
-    public function loadConfiguration(MvcEvent $e)
-    {
-        $application = $e->getApplication();
-	    $sm = $application->getServiceManager();
-	    
-        // ---------------- Knefel do logowania/wylogowania
-        $router = $e->getRouter();
-        
-        // Jest zalogowany
-        if ($sm->get('Auth\UserAuthentication')->hasIdentity()) {
-            $url = $router->assemble(array('controller' => 'user/logout'), array('name' => 'user/logout'));
-            $title = 'Wyloguj';
-            // Przekazanie loginu
-            $e->getViewModel()->setVariable('user_name', $sm->get('userLogin'));
-            // Przekazanie flagi admina
-            $e->getViewModel()->setVariable('admin', ($sm->get('userType')=='admin')?(true):(false));
-        } else { // nie zalogowany
-            $url = $router->assemble(array('controller' => 'user/login'), array('name' => 'user/login'));
-            $title = 'Zaloguj';
-            // Przekazanie loginu
-            $e->getViewModel()->setVariable('user_name', 'anonymous');
-            // Przekazanie flagi admina
-            $e->getViewModel()->setVariable('admin', false);
-        }
-        // Przekazanie do layout-u
-        $e->getViewModel()->setVariable('log_btn', array('url' => $url,
-                                                            'title' => $title));
-    }
-    
     public function getAutoloaderConfig()
     {
         return array(
@@ -64,6 +28,20 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
     public function getConfig()
     {
         return include __DIR__ . '/config/module.config.php';
+    }
+    
+    public function getViewHelperConfig()
+    {
+        return array(
+            'factories' => array(
+                'userLogin' => function ($sm) {
+                    $userLogin = new View\Helper\UserLogin();
+                    $userLogin->setServiceLocator($sm->getServiceLocator());
+
+                    return $userLogin;
+                }
+            )
+        );
     }
     
     public function getServiceConfig()

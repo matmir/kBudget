@@ -34,18 +34,8 @@
                 <a href="<?php echo $this->url('analysis');?>"><div class="MenuItem">Analiza</div></a>
                 <a href="<?php echo $this->url('user');?>"><div class="MenuItem">Ustawienia</div></a>
                 <a href="<?php echo $this->url('user/register');?>"><div class="MenuItem">Zarejestruj nowego użytkownika</div></a>
-                <?php if ($this->user_name != 'anonymous'): ?>
-                <div class="UserInfo">
-                Użytkownik: <b><?php echo $this->escapeHtml($this->user_name); ?></b>
-                </div>
-                <?php endif; ?>
-                <a href="<?php echo $this->log_btn['url']; ?>"><div class="MenuItem"><?php echo $this->log_btn['title']; ?></div></a>
+                <?php echo $this->userLogin(); ?>
             </div>
-            <?php if ($this->admin): ?>
-            <div class="span-24">
-                <a href="<?php echo $this->url('admin');?>"><div class="AdminMenuItem">Administracja</div></a>
-            </div>
-            <?php endif; ?>
             <hr />
             
             <!-- Treść -->

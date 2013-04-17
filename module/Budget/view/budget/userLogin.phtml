@@ -1,0 +1,14 @@
+<?php if (isset($this->userName)): ?>
+<div class="UserInfo">
+Użytkownik: <b><?php echo $this->escapeHtml($this->userName); ?></b>
+</div>
+<a href="<?php echo $this->url('user/logout'); ?>"><div class="MenuItem">Wyloguj</div></a>
+<?php else: ?>
+<a href="<?php echo $this->url('user/login'); ?>"><div class="MenuItem">Zaloguj</div></a>
+<?php endif;?>
+
+<?php if (isset($this->userType) && $this->userType == 'admin'): ?>
+<div class="span-24">
+    <a href="<?php echo $this->url('admin');?>"><div class="AdminMenuItem">Administracja</div></a>
+</div>
+<?php endif; ?>
