@@ -6,10 +6,10 @@ $this->headTitle($title);
 <h1><?php echo $this->escapeHtml($title); ?></h1>
 
 <!-- Linki do analiz -->
-<div class="span-24">
-    <p>
+<div class="row">
+    <div class="span12">
         Wybierz rodzaj analizy:<br />
         <a href="<?php echo $this->url('analysis/time');?>">Analiza czasowa</a><br />
         <a href="<?php echo $this->url('analysis/category');?>">Analiza z podziałem na kategorie</a><br />
-    </p>
+    </div>
 </div>

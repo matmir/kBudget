@@ -7,7 +7,7 @@ use Zend\View\Model\ViewModel;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 
-class UserLogin extends AbstractHelper
+class UserMenu extends AbstractHelper
 {
     /**
      * Service locator instance
@@ -34,7 +34,7 @@ class UserLogin extends AbstractHelper
             $view->setVariable('userType', $this->getServiceLocator()->get('userType'));
         }
         
-        $view->setTemplate('budget/userLogin');
+        $view->setTemplate('budget/userMenu');
     
         return $this->getView()->render($view);
     }

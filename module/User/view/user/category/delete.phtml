@@ -5,15 +5,13 @@ $this->headTitle($title);
 ?>
 <h1><?php echo $this->escapeHtml($title); ?></h1>
 
-<div class="span-24">
-    
-    <div class="error">
+<div class="row">
+    <div class="span12">
         
         <?php if ($EMPTY): ?>
-        
-        <p>Czy na pewno usunąć kategorię
-            '<?php echo $this->escapeHtml($category->c_name); ?>' ?
-        </p>
+        <div class="alert alert-info">
+        Czy na pewno usunąć kategorię '<?php echo $this->escapeHtml($category->c_name); ?>' ?
+        </div>
         <?php
         $url = $this->url('user/category/delete', array(
             'cid'     => $this->cid,
@@ -26,19 +24,16 @@ $this->headTitle($title);
             <input type="submit" name="del" value="No" />
         </div>
         </form> 
-        
         <?php else: ?>
         
-        <p>
+        <div class="alert alert-error">
             Wybrana kategoria zawiera transakcje i nie może zostać usunięta.<br />
             Zmień kategorię w odpowiednich transakcjach, a następnie usuń wybraną kategorię ponownie.
-        </p>
-        <p>
+        </div>
+        
         <a href="<?php echo $this->url('user/category/list');?>">Powrót</a>
-        </p>
         
         <?php endif; ?>
-        
-    </div>
 
+    </div>
 </div>

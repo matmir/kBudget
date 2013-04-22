@@ -34,11 +34,11 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
     {
         return array(
             'factories' => array(
-                'userLogin' => function ($sm) {
-                    $userLogin = new View\Helper\UserLogin();
-                    $userLogin->setServiceLocator($sm->getServiceLocator());
+                'userMenu' => function ($sm) {
+                    $userMenu = new View\Helper\UserMenu();
+                    $userMenu->setServiceLocator($sm->getServiceLocator());
 
-                    return $userLogin;
+                    return $userMenu;
                 }
             )
         );

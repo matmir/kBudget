@@ -5,10 +5,11 @@ $this->headTitle($title);
 ?>
 <h1><?php echo $this->escapeHtml($title); ?></h1>
 
-<div class="span-24">
+<div class="row">
+    <div class="span12">
     
     <?php if ($this->ERR) : ?>
-    <div class="error" style="width: 30%;">
+    <div class="alert alert-error">
         Błąd podczas logowania.
     </div>
     <?php endif; ?>
@@ -20,16 +21,16 @@ $this->headTitle($title);
     
     echo $this->form()->openTag($form);
     ?>
-    <table class="TableClear">
+    <table>
         <tr>
             <td><?php echo $form->get('login')->getLabel(); ?></td>
             <td><?php echo $this->formElement($form->get('login')) ?></td>
         </tr>
         <?php
             echo $this->formElementErrors()
-                ->setMessageOpenFormat('<tr><td colspan="2">')
-                ->setMessageSeparatorString('</td></tr><tr><td colspan="2">')
-                ->setMessageCloseString('</tr>')
+                ->setMessageOpenFormat('<tr><td colspan="2"><div class="alert alert-error">')
+                ->setMessageSeparatorString('</div></td></tr><tr><td colspan="2"><div class="alert alert-error">')
+                ->setMessageCloseString('</div></td></tr>')
                 ->render($form->get('login'));
         ?>
         <tr>
@@ -38,9 +39,9 @@ $this->headTitle($title);
         </tr>
         <?php
             echo $this->formElementErrors()
-                ->setMessageOpenFormat('<tr><td colspan="2">')
-                ->setMessageSeparatorString('</td></tr><tr><td colspan="2">')
-                ->setMessageCloseString('</tr>')
+                ->setMessageOpenFormat('<tr><td colspan="2"><div class="alert alert-error">')
+                ->setMessageSeparatorString('</div></td></tr><tr><td colspan="2"><div class="alert alert-error">')
+                ->setMessageCloseString('</div></td></tr>')
                 ->render($form->get('pass'));
         ?>
         <tr>
@@ -52,13 +53,13 @@ $this->headTitle($title);
     </table>
     
     <?php echo $this->form()->closeTag(); ?>
-    
+    </div>
 </div>
 
-<div class="span-24">&nbsp;</div>
+<br />
 
-<div class="span-24">
-    <p>
+<div class="row">
+    <div class="span12">
         Nie pamiętasz hasła? <a href="<?php echo $this->url('user/passrst');?>">Odzyskiwanie</a> hasła.
-    </p>
+    </div>
 </div>

@@ -6,22 +6,27 @@ $this->headTitle($title);
 <h1><?php echo $this->escapeHtml($title); ?></h1>
 
 <!-- Knefle dodające transakcje -->
-<div class="span-24">
-    <div class="transaction-add-links">
-        <a href="<?php echo $this->url('transaction/add',
-                array('type'=>0));?>"><div class="transaction-add-profit">Dodaj przychód</div></a>
-                
-        <a href="<?php echo $this->url('transaction/add',
-                array('type'=>1));?>"><div class="transaction-add-expense">Dodaj wydatek</div></a>
-                
-        <a href="<?php echo $this->url('import');?>"><div class="transaction-import">Importuj wyciąg</div></a>
-    </div>
+<div class="row">
+<div class="span12">
+
+<div class="btn-group">
+    <a href="<?php echo $this->url('transaction/add',
+            array('type'=>0));?>" class="btn btn-success">Dodaj przychód</a>
+            
+    <a href="<?php echo $this->url('transaction/add',
+            array('type'=>1));?>" class="btn btn-danger">Dodaj wydatek</a>
+            
+    <a href="<?php echo $this->url('import');?>" class="btn btn-info">Importuj wyciąg</a>
+</div>
+    
+</div>
 </div>
 
-<div class="span-24">&nbsp;</div>
+<br />
 
-<!-- Filtracja -->
-<div class="span-24">
+<div class="row">
+<!-- Filtracja (lewa strona) -->
+<div class="span6">
     <div class="FilterBox">
     Filtracja:
     <?php
@@ -32,7 +37,7 @@ $this->headTitle($title);
     
     echo $this->form()->openTag($form);
     ?>
-    <table class="TableClear">
+    <table>
         <tr>
             <td><?php echo $form->get('month')->getLabel(); ?></td>
             <td><?php echo $this->formElement($form->get('month')); ?></td>
@@ -53,17 +58,37 @@ $this->headTitle($title);
     </div>
 </div>
 
-<div class="span-24">&nbsp;</div>
+<!-- Bilans (prawa strona) -->
+<div class="span3">
+    <table class="table table-striped">
+        <tr>
+            <td colspan="2" style="text-align: center;"><b>Bilans miesięczny</b></td>
+        </tr>
+        <tr>
+            <td><div class="profit">Przychód</div></td>
+            <td>+<?php echo $sum_profit; ?>zł</td>
+        </tr>
+        <tr>
+            <td><div class="expense">Wydatki</div></td>
+            <td>-<?php echo $sum_expense; ?>zł</td>
+        </tr>
+        <tr>
+            <td><b>Oszczędności</b></td>
+            <td><?php echo $balance; ?>zł</td>
+        </tr>
+    </table>
+</div>
 
-<!-- Transakcje (lewa strona) -->
-<div class="span-18">
+</div>
+
+<div class="row">
+<!-- Transakcje -->
+<div class="span12">
     
 <p>Twoje transakcje:</p>
-    
-<div class="transactions-box">
 
     <?php if (count($transactions)) : ?>
-    <table>
+    <table class="table table-bordered">
     <tr>
         <th>Typ</th>
         <th>data</th>
@@ -75,9 +100,9 @@ $this->headTitle($title);
     <?php foreach ($transactions as $transaction) : ?>
     <tr>
         <?php if ($transaction->t_type==0): ?>
-        <td><div class="profit">Przychód</div></td>
+        <td><div class="label label-success">Przychód</div></td>
         <?php else: ?>
-        <td><div class="expense">Wydatek</div></td>
+        <td><div class="label label-important">Wydatek</div></td>
         <?php endif; ?>
         <td><?php echo $this->escapeHtml($transaction->t_date);?></td>
         <td><?php echo (($transaction->t_type==0)?('+'):('-')).$this->escapeHtml($transaction->t_value);?>zł</td>
@@ -90,7 +115,7 @@ $this->headTitle($title);
                     'year'=>$dt['year'],
                     'tid' => $transaction->tid,
                     'page' => $this->page,
-                    ));?>">Edytuj</a>
+                    ));?>">Edit</a>
             <a href="<?php echo $this->url('transaction/delete',
                 array(
                     'month'=>$dt['month'],
@@ -106,8 +131,6 @@ $this->headTitle($title);
     <p>Brak transakcji!</p>
     <?php endif; ?>
 
-</div>
-
 <p>
     <?php echo $this->paginationControl($this->transactions,
                                     'Sliding',
@@ -118,33 +141,6 @@ $this->headTitle($title);
                                                                                     )); ?>
 </p>
 
-</div>
-
-<!-- Bilans (prawa strona) -->
-<div class="span-6 last">
-    
-<p>Bilans wybranego miesiąca:</p>
-
-<div class="transactions-box">
-
-    <table>
-        <tr>
-            <td colspan="2" style="text-align: center;"><b>Bilans</b></td>
-        </tr>
-        <tr>
-            <td><div class="profit">Przychód</div></td>
-            <td>+<?php echo $sum_profit; ?>zł</td>
-        </tr>
-        <tr>
-            <td><div class="expense">Wydatki</div></td>
-            <td>-<?php echo $sum_expense; ?>zł</td>
-        </tr>
-        <tr>
-            <td><b>Oszczędności</b></td>
-            <td><?php echo $balance; ?>zł</td>
-        </tr>
-    </table>
-    
 </div>
 
 </div>

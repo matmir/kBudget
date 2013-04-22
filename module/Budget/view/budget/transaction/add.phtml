@@ -6,18 +6,18 @@ $this->headTitle($title);
 <h1><?php echo $this->escapeHtml($title); ?></h1>
 
 <!-- Typ transakcji -->
-<div class="span-24">
-<p>
-    Typ transakcji: <b><?php echo ($t_type==0)?('Przychód'):('Wydatek'); ?></b>
-</p>
+<div class="row">
+<div class="span12">
+Typ transakcji: <b><?php echo ($t_type==0)?('Przychód'):('Wydatek'); ?></b>
+</div>
 </div>
 
-<div class="span-24">&nbsp;</div>
+<br />
 
 <!-- Formularz transakcji -->
-<div class="span-24">
+<div class="row">
     
-    <div class="transaction-form">
+    <div class="span12">
         <?php
         $form = $this->form;
         $form->setAttribute('action', $this->url('transaction/add', array('type' => $t_type)));

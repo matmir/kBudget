@@ -5,14 +5,21 @@ $this->headTitle($title);
 ?>
 <h1><?php echo $this->escapeHtml($title); ?></h1>
 
-<div class="span-24">
+<div class="row">
+<div class="span12">
 
-<div class="notice">
+<div class="alert alert-info">
     Serwis umożliwia zaimportowanie transakcji z wyciągu bankowego zapisanego w formacie <b>CSV</b>.<br />
     Wystarczy zalogować się do własnego konta bankowego i wyeksportować historię transakcji do pliku CSV.
     Następnie z poniżeszej listy wybieramy nazwę banku oraz wskazujemy na zapisany plik i naciskamy 'Wyślij',
     aby rozpocząć procedurę importu.
 </div>
+
+</div>
+</div>
+
+<div class="row">
+<div class="span12">
 
 <?php
 $form = $this->form;
@@ -22,16 +29,16 @@ $form->prepare();
 echo $this->form()->openTag($form);
 ?>
 
-<table class="TableClear">
+<table>
     <tr>
         <td><?php echo $form->get('bank')->getLabel(); ?></td>
         <td><?php echo $this->formElement($form->get('bank')) ?></td>
     </tr>
     <?php
         echo $this->formElementErrors()
-            ->setMessageOpenFormat('<tr><td colspan="2">')
-            ->setMessageSeparatorString('</td></tr><tr><td colspan="2">')
-            ->setMessageCloseString('</tr>')
+            ->setMessageOpenFormat('<tr><td colspan="2"><div class="alert alert-error">')
+            ->setMessageSeparatorString('</div></td></tr><tr><td colspan="2"><div class="alert alert-error">')
+            ->setMessageCloseString('</div></td></tr>')
             ->render($form->get('bank'));
     ?>
     <tr>
@@ -40,9 +47,9 @@ echo $this->form()->openTag($form);
     </tr>
     <?php
         echo $this->formElementErrors()
-            ->setMessageOpenFormat('<tr><td colspan="2">')
-            ->setMessageSeparatorString('</td></tr><tr><td colspan="2">')
-            ->setMessageCloseString('</tr>')
+            ->setMessageOpenFormat('<tr><td colspan="2"><div class="alert alert-error">')
+            ->setMessageSeparatorString('</div></td></tr><tr><td colspan="2"><div class="alert alert-error">')
+            ->setMessageCloseString('</div></td></tr>')
             ->render($form->get('upload_file'));
     ?>
     <tr>
@@ -52,4 +59,5 @@ echo $this->form()->openTag($form);
 
 <?php echo $this->form()->closeTag(); ?>
 
+</div>
 </div>

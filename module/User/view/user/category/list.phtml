@@ -6,42 +6,36 @@ $this->headTitle($title);
 <h1><?php echo $this->escapeHtml($title); ?></h1>
 
 <!-- Linki do poszczególnych ustawień -->
-<div class="span-24">
-<p>
-    <a href="<?php echo $this->url('user/category/list');?>">Ustawienia kategorii</a>
-    <a href="<?php echo $this->url('user/email');?>">Zmiana adresu e-mail</a>
-    <a href="<?php echo $this->url('user/pass');?>">Zmiana hasła</a>
-</p>
-</div>
+<?php echo $this->configMenu() ?>
 
-<div class="span-24">&nbsp;</div>
+<br />
 
+<div class="row">
 <!-- Kategorie przychodów (lew strona) -->
-<div class="span-12">
+<div class="span6">
     
-    <div class="category-header">Przychody</div>
+    <div class="label label-success">Przychody</div>
+    <br /><br />
     
     <!-- Formularz dodania nowej kategorii -->
-    <div class="AddCategoryBox">
-        <p>Dodaj nową kategorię:</p>
-        <?php
-        $form = $this->form_profit;
-        $form->setAttribute('action', $this->url('user/category/add'));
-        $form->prepare();
-        
-        echo $this->form()->openTag($form);
-        echo $this->formHidden($form->get('cid'));
-        echo $this->formHidden($form->get('c_type'));
-        echo $this->formRow($form->get('c_name')).'<br />';
-        echo $this->formSubmit($form->get('submit'));
-        echo $this->form()->closeTag();
-        ?>
-    </div>
+    Dodaj nową kategorię:
+    <?php
+    $form = $this->form_profit;
+    $form->setAttribute('action', $this->url('user/category/add'));
+    $form->prepare();
     
-    <div class="span-12">&nbsp;</div>
+    echo $this->form()->openTag($form);
+    echo $this->formHidden($form->get('cid'));
+    echo $this->formHidden($form->get('c_type'));
+    echo $this->formRow($form->get('c_name')).'<br />';
+    echo $this->formSubmit($form->get('submit'));
+    echo $this->form()->closeTag();
+    ?>
+    
+    <br />
     
     <!-- Lista kategorii -->
-    <div class="CategoryListContainer">
+    <div>
         <table>
         <tr>
             <th colspan="3" style="text-align: center;">Lista kategorii w przychodach</th>
@@ -63,31 +57,30 @@ $this->headTitle($title);
 </div>
 
 <!-- Kategorie wydatków (prawa strona) -->
-<div class="span-12 last">
+<div class="span6">
     
-    <div class="category-header">Wydatki</div>
+    <div class="label label-important">Wydatki</div>
+    <br /><br />
     
     <!-- Formularz dodania nowej kategorii -->
-    <div class="AddCategoryBox">
-        <p>Dodaj nową kategorię:</p>
-        <?php
-        $form = $this->form_expense;
-        $form->setAttribute('action', $this->url('user/category/add'));
-        $form->prepare();
-        
-        echo $this->form()->openTag($form);
-        echo $this->formHidden($form->get('cid'));
-        echo $this->formHidden($form->get('c_type'));
-        echo $this->formRow($form->get('c_name')).'<br />';
-        echo $this->formSubmit($form->get('submit'));
-        echo $this->form()->closeTag();
-        ?>
-    </div>
+    Dodaj nową kategorię:
+    <?php
+    $form = $this->form_expense;
+    $form->setAttribute('action', $this->url('user/category/add'));
+    $form->prepare();
     
-    <div class="span-12">&nbsp;</div>
+    echo $this->form()->openTag($form);
+    echo $this->formHidden($form->get('cid'));
+    echo $this->formHidden($form->get('c_type'));
+    echo $this->formRow($form->get('c_name')).'<br />';
+    echo $this->formSubmit($form->get('submit'));
+    echo $this->form()->closeTag();
+    ?>
+    
+    <br />
     
     <!-- Lista kategorii -->
-    <div class="CategoryListContainer">
+    <div>
         <table>
         <tr>
             <th colspan="3" style="text-align: center;">Lista kategorii w wydatkach</th>
@@ -106,4 +99,5 @@ $this->headTitle($title);
         </table>
     </div>
     
+</div>
 </div>

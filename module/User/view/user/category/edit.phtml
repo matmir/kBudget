@@ -6,19 +6,13 @@ $this->headTitle($title);
 <h1><?php echo $this->escapeHtml($title); ?></h1>
 
 <!-- Linki do poszczególnych ustawień -->
-<div class="span-24">
-<p>
-    <a href="<?php echo $this->url('user/category/list');?>">Ustawienia kategorii</a>
-    <a href="<?php echo $this->url('user/email');?>">Zmiana adresu e-mail</a>
-    <a href="<?php echo $this->url('user/pass');?>">Zmiana hasła</a>
-</p>
-</div>
+<?php echo $this->configMenu() ?>
 
-<div class="span-24">&nbsp;</div>
+<br />
 
 <!-- Formularz kategorii -->
-<div class="span-12 last">
-    <div class="AddCategoryBox">
+<div class="row">
+<div class="span12">
         <?php
         $form = $this->form;
         $form->setAttribute('action', $this->url('user/category/edit', array(
@@ -33,11 +27,11 @@ $this->headTitle($title);
         echo $this->formSubmit($form->get('submit'));
         echo $this->form()->closeTag(); 
         ?>
-    </div>
+</div>
 </div>
 
-<div class="span-24">
-    <p>
+<div class="row">
+<div class="span12">
     <a href="<?php echo $this->url('user/category/list');?>">Powrót</a>
-    </p>
+</div>
 </div>

@@ -6,28 +6,22 @@ $this->headTitle($title);
 <h1><?php echo $this->escapeHtml($title); ?></h1>
 
 <!-- Linki do poszczególnych ustawień -->
-<div class="span-24">
-<p>
-    <a href="<?php echo $this->url('user/category');?>">Ustawienia kategorii</a>
-    <a href="<?php echo $this->url('user/email');?>">Zmiana adresu e-mail</a>
-    <a href="<?php echo $this->url('user/pass');?>">Zmiana hasła</a>
-</p>
-</div>
+<?php echo $this->configMenu() ?>
 
-<div class="span-24">&nbsp;</div>
+<br />
 
-<div class="span-24">
-    
+<div class="row">
+    <div class="span12">
     <p>
         Aktualny adres e-mail: <b><?php echo $this->escapeHtml($actual_email); ?></b>
     </p>
     
     <?php if ($ERR==1): ?>
-    <div class="error" style="width: 30%;">
+    <div class="alert alert-error" style="width: 30%;">
         Podany e-mail istnieje w bazie danych.
     </div>
     <?php elseif ($ERR==2): ?>
-    <div class="success" style="width: 30%;">
+    <div class="alert alert-success" style="width: 30%;">
         Adres e-mail został zmieniony.
     </div>
     <?php endif; ?>
@@ -40,16 +34,16 @@ $this->headTitle($title);
     echo $this->form()->openTag($form);
     ?>
     
-    <table class="TableClear">
+    <table>
         <tr>
             <td><b><?php echo $form->get('email')->getLabel(); ?></b></td>
             <td><?php echo $this->formElement($form->get('email')) ?></td>
         </tr>
         <?php
             echo $this->formElementErrors()
-                ->setMessageOpenFormat('<tr><td colspan="2">')
-                ->setMessageSeparatorString('</td></tr><tr><td colspan="2">')
-                ->setMessageCloseString('</tr>')
+                ->setMessageOpenFormat('<tr><td colspan="2"><div class="alert alert-error">')
+                ->setMessageSeparatorString('</div></td></tr><tr><td colspan="2"><div class="alert alert-error">')
+                ->setMessageCloseString('</div></td></tr>')
                 ->render($form->get('email'));
         ?>
         <tr>
@@ -58,5 +52,5 @@ $this->headTitle($title);
     </table>
     
     <?php $this->form()->closeTag(); ?>
-
+    </div>
 </div>

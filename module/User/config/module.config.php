@@ -165,4 +165,9 @@ return array(
             __DIR__ . '/../view',
         ),
     ),
+    'view_helpers' => array(
+        'invokables' => array(
+            'configMenu' => 'User\View\Helper\ConfigMenu',
+        ),
+    ),
 );

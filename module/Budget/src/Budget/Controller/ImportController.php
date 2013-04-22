@@ -376,7 +376,7 @@ class ImportController extends BaseController
         $uid = $this->get('userId');
         
         // Aktualny import
-        $import = $this->get('Bugdet\ImportMapper')->getUserImport($uid);
+        $import = $this->get('Budget\ImportMapper')->getUserImport($uid);
         
         // Ustawienia ładowania wyciągów
         $upload_config = $this->get('upload_cfg');
@@ -385,7 +385,7 @@ class ImportController extends BaseController
         if ($import) {
             
             // Usunięcie informacji o imporcie
-            $this->getImportMapper()->delUserImport($uid);
+            $this->get('Budget\ImportMapper')->delUserImport($uid);
             // Usunięcie pliku z wyciągiem
             if (unlink($upload_config['upload_dir'].$import->fname) == false) {
                 

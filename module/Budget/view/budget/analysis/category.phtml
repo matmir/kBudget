@@ -8,15 +8,17 @@ $this->headScript()->prependFile($this->basePath('/js/analysis/sort.js'));
 ?>
 <h1><?php echo $this->escapeHtml($title); ?></h1>
 
-<div class="span-24">
-<p>
+<div class="row">
+<div class="span12">
     <a href="<?php echo $this->url('analysis');?>">Powrót</a>
-</p>
+</div>
 </div>
 
+<br />
+
 <!-- Filtracja -->
-<div class="span-24">
-    <div class="FilterBox">
+<div class="row">
+    <div class="span12">
         
         <p>Filtracja:</p>
         
@@ -29,7 +31,7 @@ $this->headScript()->prependFile($this->basePath('/js/analysis/sort.js'));
         echo $this->form()->openTag($form);
         ?>
         
-        <table class="TableClear">
+        <table>
         <tr>
             <td><?php echo $form->get('filter_type')->getLabel(); ?></td>
             <td><?php echo $this->formElement($form->get('filter_type')) ?></td>
@@ -95,19 +97,19 @@ $this->headScript()->prependFile($this->basePath('/js/analysis/sort.js'));
     </div>
 </div>
 
-<div class="span-24">&nbsp;</div>
+<br />
 
-<div class="span-24">
-    <p>
+<div class="row">
+    <div class="span12">
         <a href="<?php echo $this->url('analysis/category');?>">Wyświetl aktualny miesiąc</a>
-    </p>
+    </div>
 </div>
 
 <!-- Wydatki -->
-<div class="span-24">
+<div class="row">
 
     <!-- Wykresy (lewa strona) -->
-    <div class="span-16">
+    <div class="span8">
         <div style="text-align: center;">
             <?php if (!$img_expense): ?>
                 Brak wydatków w wybranym okresie!
@@ -118,12 +120,12 @@ $this->headScript()->prependFile($this->basePath('/js/analysis/sort.js'));
     </div>
     
     <!-- Tabelka z kategoriami (prawa strona) -->
-    <div class="span-6 last">
+    <div class="span3">
         
         <?php if (!$dt_expense): ?>
             Brak wydatków w wybranym okresie!
         <?php else: ?>
-            <table>
+            <table class="table table-striped">
                 <tr>
                     <td colspan="2"><b>Wydatki</b></td>
                 </tr>
@@ -145,10 +147,10 @@ $this->headScript()->prependFile($this->basePath('/js/analysis/sort.js'));
 </div>
 
 <!-- Przychody -->
-<div class="span-24">
+<div class="row">
 
     <!-- Wykresy (lewa strona) -->
-    <div class="span-16">
+    <div class="span8">
         <div style="text-align: center;">
             <?php if (!$img_profit): ?>
                 Brak przychodów w wybranym okresie!
@@ -159,12 +161,12 @@ $this->headScript()->prependFile($this->basePath('/js/analysis/sort.js'));
     </div>
     
     <!-- Tabelka z kategoriami (prawa strona) -->
-    <div class="span-6 last">
+    <div class="span3">
         
         <?php if (!$dt_profit): ?>
             Brak przychodów w wybranym okresie!
         <?php else: ?>
-            <table border="1">
+            <table class="table table-striped">
                 <tr>
                     <td colspan="2"><b>Przychody</b></td>
                 </tr>

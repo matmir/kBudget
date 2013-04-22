@@ -5,11 +5,18 @@ $this->headTitle($title);
 ?>
 <h1><?php echo $this->escapeHtml($title); ?></h1>
 
-<div class="span-24">
+<div class="row">
+<div class="span12"></div>
 
-<div class="notice" style="width: 25%;">
+<div class="alert alert-info" style="width: 25%;">
         Przetworzono <b><?php echo $this->TR_COUNTED; ?></b> z <b><?php echo $this->ALL_TR_COUNT; ?></b> transakcji.
 </div>
+
+</div>
+</div>
+
+<div class="row">
+<div class="span12">
 
 <?php if ($this->ERR == 0) : ?>
     
@@ -61,10 +68,10 @@ $form->prepare();
 <a href="<?php echo $this->url('import/cancel');?>">Anuluj importowanie</a>
     
 <?php else: ?>
-    <div class="error" style="width: 30%;">
+    <div class="alert alert-error" style="width: 30%;">
         Wystąpił błąd podczas przetwarzania pliku!<br />
         Procedura importu została zatrzymana.
     </div>
 <?php endif; ?>
-
+</div>
 </div>

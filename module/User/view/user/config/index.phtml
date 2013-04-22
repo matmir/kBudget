@@ -6,10 +6,4 @@ $this->headTitle($title);
 <h1><?php echo $this->escapeHtml($title); ?></h1>
 
 <!-- Linki do ustawień -->
-<div class="span-24">
-<p>
-    <a href="<?php echo $this->url('user/category/list');?>">Ustawienia kategorii</a><br />
-    <a href="<?php echo $this->url('user/email');?>">Zmiana adresu e-mail</a><br />
-    <a href="<?php echo $this->url('user/pass');?>">Zmiana hasła</a><br />
-</p>
-</div>
+<?php echo $this->configMenu() ?>

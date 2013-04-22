@@ -1,0 +1,12 @@
+<?php if (isset($this->userName)): ?>
+<li><a href="<?php echo $this->url('transactions');?>">Transakcje</a></li>
+<li><a href="<?php echo $this->url('analysis');?>">Analiza</a></li>
+<li><a href="<?php echo $this->url('user');?>">Ustawienia</a></li>
+<?php if (isset($this->userType) && $this->userType == 'admin'): ?>
+<li><a href="<?php echo $this->url('admin');?>"><div class="AdminMenuItem">Administracja</div></a></li>
+<?php endif; ?>
+<li><a href="<?php echo $this->url('user/logout'); ?>">Wyloguj</a></li>
+<?php else: ?>
+<li><a href="<?php echo $this->url('user/register');?>">Rejestracja</a></li>
+<li><a href="<?php echo $this->url('user/login'); ?>">Zaloguj</a></li>
+<?php endif;?>

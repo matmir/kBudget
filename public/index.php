@@ -4,9 +4,6 @@
  * to the application root now.
  */
 
-// Pomiar długości wykonywania skryptów
-$BUDGET_START = microtime(true);
-
 chdir(dirname(__DIR__));
 
 // Setup autoloading

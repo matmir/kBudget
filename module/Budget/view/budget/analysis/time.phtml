@@ -8,15 +8,17 @@ $this->headScript()->prependFile($this->basePath('/js/analysis/sort.js'));
 ?>
 <h1><?php echo $this->escapeHtml($title); ?></h1>
 
-<div class="span-24">
-<p>
+<div class="row">
+<div class="span12">
     <a href="<?php echo $this->url('analysis');?>">Powrót</a>
-</p>
+</div>
 </div>
 
+<br />
+
 <!-- Filtracja -->
-<div class="span-24">
-    <div class="FilterBox">
+<div class="row">
+    <div class="span12">
         
         <p>Filtracja:</p>
         
@@ -29,7 +31,7 @@ $this->headScript()->prependFile($this->basePath('/js/analysis/sort.js'));
         echo $this->form()->openTag($form);
         ?>
         
-        <table class="TableClear">
+        <table>
         <tr>
             <td><?php echo $form->get('filter_type')->getLabel(); ?></td>
             <td><?php echo $this->formElement($form->get('filter_type')) ?></td>
@@ -95,16 +97,17 @@ $this->headScript()->prependFile($this->basePath('/js/analysis/sort.js'));
     </div>
 </div>
 
-<div class="span-24">&nbsp;</div>
+<br />
 
-<div class="span-24">
-    <p>
+<div class="row">
+    <div class="span12">
         <a href="<?php echo $this->url('analysis/time');?>">Wyświetl aktualny miesiąc</a>
-    </p>
+    </div>
 </div>
 
+<div class="row">
 <!-- Wykresy (lewa strona) -->
-<div class="span-16">
+<div class="span9">
     
     <img src="<?php echo $balance_chart; ?>" alt="Bilans" title="Bilans" />
     
@@ -147,28 +150,23 @@ $this->headScript()->prependFile($this->basePath('/js/analysis/sort.js'));
 </div>
 
 <!-- Bilans (prawa strona) -->
-<div class="span-6 last">
-
-    <div class="transactions-box">
-    
-        <table>
-            <tr>
-                <td colspan="2" style="text-align: center;"><b>Bilans</b></td>
-            </tr>
-            <tr>
-                <td><div class="profit">Przychód</div></td>
-                <td>+<?php echo $sum_profit; ?>zł</td>
-            </tr>
-            <tr>
-                <td><div class="expense">Wydatki</div></td>
-                <td>-<?php echo $sum_expense; ?>zł</td>
-            </tr>
-            <tr>
-                <td><b>Oszczędności</b></td>
-                <td><?php echo $balance; ?>zł</td>
-            </tr>
-        </table>
-        
-    </div>
-    
+<div class="span3">
+    <table class="table table-striped">
+        <tr>
+            <td colspan="2" style="text-align: center;"><b>Bilans</b></td>
+        </tr>
+        <tr>
+            <td><div class="profit">Przychód</div></td>
+            <td>+<?php echo $sum_profit; ?>zł</td>
+        </tr>
+        <tr>
+            <td><div class="expense">Wydatki</div></td>
+            <td>-<?php echo $sum_expense; ?>zł</td>
+        </tr>
+        <tr>
+            <td><b>Oszczędności</b></td>
+            <td><?php echo $balance; ?>zł</td>
+        </tr>
+    </table>
+</div>
 </div>
