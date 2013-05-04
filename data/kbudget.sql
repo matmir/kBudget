@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 3.5.2
+-- version 3.5.2.2
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Czas wygenerowania: 13 Lut 2013, 09:23
--- Wersja serwera: 5.5.25a
--- Wersja PHP: 5.4.4
+-- Czas wygenerowania: 04 Maj 2013, 18:11
+-- Wersja serwera: 5.5.27
+-- Wersja PHP: 5.4.7
 
 SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
@@ -28,11 +28,12 @@ SET time_zone = "+00:00";
 
 CREATE TABLE IF NOT EXISTS `category` (
   `cid` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'identyfikator kategorii',
+  `pcid` int(10) unsigned DEFAULT NULL,
   `uid` int(10) unsigned NOT NULL COMMENT 'identyfikator usera',
   `c_type` int(10) unsigned NOT NULL DEFAULT '1' COMMENT '0 - przychód, 1 - wydatek',
   `c_name` varchar(100) NOT NULL COMMENT 'nazwa',
   PRIMARY KEY (`cid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin2 AUTO_INCREMENT=31 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin2 AUTO_INCREMENT=117 ;
 
 -- --------------------------------------------------------
 
@@ -66,7 +67,7 @@ CREATE TABLE IF NOT EXISTS `transaction` (
   `t_content` varchar(200) NOT NULL COMMENT 'opis transakcji',
   `t_value` decimal(10,2) NOT NULL COMMENT 'kwota transakcji',
   PRIMARY KEY (`tid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin2 AUTO_INCREMENT=74 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin2 AUTO_INCREMENT=100 ;
 
 -- --------------------------------------------------------
 
@@ -85,7 +86,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `register_date` datetime NOT NULL DEFAULT '2013-01-01 00:00:00' COMMENT 'Data rejestracji usera',
   `last_login_date` datetime DEFAULT NULL COMMENT 'Data ostatniego logowania usera',
   PRIMARY KEY (`uid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin2 AUTO_INCREMENT=4 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin2 AUTO_INCREMENT=5 ;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
