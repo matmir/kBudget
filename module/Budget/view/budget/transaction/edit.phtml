@@ -2,6 +2,9 @@
 
 $title = 'Edycja transakcji';
 $this->headTitle($title);
+
+$this->headScript()->prependFile($this->basePath('/js/app/transaction/transactionCategory.js'));
+
 ?>
 <h1><?php echo $this->escapeHtml($title); ?></h1>
 
@@ -9,6 +12,7 @@ $this->headTitle($title);
 <div class="row">
 <div class="span12">
 Typ transakcji: <b><?php echo ($t_type==0)?('Przychód'):('Wydatek'); ?></b>
+<span id="catWait"><img alt="Czekaj..." src="/images/loading.gif"></span>
 </div>
 </div>
 
@@ -39,27 +43,57 @@ Typ transakcji: <b><?php echo ($t_type==0)?('Przychód'):('Wydatek'); ?></b>
                 <td colspan="2"><?php echo $this->formHidden($form->get('t_type')); ?></td>
             </tr>
             <tr>
-                <td><?php echo $form->get('cid')->getLabel(); ?></td>
-                <td><?php echo $this->formElement($form->get('cid')) ?></td>
+                <td><?php echo $form->get('pcid')->getLabel(); ?></td>
+                <td><?php echo $this->formElement($form->get('pcid')) ?></td>
             </tr>
             <?php
                 echo $this->formElementErrors()
                     ->setMessageOpenFormat('<tr><td colspan="2">')
                     ->setMessageSeparatorString('</td></tr><tr><td colspan="2">')
                     ->setMessageCloseString('</tr>')
-                    ->render($form->get('cid'));
+                    ->render($form->get('pcid'));
             ?>
-            <tr>
-                <td><?php echo $form->get('c_name')->getLabel(); ?></td>
-                <td><?php echo $this->formElement($form->get('c_name')) ?></td>
+            <tr class="newMainCategoryRow">
+                <td><?php echo $form->get('newMainCategoryName')->getLabel(); ?></td>
+                <td><?php echo $this->formElement($form->get('newMainCategoryName')) ?></td>
             </tr>
             <?php
                 echo $this->formElementErrors()
-                    ->setMessageOpenFormat('<tr><td colspan="2">')
-                    ->setMessageSeparatorString('</td></tr><tr><td colspan="2">')
+                    ->setMessageOpenFormat('<tr class="newMainCategoryRow"><td colspan="2">')
+                    ->setMessageSeparatorString('</td></tr><tr class="newMainCategoryRow"><td colspan="2">')
                     ->setMessageCloseString('</tr>')
-                    ->render($form->get('c_name'));
+                    ->render($form->get('newMainCategoryName'));
             ?>
+            <tr class="newMainCategoryRow">
+                <td></td>
+                <td><input type="button" id="addMainCategory" value="Dodaj kategorię"></td>
+            </tr>
+            <tr class="newSubCategoryRow">
+                <td><?php echo $form->get('ccid')->getLabel(); ?></td>
+                <td><?php echo $this->formElement($form->get('ccid')) ?></td>
+            </tr>
+            <?php
+                echo $this->formElementErrors()
+                    ->setMessageOpenFormat('<tr class="newSubCategoryRow"><td colspan="2">')
+                    ->setMessageSeparatorString('</td></tr><tr class="newSubCategoryRow"><td colspan="2">')
+                    ->setMessageCloseString('</tr>')
+                    ->render($form->get('ccid'));
+            ?>
+            <tr class="newSubCategoryEditRow">
+                <td><?php echo $form->get('newSubCategoryName')->getLabel(); ?></td>
+                <td><?php echo $this->formElement($form->get('newSubCategoryName')) ?></td>
+            </tr>
+            <?php
+                echo $this->formElementErrors()
+                    ->setMessageOpenFormat('<tr class="newSubCategoryEditRow"><td colspan="2">')
+                    ->setMessageSeparatorString('</td></tr><tr class="newSubCategoryEditRow"><td colspan="2">')
+                    ->setMessageCloseString('</tr>')
+                    ->render($form->get('newMainCategoryName'));
+            ?>
+            <tr class="newSubCategoryEditRow">
+                <td></td>
+                <td><input type="button" id="addSubCategory" value="Dodaj podkategorię"></td>
+            </tr>
             <tr>
                 <td><?php echo $form->get('t_date')->getLabel(); ?></td>
                 <td><?php echo $this->formElement($form->get('t_date')) ?></td>

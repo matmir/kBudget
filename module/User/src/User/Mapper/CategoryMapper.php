@@ -1,9 +1,4 @@
 <?php
-/**
-    @author Mateusz Mirosławski
-    
-    Klasa zajmująca się wyciągniem kategorii z bazy danych
-*/
 
 namespace User\Mapper;
 
@@ -13,97 +8,132 @@ use Zend\Db\Sql\Expression;
 
 use User\Model\Category;
 
+/**
+ * Category mapper
+ * 
+ * @author Mateusz Mirosławski
+ *
+ */
 class CategoryMapper extends BaseMapper
 {
     /**
-        Pobiera wszystkie kategorie
-        @param int $uid Identyfikator usera
-        @param int $c_type Typ kategorii (-1 - wszystkie, 0 - przychód, 1 - wydatek)
-        @return array() Tablica zawierająca kategorie (Category)
-    */
-    public function getCategories($uid, $c_type=-1)
+     * Get user categories of the same type
+     * 
+     * @param int $uid User identifier
+     * @param int $c_type Category type (0 - income, 1 - expense)
+     * @param int $pcid Parent category identifier
+     * @throws \Exception
+     * @return \Zend\Db\Adapter\Driver\ResultInterface
+     */
+    private function getUserCategories($uid, $c_type=-1, $pcid=null)
     {
         $sql = new Sql($this->getDbAdapter());
         $select = $sql->select();
-        
+    
         $select->from(array('c' => 'category'))
-                ->where(array(
-                              'c.uid' => (int)$uid,
-                              )
-                       )
-                ->order(array(
-                              'c.c_name ASC',
-                              ));
-                
-        // Typ kategorii do pobrania
+        ->where(array(
+                'c.uid' => (int)$uid,
+        )
+        )
+        ->order(array(
+                'c.c_name ASC',
+        ));
+    
+        // Check category type
         if ($c_type != -1) {
-            
+    
             // Spr. parametru
             if (!($c_type==0 || $c_type==1)) {
-                throw new \Exception("Niepoprawny parametr z typem kategorii!!");
+                throw new \Exception("Incorrect category type!");
             }
-            
+    
             $select->where(array('c.c_type' => (int)$c_type));
+    
+        }
+    
+        // Check parent category id
+        if ($pcid !==null) {
+    
+            $select->where(array('c.pcid' => (int)$pcid));
+    
+        } else {
+            
+            $select->where(array('c.pcid' => null));
             
         }
-        
+    
         $statement = $sql->prepareStatementForSqlObject($select);
         $results = $statement->execute();
         
-        $retObj = array();
-        
-        // Przelatuję po wynikach
-        while (($tbl=$results->current())!=null)
-        {
-            $ob = new Category();
-            $ob->exchangeArray($tbl);
-            array_push($retObj, $ob);
-        }
-        
-        return $retObj;
+        return $results;
     }
     
     /**
-        Pobiera kategorie usera dla elementu select formularza
-        @param int $uid Identyfikator usera
-        @param int $c_type Typ kategorii (0 - przychód, 1 - wydatek)
-        @return array() Tablica z kategoriami (ret[id_kategorii] = nazwa_kategorii)
-    */
-    public function getUserCategoriesToSelect($uid, $c_type)
+     * Get user categories of the same type.
+     * Return array of objects.
+     * 
+     * @param int $uid User identifier
+     * @param int $c_type Category type (0 - income, 1 - expense)
+     * @param int $pcid Parent category identifier
+     * @return array
+     */
+    public function getCategories($uid, $c_type=-1, $pcid=null)
     {
-        $sql = new Sql($this->getDbAdapter());
-        $select = $sql->select();
+        // Get categories
+        $results = $this->getUserCategories($uid, $c_type, $pcid);
         
-        $select->from(array('c' => 'category'))
-                ->where(array('c.uid' => (int)$uid,
-                              'c.c_type' => (int)$c_type));
-        
-        $statement = $sql->prepareStatementForSqlObject($select);
-        $results = $statement->execute();
-        
-        // Umieszczenie w tablicy
         $retObj = array();
-        // Domyślny wpis
-        $retObj['0'] = 'Wybierz...';
         
-        // Przelatuję po wynikach
+        // Insert result into the category object
         while (($tbl=$results->current())!=null)
         {
-            $retObj[$tbl['cid']] = $tbl['c_name'];
+            array_push($retObj, new Category($tbl));
         }
         
-        // Zwrócenie tablicy
         return $retObj;
     }
     
     /**
-        Sprawdza (po nazwie) czy dana kategoria istnieje
-        @param string $c_name Nazwa kategorii
-        @param int $c_type Typ kategorii (kategorie mogą się powtarzać jeśli są innego typu)
-        @param int $uid Identyfikator usera
-        @return int Zwraca identyfikator istniejącej kategorii lub 0 gdy kategoria nie istnieje
-    */
-    public function isCategoryNameExists($c_name, $c_type, $uid)
+     * Get user categories of the same type.
+     * Return array (tbl['cid'] = category_name)
+     * 
+     * @param int $uid User identifier
+     * @param int $c_type Category type (0 - income, 1 - expense)
+     * @param int $pcid Parent category identifier
+     * @return array
+     */
+    public function getUserCategoriesToSelect($uid, $c_type, $pcid=null)
+    {
+        // Get categories
+        $results = $this->getUserCategories($uid, $c_type, $pcid);
+        
+        // Return array
+        $retArray = array();
+        
+        // Default entry
+        $retArray['-1'] = 'Wybierz...';
+        $retArray['0'] = 'Dodaj nową...';
+        
+        // Insert values into the return array
+        while (($tbl=$results->current())!=null)
+        {
+            $retArray[$tbl['cid']] = $tbl['c_name'];
+        }
+        
+        return $retArray;
+    }
+    
+    /**
+     * Checks if the given category name exists in database.
+     * Return 0 if not exists or category id if exists
+     * 
+     * @param string $c_name Category name
+     * @param int $c_type Category type 
+     * @param int $uid User id
+     * @param int $pcid Parent category id
+     * @return int
+     */
+    public function isCategoryNameExists($c_name, $c_type, $uid, $pcid=null)
     {
         $sql = new Sql($this->getDbAdapter());
         $select = $sql->select();
@@ -113,23 +143,34 @@ class CategoryMapper extends BaseMapper
                               'c.uid' => (int)$uid,
                               'c.c_type' => (int)$c_type,
                               ));
+                
+        // Check parent category id
+        if (($pcid !== null) && ($pcid !== 0)) {
+            $select->where(array('c.pcid' => (int)$pcid));
+        }
         
         $statement = $sql->prepareStatementForSqlObject($select);
         $row = $statement->execute();
         
-        $dane = $row->current();
+        $data = $row->current();
         
-        $category = new Category();
-        $category->exchangeArray($dane);
-        
-        // Zwrócenie cid-a (gdy brak to 0)
-        return ($category->cid==null)?(0):($category->cid);
+        if ($data == null) {
+            
+            return 0;
+            
+        } else {
+            
+            return $data['cid'];
+            
+        }
     }
     
     /**
-        Zapis kategorii (dodawanie lub edycja)
-        @param Category $category Obiekt reprezentujący kategorię.
-    */
+     * Save category
+     * 
+     * @param Category $category Existing or new category object
+     * @throws \Exception
+     */
     public function saveCategory(Category $category)
     {
         $data = array(
@@ -138,18 +179,24 @@ class CategoryMapper extends BaseMapper
             'c_name'  => (string)$category->c_name,
         );
         
+        if (($category->pcid !== null) && ($category->pcid !== 0)) {
+            $data['pcid'] = (int)$category->pcid;
+        }
+        
         $sql = new Sql($this->getDbAdapter());
 
         $cid = (int)$category->cid;
-        if ($cid == 0) { // dodanie nowego wpisu
+        
+        // Add new category
+        if ($cid == 0) {
             $insert = $sql->insert();
             $insert->into('category');
             $insert->values($data);
             
             $statement = $sql->prepareStatementForSqlObject($insert);
             $statement->execute();
-        } else { // edycja
-            // Spr. czy istnieje
+        } else { // edit existing category
+            // Checks if the category exists
             if ($this->getCategory($cid, $data['uid'])) {
                 
                 $update = $sql->update();
@@ -161,17 +208,19 @@ class CategoryMapper extends BaseMapper
                 $statement = $sql->prepareStatementForSqlObject($update);
                 $statement->execute();
             } else {
-                throw new \Exception('Wybrana kategoria nie istnieje!');
+                throw new \Exception('Chosen category does not exists!');
             }
         }
     }
     
     /**
-        Pobranie wybranej kategorii
-        @param int $cid Identyfikator kategorii
-        @param int $uid Identyfikator usera
-        @return Category Zwraca obiekt reprezentujący kategorię
-    */
+     * Get the category data
+     * 
+     * @param int $cid Category id
+     * @param int $uid User id
+     * @throws \Exception
+     * @return \User\Model\Category
+     */
     public function getCategory($cid, $uid)
     {
         $sql = new Sql($this->getDbAdapter());
@@ -185,21 +234,21 @@ class CategoryMapper extends BaseMapper
         $row = $statement->execute();
         
         if (!$row) {
-            throw new \Exception("Nie można znaleźć rekordu $cid");
+            throw new \Exception('There is no category with id '.$cid);
         }
         
-        $category = new Category();
-        $category->exchangeArray($row->current());
+        $category = new Category($row->current());
         
         return $category;
     }
     
     /**
-        Sprawdza czy dana kategoria jest pusta (nie zawiera transakcji)
-        @param int $cid Identyfikator kategorii
-        @param int $uid Identyfikator usera
-        @return bool True jeśli kategoria jest pusta
-    */
+     * Checks if the category has transactions.
+     * 
+     * @param int $cid Category id
+     * @param int $uid User id
+     * @return bool
+     */
     public function isCategoryEmpty($cid, $uid)
     {
         $sql = new Sql($this->getDbAdapter());
@@ -214,17 +263,43 @@ class CategoryMapper extends BaseMapper
         $statement = $sql->prepareStatementForSqlObject($select);
         $row = $statement->execute();
         
-        $dane = $row->current();
+        $data = $row->current();
         
-        // Zwrócenie true jeśli cn = 0 (brak transakcji)
-        return ($dane['cn']==0)?(true):(false);
+        return ($data['cn']==0)?(true):(false);
     }
     
     /**
-        Usunięcie kategorii
-        @param int $tid Identyfikator kategorii
-        @param int $uid Identyfikator usera
-    */
+     * Checks if the category has subcategories.
+     *
+     * @param int $cid Category id
+     * @param int $uid User id
+     * @return bool
+     */
+    public function hasCategorySubcategories($cid, $uid)
+    {
+        $sql = new Sql($this->getDbAdapter());
+        $select = $sql->select();
+    
+        $select->columns(array('cn' => new Expression('count(*)')))
+            ->from(array('c' => 'category'))
+            ->where(array('c.pcid' => (int)$cid,
+                        'c.uid' => (int)$uid,
+        ));
+    
+        $statement = $sql->prepareStatementForSqlObject($select);
+        $row = $statement->execute();
+    
+        $data = $row->current();
+    
+        return ($data['cn']==0)?(false):(true);
+    }
+    
+    /**
+     * Delete category
+     * 
+     * @param int $cid Category id
+     * @param int $uid User id
+     */
     public function deleteCategory($cid, $uid)
     {
         $sql = new Sql($this->getDbAdapter());
@@ -236,6 +311,8 @@ class CategoryMapper extends BaseMapper
         
         $statement = $sql->prepareStatementForSqlObject($delete);
         $row = $statement->execute();
+        
+        return $row->getAffectedRows();
     }
 
 }

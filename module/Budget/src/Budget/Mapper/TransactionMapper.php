@@ -1,9 +1,4 @@
 <?php
-/**
-    @author Mateusz Mirosławski
-    
-    Klasa zajmująa się wyciągniem transakcji z bazy danych
-*/
 
 namespace Budget\Mapper;
 
@@ -17,6 +12,12 @@ use Zend\Paginator\Adapter\DbSelect;
 
 use Budget\Model\Transaction;
 
+/**
+ * Transaction mapper
+ * 
+ * @author Mateusz Mirosławski
+ *
+ */
 class TransactionMapper extends BaseMapper
 {
     /**

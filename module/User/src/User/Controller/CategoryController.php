@@ -1,13 +1,11 @@
 <?php
-/**
-    @author Mateusz Mirosławski
-    
-    Category management
-*/
 
 namespace User\Controller;
 
 use Base\Controller\BaseController;
+
+use Zend\View\Model\JsonModel;
+use Zend\View\Model\ViewModel;
 
 use User\Model\Category;
 use User\Model\CategoryMapper;
@@ -18,6 +16,12 @@ use User\Form\CategoryFormFilter;
 use Zend\Authentication\Adapter\DbTable as AuthAdapter;
 use Zend\Authentication\AuthenticationService;
 
+/**
+ * Category controller
+ * 
+ * @author Mateusz Mirosławski
+ *
+ */
 class CategoryController extends BaseController
 {
     /**
@@ -34,38 +38,103 @@ class CategoryController extends BaseController
      */
     public function listAction()
     {
-        // Identyfikator zalogowanego usera
+        // Identifier of logged in user
         $uid = $this->get('userId');
         
-        // Rozdział kategorii na przychód i wydatek
+        // Get income and expense categories
         $cat_profit = $this->get('User\CategoryMapper')->getCategories($uid, 0);
         $cat_expense = $this->get('User\CategoryMapper')->getCategories($uid, 1);
         
-        // Formularze na dodanie kategorii
-        $form_add_profit = new CategoryForm();
-        $form_add_profit->get('c_type')->setValue(0);
-        $form_add_expense = new CategoryForm();
-        $form_add_expense->get('c_type')->setValue(1);
+        $view = new ViewModel();
         
-        return array(
-            'cat_profit' => $cat_profit,
-            'cat_expense' => $cat_expense,
-            'form_profit' => $form_add_profit,
-            'form_expense' => $form_add_expense,
-        );
+        $view->setVariable('cat_profit', $cat_profit)
+            ->setVariable('cat_expense', $cat_expense);
+        
+        return $view;
     }
     
     /**
-     * Add category action
+     * Get sub categories. Used in categoryList.js via ajax
+     * 
+     * @return \Zend\View\Model\JsonModel;
      */
-    public function addAction()
+    public function subcategoryAction()
     {
-        // Identyfikator zalogowanego usera
+        // Identifier of logged in user
         $uid = $this->get('userId');
         
-        // Formularz
+        $view = new JsonModel();
+        
+        $request = $this->getRequest();
+        
+        // Check POST params
+        if ($request->isPost()) {
+            
+            // Get POST data
+            $data = $request->getPost();
+            
+            // Check if POST data are corrected
+            if ((isset($data['cid'])) && (isset($data['c_type']))) {
+                
+                try {
+                    
+                    // Get sub categories
+                    $categories = $this->get('User\CategoryMapper')->getCategories($uid, $data['c_type'], $data['cid']);
+                    
+                    // Check if there are sub categories
+                    if (!empty($categories)) {
+                        
+                        $view->setVariable('status', 'OK');
+                        
+                        foreach ($categories as $category) {
+                            
+                            $view->setVariable($category->c_name, $category->cid);
+                            
+                        }
+                        
+                    } else {
+                        
+                        $view->setVariable('status', 'noCategories');
+                        
+                    }
+                    
+                }
+                catch (\Exception $e) {
+                    
+                    $view->setVariable('status', 'noPostData');
+                    
+                }
+                
+                
+            } else { // Wrong data
+                
+                $view->setVariable('status', 'noPostData');
+                
+            }
+            
+        } else { // Missing POST data
+            
+            $view->setVariable("status","noPostData");
+            
+        }
+        
+        return $view;
+    }
+    
+    /**
+     * Add\edit category action. Used in categoryList.js via ajax
+     * 
+     * @return \Zend\View\Model\JsonModel;
+     */
+    public function saveAction()
+    {
+        // Identifier of logged in user
+        $uid = $this->get('userId');
+        
+        $view = new JsonModel();
+        
+        // Add form
         $form = new CategoryForm();
-        // Filtry
         $formFilters = new CategoryFormFilter();
 
         $request = $this->getRequest();
@@ -78,144 +147,110 @@ class CategoryController extends BaseController
                 
                 $category = new Category();
                 
-                // Uzupełnienie modelu danymi z formularza
+                // Insert data from POST into the category model
                 $category->exchangeArray($form->getData());
                 
                 $category->uid = $uid;
                 
-                // Spr. czy nazwa już istnieje
-                if ($this->get('User\CategoryMapper')->isCategoryNameExists($category->c_name, $category->c_type, $uid)==0) {
-                    // Zapis danych
+                // Check if category name exists
+                if ($this->get('User\CategoryMapper')->isCategoryNameExists($category->c_name, $category->c_type, $uid, $category->pcid)==0) {
+                    
+                    // Add category
                     $this->get('User\CategoryMapper')->saveCategory($category);
-                }
-                
-                // Przekierowanie do listy kategorii
-                return $this->redirect()->toRoute('user/category/list');
-                
-            } else { // Niepoprawny formularz
-                // Przekierowanie do listy kategorii
-                return $this->redirect()->toRoute('user/category/list');
-            }
-            
-        } else { // brak danych z formularza
-            // Przekierowanie do listy kategorii
-            return $this->redirect()->toRoute('user/category/list');
-        }
-    }
-    
-    /**
-     * Edit category action
-     */
-    public function editAction()
-    {
-        // Identyfikator zalogowanego usera
-        $uid = $this->get('userId');
-        
-        // Pobranie cid-a z adresu
-        $cid = (int) $this->params()->fromRoute('cid', 0);
-        // Spr. czy jest cid
-        if ($cid) {
-            
-            // Pobranie danych kategorii
-            $category = $this->get('User\CategoryMapper')->getCategory($cid, $uid);
-            
-            // Spr. czy jest taka kategoria
-            if ($category->cid != 0) {
-                
-                // Formularz
-                $form = new CategoryForm();
-                // Filtry
-                $formFilters = new CategoryFormFilter();
-                // Knefel
-                $form->get('submit')->setAttribute('value', 'Edytuj');
-        
-                // Wstawienie danych do formularza
-                $form->bind($category);
-                
-                $request = $this->getRequest();
-                if ($request->isPost()) {
                     
-                    $form->setInputFilter($formFilters->getInputFilter());
-                    $form->setData($request->getPost());
+                    // Get added category id
+                    $cid = $this->get('User\CategoryMapper')->isCategoryNameExists($category->c_name, $category->c_type, $uid, $category->pcid);
                     
-                    if ($form->isValid()) {
-                        
-                        // Uzupełnienie modelu nowymi danymi z formularza
-                        $category = $form->getData();
-                        
-                        $category->uid = $uid;
-                        
-                        // Spr. czy nazwa już istnieje
-                        if ($this->get('User\CategoryMapper')->isCategoryNameExists($category->c_name, $category->c_type, $uid)==0) {
-                            // Zapis danych
-                            $this->get('User\CategoryMapper')->saveCategory($category);
-                        }
-                        
-                        // Przekierowanie do listy kategorii
-                        return $this->redirect()->toRoute('user/category/list');
-                        
-                    }
+                    $view->setVariable('status', 'OK')
+                        ->setVariable('name', $category->c_name)
+                        ->setVariable('cid', $cid);
+                    
+                } else {
+                    
+                    $view->setVariable('status', 'exists');
                     
                 }
                 
-                return array(
-                    'form' => $form,
-                    'cid' => $category->cid,
-                );
+            } else { // Form is not valid
                 
-            } else { // brak kategorii z takim idem
-                // Przekierowanie do listy kategorii
-                return $this->redirect()->toRoute('user/category/list');
+                $view->setVariable('status', 'badData');
+                
             }
             
-        } else { // brak parametru
-            // Przekierowanie do listy kategorii
-            return $this->redirect()->toRoute('user/category/list');
+        } else { // Missing POST data
+            
+            $view->setVariable('status', 'noPostData');
+            
         }
+        
+        return $view;
     }
     
     /**
-     * Delete category action
+     * Delete category action. Used in categoryList.js via ajax
+     * 
+     * @return \Zend\View\Model\JsonModel;
      */
     public function deleteAction()
     {
-        // Identyfikator zalogowanego usera
+        // Identifier of logged in user
         $uid = $this->get('userId');
         
-        // Identyfikator kategorii
-        $cid = (int) $this->params()->fromRoute('cid', 0);
-        if (!$cid) {
-            return $this->redirect()->toRoute('user/category/list');
+        $view = new JsonModel();
+        
+        $request = $this->getRequest();
+        if ($request->isPost()) {
+    
+            $data = $request->getPost();
+            
+            if (array_key_exists('cid', $data)) {
+                
+                $cid = (int)$data['cid'];
+                
+                // Check category
+                $EMPTY = $this->get('User\CategoryMapper')->isCategoryEmpty($cid, $uid);
+                $SUB = $this->get('User\CategoryMapper')->hasCategorySubCategories($cid, $uid);
+                
+                if ($EMPTY && !$SUB) {
+                    
+                    // Delete category
+                    if ($this->get('User\CategoryMapper')->deleteCategory($cid, $uid) == 1) {
+                        
+                        $view->setVariable('status', 'OK');
+                        
+                    } else {
+                        
+                        $view->setVariable('status', 'badData');
+                        
+                    }
+                    
+                } else if ($EMPTY && $SUB) {
+                    
+                    $view->setVariable('status', 'hasSubcategories');
+                    
+                } else if (!$EMPTY && !$SUB) {
+                    
+                    $view->setVariable('status', 'hasTransactions');
+                    
+                } else {
+                    
+                    $view->setVariable('status', 'hasTransactionsAndSubcategories');
+                    
+                }
+                
+            } else { // Missing category id
+                
+                $view->setVariable('status', 'badData');
+                
+            }
+        
+        } else { // Missing POST data
+        
+            $view->setVariable('status', 'noPostData');
+        
         }
         
-        // Spr czy kategoria jest pusta
-        $EMPTY = $this->get('User\CategoryMapper')->isCategoryEmpty($cid, $uid);
-        if ($EMPTY) {
-            
-            // Dane kategorii
-            $category = $this->get('User\CategoryMapper')->getCategory($cid, $uid);
-            
-            $request = $this->getRequest();
-            if ($request->isPost()) {
-                
-                $del = $request->getPost('del', 'No');
-    
-                if ($del == 'Yes') {
-                    $cid = (int) $request->getPost('cid');
-                    $this->get('User\CategoryMapper')->deleteCategory($cid, $uid);
-                }
-    
-                // Przekierowanie do listy kategorii
-                return $this->redirect()->toRoute('user/category/list');
-            }
-            
-        }
-
-        return array(
-            'EMPTY' => $EMPTY,
-            'cid'    => $cid,
-            'category' => (isset($category)?($category):(null)),
-        );
+        return $view;
     }
 
 }

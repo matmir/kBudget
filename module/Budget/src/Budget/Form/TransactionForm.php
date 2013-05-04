@@ -1,10 +1,4 @@
 <?php
-/**
-    @author Mateusz Mirosławski
-    
-    Formularz dodawania/edycji transakcji.
-*/
-
 namespace Budget\Form;
 
 use Zend\Form\Form;
@@ -15,6 +9,12 @@ use Zend\InputFilter\InputFilter;
 use Zend\InputFilter\InputFilterAwareInterface;
 use Zend\InputFilter\InputFilterInterface;
 
+/**
+ * Add/edit transaction form
+ * 
+ * @author Mateusz Mirosławski
+ *
+ */
 class TransactionForm extends Form
 {
     public function __construct($name = null)
@@ -23,44 +23,81 @@ class TransactionForm extends Form
         parent::__construct('transaction');
         $this->setAttribute('method', 'post');
         
-        // Id transakcji (w przypadku edycji)
+        // Transaction id (for editing)
         $this->add(array(
             'type'  => 'Zend\Form\Element\Hidden',
             'name' => 'tid',
         ));
         
-        // Typ transakcji
+        // Transaction type
         $this->add(array(
             'type'  => 'Zend\Form\Element\Hidden',
             'name' => 't_type',
-        ));
-        
-        // Lista kategorii
-        $this->add(array(
-            'type'  => 'Zend\Form\Element\Select',
-            'name' => 'cid',
-            'options' => array(
-                'label' => 'Kategoria: ',
-                'value_options' => array(
-                  '0' => 'Jedzenie',
-                ),
+            'attributes' => array(
+                'id' => 'transactionType',
             ),
         ));
         
-        // Nowa kategoria
+        // Main category list
+        $this->add(array(
+            'type'  => 'Zend\Form\Element\Select',
+            'name' => 'pcid',
+            'options' => array(
+                'label' => 'Kategoria: ',
+                'value_options' => array(
+                  '0' => '...',
+                ),
+            ),
+            'attributes' => array(
+                'id' => 'mainCategoryList',
+            ),
+        ));
+        
+        // New main category
         $this->add(array(
             'type'  => 'Zend\Form\Element\Text',
-            'name' => 'c_name',
+            'name' => 'newMainCategoryName',
             'options' => array(
                 'label' => 'Nowa kategoria: ',
             ),
             'attributes' => array(
+                'id' => 'newMainCategory',
                 'maxlength' => 100,
                 'size' => 9,
             ),
         ));
         
-        // Data
+        // Sub category list
+        $this->add(array(
+            'type'  => 'Zend\Form\Element\Select',
+            'name' => 'ccid',
+            'options' => array(
+                'label' => 'Podkategoria: ',
+                'value_options' => array(
+                    '-1' => 'Brak',
+                    '0' => 'Dodaj nową...',
+                ),
+            ),
+            'attributes' => array(
+                'id' => 'subCategoryList',
+            ),
+        ));
+        
+        // New subcategory
+        $this->add(array(
+            'type'  => 'Zend\Form\Element\Text',
+            'name' => 'newSubCategoryName',
+            'options' => array(
+                'label' => 'Nowa podkategoria: ',
+            ),
+            'attributes' => array(
+                'id' => 'newSubCategory',
+                'maxlength' => 100,
+                'size' => 9,
+            ),
+        ));
+        
+        // Date
         $this->add(array(
             'type'  => 'Zend\Form\Element\Date',
             'name' => 't_date',
@@ -68,11 +105,12 @@ class TransactionForm extends Form
                 'label' => 'Data: ',
             ),
             'attributes' => array(
+                'id' => 't_date',
                 'step' => '1',
             ),
         ));
         
-        // Opis
+        // Description
         $this->add(array(
             'type'  => 'Zend\Form\Element\Text',
             'name' => 't_content',
@@ -80,11 +118,12 @@ class TransactionForm extends Form
                 'label' => 'Opis: ',
             ),
             'attributes' => array(
+                'id' => 't_content',
                 'maxlength' => 400,
             ),
         ));
         
-        // Wartość
+        // Value
         $this->add(array(
             'type'  => 'Zend\Form\Element\Text',
             'name' => 't_value',
@@ -92,6 +131,7 @@ class TransactionForm extends Form
                 'label' => 'Wartość: ',
             ),
             'attributes' => array(
+                'id' => 't_value',
                 'maxlength' => 12,
                 'size' => 8,
             ),
@@ -108,22 +148,15 @@ class TransactionForm extends Form
     }
 }
 
-/*
-    Filtry dla formularza
-*/
+/**
+ * Transaction add/edit form filters
+ * 
+ * @author Mateusz Mirosławski
+ *
+ */
 class TransactionFilter implements InputFilterAwareInterface
 {
     protected $inputFilter;
-    private $n_c_required; // Czy wymagane pole od nowej kategorii
-    
-    /**
-        Konstruktor
-        @param bool $new_category_required Flaga wymagania pola z nową kategorią
-    */
-    public function __construct($new_category_required=false)
-    {
-        $this->n_c_required = (bool)$new_category_required;
-    }
     
     public function setInputFilter(InputFilterInterface $inputFilter)
     {
@@ -136,7 +169,7 @@ class TransactionFilter implements InputFilterAwareInterface
             $inputFilter = new InputFilter();
             $factory     = new InputFactory();
 
-            // Identyfikator transakcji
+            // Transaction id
             $inputFilter->add($factory->createInput(array(
                 'name'     => 'tid',
                 'required' => true,
@@ -145,7 +178,7 @@ class TransactionFilter implements InputFilterAwareInterface
                 ),
             )));
 
-            // Typ transakcji
+            // Transaction type
             $inputFilter->add($factory->createInput(array(
                 'name'     => 't_type',
                 'required' => true,
@@ -154,19 +187,19 @@ class TransactionFilter implements InputFilterAwareInterface
                 ),
             )));
 
-            // Lista kategorii
+            // Main category list
             $inputFilter->add($factory->createInput(array(
-                'name'     => 'cid',
+                'name'     => 'pcid',
                 'required' => true,
                 'filters'  => array(
                     array('name' => 'Int'),
                 ),
             )));
             
-            // Nowa kategoria
+            // New main category
             $inputFilter->add($factory->createInput(array(
-                'name'     => 'c_name',
-                'required' => $this->n_c_required,
+                'name'     => 'newMainCategoryName',
+                'required' => false,
                 'filters'  => array(
                     array('name' => 'StripTags'),
                     array('name' => 'StringTrim'),
@@ -183,7 +216,36 @@ class TransactionFilter implements InputFilterAwareInterface
                 ),
             )));
             
-            // Data
+            // Subcategory list
+            $inputFilter->add($factory->createInput(array(
+                'name'     => 'ccid',
+                'required' => true,
+                'filters'  => array(
+                    array('name' => 'Int'),
+                ),
+            )));
+            
+            // New subcategory
+            $inputFilter->add($factory->createInput(array(
+                'name'     => 'newSubCategoryName',
+                'required' => false,
+                'filters'  => array(
+                    array('name' => 'StripTags'),
+                    array('name' => 'StringTrim'),
+                ),
+                'validators' => array(
+                    array(
+                        'name'    => 'StringLength',
+                        'options' => array(
+                            'encoding' => 'UTF-8',
+                            'min'      => 1,
+                            'max'      => 100,
+                        ),
+                    ),
+                ),
+            )));
+            
+            // Date
             $inputFilter->add($factory->createInput(array(
                 'name'     => 't_date',
                 'required' => true,
@@ -198,7 +260,7 @@ class TransactionFilter implements InputFilterAwareInterface
                 ),
             )));
             
-            // Opis
+            // Description
             $inputFilter->add($factory->createInput(array(
                 'name'     => 't_content',
                 'required' => true,
@@ -218,7 +280,7 @@ class TransactionFilter implements InputFilterAwareInterface
                 ),
             )));
             
-            // Wartość
+            // Value
             $inputFilter->add($factory->createInput(array(
                 'name'     => 't_value',
                 'required' => true,

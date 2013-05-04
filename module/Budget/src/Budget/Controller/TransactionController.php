@@ -1,9 +1,4 @@
 <?php
-/**
-    @author Mateusz Mirosławski
-    
-    Kontroler obsługujący transakcje (dodawanie, edycja, usuwanie, sortowanie)
-*/
 
 namespace Budget\Controller;
 
@@ -21,15 +16,22 @@ use Budget\Form\TransactionFilter;
 use Budget\Form\TransactionRangeSelectForm;
 use Budget\Form\TransactionRangeSelectFilter;
 
+/**
+ * Transaction controller
+ * 
+ * @author Mateusz Mirosławski
+ *
+ */
 class TransactionController extends BaseController
 {
-    // Głowna akcja (strona główna transakcji)
+    /**
+     * View transaction list
+     */
     public function indexAction()
     {
-        // Identyfikator zalogowanego usera
+        // User identifier
         $uid = $this->get('userId');
         
-        // Pobranie numeru strony
         $page = (int) $this->params()->fromRoute('page', 1);
         
         // Formularz od wyboru zakresu transakcji
@@ -125,180 +127,292 @@ class TransactionController extends BaseController
         }
     }
 
-    // Dodanie nowej transakcji
+    /**
+     * Add new transaction
+     */
     public function addAction()
     {
-        // Identyfikator zalogowanego usera
+        // User identifier
         $uid = $this->get('userId');
         
-        // Pobranie rodzaju transakcji
+        // Get type of transaction
         $t_type= (int) $this->params()->fromRoute('type', 1);
-        // Poprawność typu
+        // Check type
         if (!($t_type == 0 || $t_type==1)) {
-            // Przekierowanie do głównej strony
+            
             return $this->redirect()->toRoute('main');
+            
         }
         
-        // Formularz
         $form = new TransactionForm();
         
-        // Lista kategori usera
-        $user_cat = $this->get('User\CategoryMapper')->getUserCategoriesToSelect($uid, $t_type);
-        $form->get('cid')->setValueOptions($user_cat);
+        // Get user main categories
+        $userMainCat = $this->get('User\CategoryMapper')->getUserCategoriesToSelect($uid, $t_type);
+        $form->get('pcid')->setValueOptions($userMainCat);
         
-        // Knefel
+        // Set the submit value
         $form->get('submit')->setValue('Dodaj');
-        // Typ transakcji w formularzu
+        // Set the transaction type in form
         $form->get('t_type')->setValue($t_type);
 
         $request = $this->getRequest();
         if ($request->isPost()) {
-            $transaction = new Transaction();
             
-            $form->setData($request->getPost());
+            $postData = $request->getPost();
             
-            // Spr. czy wybrano kategorię z listy -> wymagamy nowej kategorii gdy nie wybrano)
-            $ncr = ($form->get('cid')->getValue()==0)?(true):(false);
+            $categoryValid = true;
             
-            // Filtry
-            $formFilters = new TransactionFilter($ncr);
+            // Check main category id
+            if ($postData['pcid'] == 0) {
+                
+                $form->get('pcid')->setMessages(
+                    array(
+                        'Category must be added before transaction!'
+                    )
+                );
+                
+                $categoryValid = false;
+                
+            } else if ($postData['pcid'] == -1) {
+                
+                $form->get('pcid')->setMessages(
+                    array(
+                        'Select transaction category!'
+                    )
+                );
+                
+                $categoryValid = false;
+                
+            } else {
+                
+                $ccid = $this->get('User\CategoryMapper')->getUserCategoriesToSelect($uid, $t_type, $postData['pcid']);
+                $form->get('ccid')->setValueOptions($ccid);
+                
+            }
+            // Check subcategory id
+            if ($postData['ccid'] == 0) {
+            
+                $form->get('ccid')->setMessages(
+                    array(
+                        'Category must be added before transaction!'
+                    )
+                );
+                
+                $categoryValid = false;
+            
+            }
+            
+            // Insert POST data into the form
+            $form->setData($postData);
+            
+            $formFilters = new TransactionFilter();
             $form->setInputFilter($formFilters->getInputFilter());
             
-            if ($form->isValid()) {
+            if ($form->isValid() && $categoryValid) {
                 
-                // Uzupełnienie modelu danymi z formularza
-                $transaction->exchangeArray($form->getData());
+                // Get data from form
+                $data = $form->getData();
                 
-                // spr. czy podano nową kategorię
-                $c_name = $form->get('c_name')->getValue();
-                if (($c_name!=null) && ($ncr==true)) {
-                    // spr. czy taka kategoria istnieje (jeśli tak, to zwraca cid)
-                    $n_cid = $this->get('User\CategoryMapper')->isCategoryNameExists($c_name, $t_type, $uid);
-                    if ($n_cid == 0) { // Nie istnieje - dodać nową
-                        $new_category = new Category();
-                        $new_category->uid = $uid;
-                        $new_category->c_type = $t_type;
-                        $new_category->c_name = $c_name;
-                        // Dodanie
-                        $this->get('User\CategoryMapper')->saveCategory($new_category);
-                        // Pobranie nowego id-a kategorii
-                        $n_cid = $this->get('User\CategoryMapper')->isCategoryNameExists($c_name, $t_type, $uid);
-                    }
+                // Read category id
+                if ($data['ccid'] == -1) { // no subcategory
                     
-                    // Nadpisać pole transakcji nowym identyfikatorem kategorii
-                    $transaction->cid = (int)$n_cid;
+                    $data['cid'] = (int)$data['pcid'];
+                    
+                } else { // there is subcategory
+                    
+                    $data['cid'] = (int)$data['ccid'];
+                    
                 }
                 
-                // uid
-                $transaction->uid = $uid;
-                // Zapis
-                $this->get('Budget\TransactionMapper')->saveTransaction($transaction);
+                // Check if there is correct cid
+                if (isset($data['cid'])) {
+                    
+                    // Remove unused fields
+                    unset($data['pcid']);
+                    unset($data['ccid']);
+                    
+                    // Create transaction model
+                    $transaction = new Transaction($data);
+                    
+                    // uid
+                    $transaction->uid = $uid;
+                    // Save
+                    $this->get('Budget\TransactionMapper')->saveTransaction($transaction);
+                    
+                    // Transaction date
+                    $t_dt = explode('-', $transaction->t_date);
+                    
+                    return $this->redirect()->toRoute('transactions', array(
+                                                                           'month' => $t_dt[1],
+                                                                           'year' => $t_dt[0],
+                                                                           'page' => 1,
+                                                                           ));
+                    
+                }
                 
-                // Data dodanej transakcji
-                $t_dt = explode('-', $transaction->t_date);
-                
-                // Przekierowanie do listy transakcji do daty z dodawanej transakcji
-                return $this->redirect()->toRoute('transactions', array(
-                                                                       'month' => $t_dt[1],
-                                                                       'year' => $t_dt[0],
-                                                                       'page' => 1,
-                                                                       ));
             }
         }
+        
         return array(
             'form' => $form,
             't_type' => $t_type,
         );
     }
 
-    // Edycja transakcji
+    /**
+     * Edit transaction
+     */
     public function editAction()
     {
-        // Identyfikator zalogowanego usera
+        // User identifier
         $uid = $this->get('userId');
         
-        // Pobranie numeru strony
         $page = (int) $this->params()->fromRoute('page', 1);
         
-        // Pobranie miesiąca z adresu
+        // Get date from the url
         $m = (int) $this->params()->fromRoute('month', date('m'));
-        // Pobranie roku z adresu
         $Y = (int) $this->params()->fromRoute('year', date('Y'));
         
-        // Pobranie identyfikatora transakcji
+        // Get the transaction id
         $tid = (int) $this->params()->fromRoute('tid', 0);
         if (!$tid) {
             return $this->redirect()->toRoute('main');
         }
         
-        // Pobranie danych transakcji
+        // Get transaction data
         $transaction = $this->get('Budget\TransactionMapper')->getTransaction($tid, $uid);
-
-        // Formularz
+        $data = $transaction->getArrayCopy();
+        
         $form  = new TransactionForm();
         
-        // Lista kategori usera
-        $user_cat = $this->get('User\CategoryMapper')->getUserCategoriesToSelect($uid, $transaction->t_type);
-        $form->get('cid')->setValueOptions($user_cat);
+        // User main categories
+        $userMainCat = $this->get('User\CategoryMapper')->getUserCategoriesToSelect($uid, $transaction->t_type);
+        $form->get('pcid')->setValueOptions($userMainCat);
         
-        // Wstawienie danych do formularza
-        $form->bind($transaction);
+        // Check if the transaction category has subcategories
+        $category = $this->get('User\CategoryMapper')->getCategory($transaction->cid, $uid);
         
-        // Knefel
+        if ($category->pcid == null) { // this is main category
+            
+            $data['pcid'] = $category->cid;
+            $data['ccid'] = null;
+            
+            // User subcategories
+            $userSubCat = $this->get('User\CategoryMapper')->getUserCategoriesToSelect($uid, $transaction->t_type, $category->cid);
+            
+        } else { // this is subcategory
+            
+            $data['pcid'] = $category->pcid;
+            $data['ccid'] = $category->cid;
+            
+            // User subcategories
+            $userSubCat = $this->get('User\CategoryMapper')->getUserCategoriesToSelect($uid, $transaction->t_type, $category->pcid);
+            
+        }
+        
+        $form->get('ccid')->setValueOptions($userSubCat);
+        
+        // Insert data into the form
+        $form->setData($data);
+        
+        // Submit button value
         $form->get('submit')->setAttribute('value', 'Edytuj');
-        // Wyczyszczenie formatki od nowej kategorii
-        $form->get('c_name')->setValue('');
 
         $request = $this->getRequest();
         if ($request->isPost()) {
-            // Uzupełnienie formularza zmienionymi danymi
-            $form->setData($request->getPost());
+        
+            $postData = $request->getPost();
             
-            // Spr. czy wybrano kategorię z listy -> wymagamy nowej kategorii gdy nie wybrano)
-            $ncr = ($form->get('cid')->getValue()==0)?(true):(false);
+            $categoryValid = true;
             
-            // Filtry
-            $formFilters = new TransactionFilter($ncr);
+            // Check main category id
+            if ($postData['pcid'] == 0) {
+                
+                $form->get('pcid')->setMessages(
+                    array(
+                        'Category must be added before transaction!'
+                    )
+                );
+                
+                $categoryValid = false;
+                
+            } else if ($postData['pcid'] == -1) {
+                
+                $form->get('pcid')->setMessages(
+                    array(
+                        'Select transaction category!'
+                    )
+                );
+                
+                $categoryValid = false;
+                
+            } else {
+                
+                $ccid = $this->get('User\CategoryMapper')->getUserCategoriesToSelect($uid, $transaction->t_type, $postData['pcid']);
+                $form->get('ccid')->setValueOptions($ccid);
+                
+            }
+            // Check subcategory id
+            if ($postData['ccid'] == 0) {
+            
+                $form->get('ccid')->setMessages(
+                    array(
+                        'Category must be added before transaction!'
+                    )
+                );
+                
+                $categoryValid = false;
+            
+            }
+            
+            // Insert POST data into the form
+            $form->setData($postData);
+            
+            $formFilters = new TransactionFilter();
             $form->setInputFilter($formFilters->getInputFilter());
-
-            if ($form->isValid()) {
+            
+            if ($form->isValid() && $categoryValid) {
                 
-                // Uzupełnienie modelu nowymi danymi z formularza
-                $transaction = $form->getData();
+                // Get data from form
+                $data = $form->getData();
                 
-                // spr. czy podano nową kategorię
-                $c_name = $form->get('c_name')->getValue();
-                if (($c_name!=null) && ($ncr==true)) {
-                    // spr. czy taka kategoria istnieje (jeśli tak, to zwraca cid)
-                    $n_cid = $this->get('User\CategoryMapper')->isCategoryNameExists($c_name, $transaction->t_type, $uid);
-                    if ($n_cid == 0) { // Nie istnieje - dodać nową
-                        $new_category = new Category();
-                        $new_category->uid = $uid;
-                        $new_category->c_type = $transaction->t_type;
-                        $new_category->c_name = $c_name;
-                        // Dodanie
-                        $this->get('User\CategoryMapper')->saveCategory($new_category);
-                        // Pobranie nowego id-a kategorii
-                        $n_cid = $this->get('User\CategoryMapper')->isCategoryNameExists($c_name, $transaction->t_type, $uid);
-                    }
+                // Read category id
+                if ($data['ccid'] == -1) { // no subcategory
                     
-                    // Nadpisać pole transakcji nowym identyfikatorem kategorii
-                    $transaction->cid = (int)$n_cid;
+                    $data['cid'] = (int)$data['pcid'];
+                    
+                } else { // there is subcategory
+                    
+                    $data['cid'] = (int)$data['ccid'];
+                    
                 }
                 
-                $transaction->uid = $uid;
-                // Zapis
-                $this->get('Budget\TransactionMapper')->saveTransaction($transaction);
-
-                // Data dodanej transakcji
-                $t_dt = explode('-', $transaction->t_date);
-
-                // Przekierowanie do listy transakcji do daty z edytowanej transakcji
-                return $this->redirect()->toRoute('transactions', array(
-                                                                       'month' => $t_dt[1],
-                                                                       'year' => $t_dt[0],
-                                                                       'page' => $page,
-                                                                       ));
+                // Check if there is correct cid
+                if (isset($data['cid'])) {
+                    
+                    // Remove unused fields
+                    unset($data['pcid']);
+                    unset($data['ccid']);
+                    
+                    // Create transaction model
+                    $transaction = new Transaction($data);
+                    
+                    // uid
+                    $transaction->uid = $uid;
+                    // Save
+                    $this->get('Budget\TransactionMapper')->saveTransaction($transaction);
+                    
+                    // Transaction date
+                    $t_dt = explode('-', $transaction->t_date);
+                    
+                    return $this->redirect()->toRoute('transactions', array(
+                                                                           'month' => $t_dt[1],
+                                                                           'year' => $t_dt[0],
+                                                                           'page' => 1,
+                                                                           ));
+                    
+                }
+                
             }
         }
 

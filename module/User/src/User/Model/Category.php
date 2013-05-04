@@ -1,38 +1,65 @@
 <?php
-/**
-    @author Mateusz Mirosławski
-    
-    Model reprezentujący kategorię
-*/
 
 namespace User\Model;
 
-class Category
-{
-    // Pola kategorii
-    public $cid;        // identyfikator kategorii
-    public $uid;        // identyfikator usera
-    public $c_type;     // typ kategorii (0 - przychód, 1 - wydatek)
-    public $c_name;     // nazwa kategorii
+use Base\Model\BaseModel;
 
+/**
+ * Category model
+ * 
+ * @author Mateusz Mirosławski
+ *
+ */
+class Category extends BaseModel
+{
     /**
-        Rozbija tablicę w poszczególne pola obiektu
-        @param array() $data Tablica z danymi ($data['pole']=wartość)
-    */
-    public function exchangeArray($data)
-    {
-        $this->cid = (isset($data['cid'])) ? $data['cid'] : null;
-        $this->uid = (isset($data['uid'])) ? $data['uid'] : null;
-        $this->c_type = (isset($data['c_type'])) ? $data['c_type'] : null;
-        $this->c_name = (isset($data['c_name'])) ? $data['c_name'] : null;
-    }
+     * Category identifier
+     * 
+     * @var int
+     */
+    public $cid;
     
     /**
-        Zwraca tablice z polami obiektu
-        @return array() Tablica z polami obiektu ($tbl['pole']=wartość)
-    */
-    public function getArrayCopy()
+     * Parent category identifier
+     * 
+     * @var int
+     */
+    public $pcid;
+    
+    /**
+     * User identifier
+     * 
+     * @var int
+     */
+    public $uid;
+    
+    /**
+     * Category type (0 - income, 1 - expense)
+     * 
+     * @var int
+     */
+    public $c_type;
+    
+    /**
+     * Category name
+     * 
+     * @var string
+     */
+    public $c_name;
+    
+    /**
+     * Construct the category object
+     * 
+     * @param array $params
+     */
+    public function __construct(array $params = array())
     {
-        return get_object_vars($this);
+        $this->cid = 0;
+        $this->pcid = null;
+        $this->uid = 0;
+        $this->c_type = -1;
+        $this->c_name = '';
+        
+        parent::__construct($params);
     }
 }

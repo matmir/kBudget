@@ -2,6 +2,11 @@
 
 $title = 'kBudget - Konfiguracja kategorii';
 $this->headTitle($title);
+
+$this->headScript()->prependFile($this->basePath('/js/app/user/categoryList.js'));
+
+$this->headLink()->prependStylesheet($this->basePath('/css/user-categories.css'));
+
 ?>
 <h1><?php echo $this->escapeHtml($title); ?></h1>
 
@@ -15,43 +20,59 @@ $this->headTitle($title);
 <div class="span6">
     
     <div class="label label-success">Przychody</div>
+    <div id="catWait" style="display: inline-block;"><img alt="Czekaj..." src="/images/loading.gif"></div>
     <br /><br />
     
-    <!-- Formularz dodania nowej kategorii -->
-    Dodaj nową kategorię:
-    <?php
-    $form = $this->form_profit;
-    $form->setAttribute('action', $this->url('user/category/add'));
-    $form->prepare();
+    <div class="row">
     
-    echo $this->form()->openTag($form);
-    echo $this->formHidden($form->get('cid'));
-    echo $this->formHidden($form->get('c_type'));
-    echo $this->formRow($form->get('c_name')).'<br />';
-    echo $this->formSubmit($form->get('submit'));
-    echo $this->form()->closeTag();
-    ?>
+    <!-- Główne kategorie -->
+    <div class="span2">
     
+    <input type="text" style="width: 115px;" maxlength="50" id="newCatIncome">
     <br />
+    <input type="button" value="Dodaj kategorię" id="newCatIncomeButton">
     
-    <!-- Lista kategorii -->
-    <div>
-        <table>
-        <tr>
-            <th colspan="3" style="text-align: center;">Lista kategorii w przychodach</th>
-        </tr>
-        <?php foreach ($cat_profit as $category) : ?>
-        <tr>
-            <td><?php echo $this->escapeHtml($category->c_name);?></td>
-            <td>
-                <a href="<?php echo $this->url('user/category/edit', array('cid' => $category->cid));?>">Edytuj</a>
-            </td>
-            <td>
-                <a href="<?php echo $this->url('user/category/delete', array('cid' => $category->cid));?>">Usuń</a>
-            </td>
-        </tr>
-        <?php endforeach; ?>
-        </table>
+    <br /><br />
+    
+    <select id="catIncomeParent" size="10" style="width: 130px;">
+    <?php foreach ($this->cat_profit as $income): ?>
+         <option value="<?php echo $income->cid; ?>"><?php echo $income->c_name; ?></option>
+    <?php endforeach; ?>
+    </select>
+    
+    <input type="text" style="width: 115px;" maxlength="50" id="editCatIncome">
+    <br />
+    <input type="button" style="width: 120px;" value="Edytuj kategorię" id="editCatIncomeButton">
+    <br />
+    <input type="button" style="width: 120px;" value="Usuń kategorię" id="deleteCatIncomeButton">
+    
+    </div>
+    
+    <!-- Podkategorie -->
+    <div class="span4 subcategories" id="subcategoriesList">
+    
+    <input type="text" style="width: 115px;" maxlength="50" id="newSubCatIncome">
+    <br />
+    <input type="button" style="width: 140px;" value="Dodaj podkategorię" id="newSubCatIncomeButton">
+    
+    <br /><br />
+    
+    <span id="catIncomeWait"><img alt="Czekaj..." src="/images/loading.gif"></span>
+    <span id="catIncomeNoSubcategories">Brak podkategorii</span>
+    
+    <select id="catIncomeChildren" size="10" style="width: 130px;">
+    </select>
+    
+    <div id="catIncomeEdits">
+    <input type="text" style="width: 115px;" maxlength="50" id="editSubCatIncome">
+    <br />
+    <input type="button" style="width: 150px;" value="Edytuj podkategorię" id="editSubCatIncomeButton">
+    <br />
+    <input type="button" style="width: 150px;" value="Usuń podkategorię" id="deleteSubCatIncomeButton">
+    </div>
+    
+    </div>
+    
     </div>
     
 </div>
@@ -62,41 +83,56 @@ $this->headTitle($title);
     <div class="label label-important">Wydatki</div>
     <br /><br />
     
-    <!-- Formularz dodania nowej kategorii -->
-    Dodaj nową kategorię:
-    <?php
-    $form = $this->form_expense;
-    $form->setAttribute('action', $this->url('user/category/add'));
-    $form->prepare();
+    <div class="row">
     
-    echo $this->form()->openTag($form);
-    echo $this->formHidden($form->get('cid'));
-    echo $this->formHidden($form->get('c_type'));
-    echo $this->formRow($form->get('c_name')).'<br />';
-    echo $this->formSubmit($form->get('submit'));
-    echo $this->form()->closeTag();
-    ?>
+    <!-- Główne kategorie -->
+    <div class="span2">
     
+    <input type="text" style="width: 115px;" maxlength="50" id="newCatExpense">
     <br />
+    <input type="button" value="Dodaj kategorię" id="newCatExpenseButton">
     
-    <!-- Lista kategorii -->
-    <div>
-        <table>
-        <tr>
-            <th colspan="3" style="text-align: center;">Lista kategorii w wydatkach</th>
-        </tr>
-        <?php foreach ($cat_expense as $category) : ?>
-        <tr>
-            <td><?php echo $this->escapeHtml($category->c_name);?></td>
-            <td>
-                <a href="<?php echo $this->url('user/category/edit', array('cid' => $category->cid));?>">Edytuj</a>
-            </td>
-            <td>
-                <a href="<?php echo $this->url('user/category/delete', array('cid' => $category->cid));?>">Usuń</a>
-            </td>
-        </tr>
-        <?php endforeach; ?>
-        </table>
+    <br /><br />
+    
+    <select id="catExpenseParent" size="10" style="width: 130px;">
+    <?php foreach ($this->cat_expense as $expense): ?>
+         <option value="<?php echo $expense->cid; ?>"><?php echo $expense->c_name; ?></option>
+    <?php endforeach; ?>
+    </select>
+    
+    <input type="text" style="width: 115px;" maxlength="50" id="editCatExpense">
+    <br />
+    <input type="button" style="width: 120px;" value="Edytuj kategorię" id="editCatExpenseButton">
+    <br />
+    <input type="button" style="width: 120px;" value="Usuń kategorię" id="deleteCatExpenseButton">
+    
+    </div>
+    
+    <!-- Podkategorie -->
+    <div class="span4 subcategories" id="subcategoriesExpenseList">
+    
+    <input type="text" style="width: 115px;" maxlength="50" id="newSubCatExpense">
+    <br />
+    <input type="button" style="width: 140px;" value="Dodaj podkategorię" id="newSubCatExpenseButton">
+    
+    <br /><br />
+    
+    <span id="catExpenseWait"><img alt="Czekaj..." src="/images/loading.gif"></span>
+    <span id="catExpenseNoSubcategories">Brak podkategorii</span>
+    
+    <select id="catExpenseChildren" size="10" style="width: 130px;">
+    </select>
+    
+    <div id="catExpenseEdits">
+    <input type="text" style="width: 115px;" maxlength="50" id="editSubCatExpense">
+    <br />
+    <input type="button" style="width: 150px;" value="Edytuj podkategorię" id="editSubCatExpenseButton">
+    <br />
+    <input type="button" style="width: 150px;" value="Usuń podkategorię" id="deleteSubCatExpenseButton">
+    </div>
+    
+    </div>
+    
     </div>
     
 </div>

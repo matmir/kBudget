@@ -10,10 +10,15 @@
         <!-- CSS -->
         <link rel="stylesheet" href="/css/bootstrap/bootstrap.css" type="text/css">
         <link rel="stylesheet" href="/css/style.css" type="text/css">
+        <?php echo $this->headLink(); ?>
 
         <!-- Scripts -->
-        <?php echo $this->headScript()->prependFile($this->basePath() . '/js/jquery-1.9.1.min.js') ?>
-        <?php echo $this->headScript()->prependFile($this->basePath() . '/js/bootstrap/bootstrap.min.js') ?>
+        <?php 
+        
+        echo $this->headScript()->prependFile($this->basePath('/js/jquery-1.9.1.min.js'))
+                            ->prependFile($this->basePath('/js/bootstrap/bootstrap.min.js'))
+        
+        ?>
         
     </head>
     <body>

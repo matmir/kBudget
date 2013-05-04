@@ -105,25 +105,25 @@ return array(
                                     ),
                                 ),
                             ),
-                            'add' => array(
+                            'get-subcategories' => array(
                                 'type' => 'segment',
-                                'description' => 'Route to add category',
+                                'description' => 'Route to action which returns subcategories',
                                 'options' => array(
-                                    'route' => 'add[/]',
+                                    'route' => 'get-subcategories[/]',
                                     'defaults' => array(
                                         'controller' => 'User\Controller\Category',
-                                        'action' => 'add',
+                                        'action' => 'subcategory',
                                     ),
                                 ),
                             ),
-                            'edit' => array(
+                            'save' => array(
                                 'type' => 'segment',
-                                'description' => 'Route to edit category',
+                                'description' => 'Route to add category',
                                 'options' => array(
-                                    'route' => 'edit/:cid',
+                                    'route' => 'save[/]',
                                     'defaults' => array(
                                         'controller' => 'User\Controller\Category',
-                                        'action' => 'edit',
+                                        'action' => 'save',
                                     ),
                                 ),
                             ),
@@ -131,7 +131,7 @@ return array(
                                 'type' => 'segment',
                                 'description' => 'Route to delete category',
                                 'options' => array(
-                                    'route' => 'delete/:cid',
+                                    'route' => 'delete[/]',
                                     'defaults' => array(
                                         'controller' => 'User\Controller\Category',
                                         'action'  => 'delete',
@@ -163,6 +163,9 @@ return array(
     'view_manager' => array(
         'template_path_stack' => array(
             __DIR__ . '/../view',
+        ),
+        'strategies' => array(
+                'ViewJsonStrategy',
         ),
     ),
     'view_helpers' => array(

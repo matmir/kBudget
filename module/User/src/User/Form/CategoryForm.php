@@ -1,9 +1,4 @@
 <?php
-/**
-    @author Mateusz Mirosławski
-    
-    Formularz dodawania/edycji kategorii.
-*/
 
 namespace User\Form;
 
@@ -15,6 +10,12 @@ use Zend\InputFilter\InputFilter;
 use Zend\InputFilter\InputFilterAwareInterface;
 use Zend\InputFilter\InputFilterInterface;
 
+/**
+ * Category add/edit form.
+ * 
+ * @author Mateusz Mirosławski
+ *
+ */
 class CategoryForm extends Form
 {
     public function __construct($name = null)
@@ -23,19 +24,25 @@ class CategoryForm extends Form
         parent::__construct('category');
         $this->setAttribute('method', 'post');
         
-        // cid kategorii (w przypadku edycji)
+        // Category id
         $this->add(array(
             'type'  => 'Zend\Form\Element\Hidden',
             'name' => 'cid',
         ));
         
-        // typ kategorii (przychód/wydatek)
+        // Parent category id
+        $this->add(array(
+                'type'  => 'Zend\Form\Element\Hidden',
+                'name' => 'pcid',
+        ));
+        
+        // Category type (0 - income, 1 - expense)
         $this->add(array(
             'type'  => 'Zend\Form\Element\Hidden',
             'name' => 'c_type',
         ));
         
-        // Nazwa
+        // Category name
         $this->add(array(
             'type'  => 'Zend\Form\Element\Text',
             'name' => 'c_name',
@@ -59,9 +66,12 @@ class CategoryForm extends Form
     }
 }
 
-/*
-    Filtry dla formularza
-*/
+/**
+ * Category add/edit filters.
+ * 
+ * @author Mateusz Mirosławski
+ *
+ */
 class CategoryFormFilter implements InputFilterAwareInterface
 {
     protected $inputFilter;
@@ -77,7 +87,7 @@ class CategoryFormFilter implements InputFilterAwareInterface
             $inputFilter = new InputFilter();
             $factory     = new InputFactory();
 
-            // Identyfikator kategorii
+            // Category d
             $inputFilter->add($factory->createInput(array(
                 'name'     => 'cid',
                 'required' => true,
@@ -86,7 +96,16 @@ class CategoryFormFilter implements InputFilterAwareInterface
                 ),
             )));
             
-            // Typ kategorii
+            // Parent category id
+            $inputFilter->add($factory->createInput(array(
+                    'name'     => 'pcid',
+                    'required' => true,
+                    'filters'  => array(
+                            array('name' => 'Int'),
+                    ),
+            )));
+            
+            // Category type
             $inputFilter->add($factory->createInput(array(
                 'name'     => 'c_type',
                 'required' => true,
@@ -95,7 +114,7 @@ class CategoryFormFilter implements InputFilterAwareInterface
                 ),
             )));
             
-            // Nazwa
+            // Category name
             $inputFilter->add($factory->createInput(array(
                 'name'     => 'c_name',
                 'required' => true,
