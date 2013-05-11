@@ -33,6 +33,7 @@ class Authorization extends BaseService
         $acl->addResource(new Resource('Budget\Main'));
         $acl->addResource(new Resource('Budget\Transaction'));
         $acl->addResource(new Resource('User\Category'));
+        $acl->addResource(new Resource('User\Account'));
         $acl->addResource(new Resource('User\Config'));
         $acl->addResource(new Resource('User\User'));
         $acl->addResource(new Resource('Admin\Index'));
@@ -43,6 +44,7 @@ class Authorization extends BaseService
         $acl->deny('anonymous', 'Budget\Import', null);
         $acl->deny('anonymous', 'Budget\Transaction', null);
         $acl->deny('anonymous', 'User\Category', null);
+        $acl->deny('anonymous', 'User\Account', null);
         $acl->deny('anonymous', 'User\Config', null);
         $acl->deny('anonymous', 'User\User', 'email');
         $acl->deny('anonymous', 'User\User', 'password');
@@ -62,6 +64,7 @@ class Authorization extends BaseService
         $acl->allow('user', 'Budget\Main', null);
         $acl->allow('user', 'Budget\Transaction', null);
         $acl->allow('user', 'User\Category', null);
+        $acl->allow('user', 'User\Account', null);
         $acl->allow('user', 'User\Config', null);
         $acl->allow('user', 'User\User', null);
         

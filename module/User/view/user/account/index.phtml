@@ -1,0 +1,58 @@
+<?php
+
+$title = 'kBudget - Konta bankowe';
+$this->headTitle($title);
+
+$this->headLink()->prependStylesheet($this->basePath('/css/user-accounts.css'));
+
+?>
+<h1><?php echo $this->escapeHtml($title); ?></h1>
+
+<!-- Linki do ustawień -->
+<?php echo $this->configMenu() ?>
+
+<br />
+
+<div class="row">
+<div class="span12">
+
+    <a href="<?php echo $this->url('user/account/add');?>" class="btn btn-success">Dodaj konto</a>
+    
+</div>
+</div>
+
+<br />
+
+<div class="row">
+<div class="span12">
+
+    <?php if (count($this->accounts)): ?>
+    <table class="table table-bordered accounts">
+    <tr>
+        <th class="r1">Nazwa konta</th>
+        <th class="r2">Saldo</th>
+        <th class="r3">&nbsp;</th>
+    </tr>
+    <?php foreach ($this->accounts as $account) : ?>
+    <tr>
+        <td><?php echo $this->escapeHtml($account->a_name); ?></td>
+        <td><?php echo $this->escapeHtml($account->balance); ?></td>
+        <td>
+            <a href="<?php echo $this->url('user/account/edit',
+                array(
+                    'aid' => $account->aid
+                ));?>">Edytuj</a>
+            <a href="<?php echo $this->url('user/account/delete',
+                array(
+                    'aid' => $account->aid
+                ));?>">Usuń</a>
+        </td>
+    </tr>
+    <?php endforeach;?>
+    </table>
+    <?php else: ?>
+    Brak kont bankowych!
+    <?php endif;?>
+
+</div>
+</div>

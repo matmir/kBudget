@@ -1,0 +1,56 @@
+<?php
+
+$title = 'kBudget - Dodawanie konta bankowego';
+$this->headTitle($title);
+
+$this->headLink()->prependStylesheet($this->basePath('/css/user-accounts.css'));
+
+?>
+<h1><?php echo $this->escapeHtml($title); ?></h1>
+
+<!-- Linki do ustawień -->
+<?php echo $this->configMenu() ?>
+
+<br />
+
+<div class="row">
+<div class="span12">
+
+    <?php
+        $form = $this->form;
+        $form->setAttribute('action', $this->url('user/account/add'));
+        $form->prepare();
+        
+        echo $this->form()->openTag($form);
+        ?>
+        
+        <table class="TableClear">
+            <tr>
+                <td colspan="2"><?php echo $this->formHidden($form->get('aid')); ?></td>
+            </tr>
+            <tr>
+                <td><?php echo $form->get('a_name')->getLabel(); ?></td>
+                <td><?php echo $this->formElement($form->get('a_name')) ?></td>
+            </tr>
+            <?php
+                echo $this->formElementErrors()
+                    ->setMessageOpenFormat('<tr><td colspan="2">')
+                    ->setMessageSeparatorString('</td></tr><tr><td colspan="2">')
+                    ->setMessageCloseString('</td></tr>')
+                    ->render($form->get('a_name'));
+            ?>
+            <tr>
+                <td colspan="2"><?php echo $this->formSubmit($form->get('submit')); ?></td>
+            </tr>
+        </table>
+        
+        <?php $this->form()->closeTag(); ?>
+
+</div>
+</div>
+
+<div class="row">
+<div class="span12">
+    <a href="<?php echo $this->url('user/account');?>">Powrót</a>
+</div>
+</div>

@@ -1,0 +1,60 @@
+<?php
+
+$title = 'kBudget - Usuwanie konta bankowego';
+$this->headTitle($title);
+
+$this->headLink()->prependStylesheet($this->basePath('/css/user-accounts.css'));
+
+?>
+<h1><?php echo $this->escapeHtml($title); ?></h1>
+
+<!-- Linki do ustawień -->
+<?php echo $this->configMenu() ?>
+
+<br />
+
+<div class="row">
+<div class="span12">
+
+    <?php if (!$this->LAST): ?>
+    
+        <?php if ($this->EMPTY): ?>
+            
+            <div class="alert alert-info">
+            Czy na pewno usunąć konto bankowe
+                '<?php echo $this->escapeHtml($this->account->a_name); ?>' ?
+            </div>
+            <?php
+            $url = $this->url('user/account/delete', array(
+                'aid' => $this->aid,
+            ));
+            ?>
+            <form action="<?php echo $url; ?>" method="post">
+            <div>
+                <input type="hidden" name="aid" value="<?php echo (int) $this->account->aid; ?>" />
+                <input type="submit" name="del" value="Yes" />
+                <input type="submit" name="del" value="No" />
+            </div>
+            </form> 
+            
+        <?php else: ?>
+            
+            <div class="alert alert-warning">
+                Wybrane konto bankowe zawiera transakcje i nie może zostać usunięte.<br />
+                Zmień konto bankowe w odpowiednich transakcjach, a następnie usuń wybrane konto ponownie.
+            </div>
+            <a href="<?php echo $this->url('user/account');?>">Powrót</a>
+            
+        <?php endif; ?>
+    
+    <?php else: ?>
+    
+        <div class="alert alert-warning">
+            Nie można usunąć wybranego konta. <br />
+            W systemie musi być co najmniej jedno konto bankowe!
+        </div>
+        <a href="<?php echo $this->url('user/account');?>">Powrót</a>
+    
+    <?php endif; ?>
+</div>
+</div>

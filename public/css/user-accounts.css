@@ -1,0 +1,15 @@
+.table.table-bordered.accounts {
+	width: 40%;
+}
+
+.table.table-bordered .r1 {
+	width: 50%;
+}
+
+.table.table-bordered .r2 {
+    width: 25%;
+}
+
+.table.table-bordered .r3 {
+    width: 25%;
+}

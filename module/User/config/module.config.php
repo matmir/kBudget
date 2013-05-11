@@ -140,6 +140,59 @@ return array(
                             ),
                         ),
                     ),
+                    'account' => array(
+                        'type' => 'segment',
+                        'description' => 'Route to bank account',
+                        'options' => array(
+                            'route' => 'accounts[/]',
+                            'defaults' => array(
+                                'controller' => 'User\Controller\Account',
+                                'action' => 'index',
+                            ),
+                        ),
+                        'may_terminate' => true,
+                        'child_routes' => array(
+                            'add' => array(
+                                'type' => 'segment',
+                                'description' => 'Route to add bank account',
+                                'options' => array(
+                                    'route' => 'add[/]',
+                                    'defaults' => array(
+                                        'controller' => 'User\Controller\Account',
+                                        'action' => 'add',
+                                    ),
+                                ),
+                            ),
+                            'edit' => array(
+                                'type' => 'segment',
+                                'description' => 'Route to edit bank account',
+                                'options' => array(
+                                    'route' => 'edit/:aid',
+                                    'constraints' => array(
+                                        'type' => '\d+',
+                                    ),
+                                    'defaults' => array(
+                                        'controller' => 'User\Controller\Account',
+                                        'action' => 'edit',
+                                    ),
+                                ),
+                            ),
+                            'delete' => array(
+                                'type' => 'segment',
+                                'description' => 'Route to delete bank account',
+                                'options' => array(
+                                    'route' => 'delete/:aid',
+                                    'constraints' => array(
+                                        'type' => '\d+',
+                                    ),
+                                    'defaults' => array(
+                                        'controller' => 'User\Controller\Account',
+                                        'action' => 'delete',
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
                 ),
             ),
         ),
@@ -150,6 +203,7 @@ return array(
             'User\Controller\Config' => 'User\Controller\ConfigController',
             'User\Controller\User' => 'User\Controller\UserController',
             'User\Controller\Category' => 'User\Controller\CategoryController',
+            'User\Controller\Account' => 'User\Controller\AccountController',
         ),
     ),
     // Services
@@ -157,6 +211,7 @@ return array(
         'invokables' => array(
             'User\CategoryMapper' => 'User\Mapper\CategoryMapper',
             'User\UserMapper' => 'User\Mapper\UserMapper',
+            'User\AccountMapper' => 'User\Mapper\AccountMapper',
         ),
     ),
     // View
