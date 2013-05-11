@@ -1,50 +1,80 @@
 <?php
-/**
-    @author Mateusz Mirosławski
-    
-    Model reprezentujący usera
-*/
 
 namespace User\Model;
 
-class User
-{
-    // Pola usera
-    public $uid;        // Identyfikator usera
-    public $email;
-    public $login;
-    public $pass;
-    public $passs;
-    public $u_type;     // Typ usera 0 - user, 1 - admin
-    public $active;     // flaga aktywności usera 0/1
-    public $register_date;
-    public $last_login_date;
+use Base\Model\BaseModel;
 
+/**
+ * User model.
+ * 
+ * @author Mateusz Mirosławski
+ *
+ */
+class User extends BaseModel
+{
     /**
-        Rozbija tablicę w poszczególne pola obiektu
-        @param array() $data Tablica z danymi ($data['pole']=wartość)
-    */
-    public function exchangeArray($data)
-    {
-        $this->uid = (isset($data['uid'])) ? $data['uid'] : null;
-        $this->email = (isset($data['email'])) ? $data['email'] : null;
-        $this->login = (isset($data['login'])) ? $data['login'] : null;
-        $this->pass = (isset($data['pass'])) ? $data['pass'] : null;
-        $this->passs = (isset($data['passs'])) ? $data['passs'] : null;
-        $this->u_type = (isset($data['u_type'])) ? $data['u_type'] : null;
-        $this->active = (isset($data['active'])) ? $data['active'] : null;
-        $this->register_date = (isset($data['register_date'])) ? $data['register_date'] : null;
-        $this->last_login_date = (isset($data['last_login_date'])) ? $data['last_login_date'] : null;
-    }
+     * User identifier
+     * 
+     * @var int
+     */
+    public $uid;
     
     /**
-        Zwraca tablice z polami obiektu
-        @return array() Tablica z polami obiektu ($tbl['pole']=wartość)
-    */
-    public function getArrayCopy()
-    {
-        return get_object_vars($this);
-    }
+     * User e-mail
+     * 
+     * @var string
+     */
+    public $email;
+    
+    /**
+     * User login
+     * 
+     * @var string
+     */
+    public $login;
+    
+    /**
+     * User password
+     * 
+     * @var string
+     */
+    public $pass;
+    public $passs;
+    
+    /**
+     * User type. (0 - user, 1 - admin, 2 - demo)
+     * 
+     * @var int
+     */
+    public $u_type;
+    
+    /**
+     * Userv active flag (0/1)
+     * 
+     * @var int
+     */
+    public $active;
+    
+    /**
+     * User register date
+     * 
+     * @var string
+     */
+    public $register_date;
+    
+    /**
+     * User last login date
+     * 
+     * @var string
+     */
+    public $last_login_date;
+    
+    /**
+     * Default bank account identifier
+     * 
+     * @var int
+     */
+    public $default_aid;
     
     /**
         Generuje nowe hasło.
@@ -58,5 +88,15 @@ class User
         }
         
         return $pas;
+    }
+    
+    /**
+     * Construct the user object
+     *
+     * @param array $params
+     */
+    public function __construct(array $params = array())
+    {
+        parent::__construct($params);
     }
 }

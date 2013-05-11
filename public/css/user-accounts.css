@@ -1,9 +1,9 @@
 .table.table-bordered.accounts {
-	width: 40%;
+	width: 50%;
 }
 
 .table.table-bordered .r1 {
-	width: 50%;
+	width: 40%;
 }
 
 .table.table-bordered .r2 {
@@ -11,5 +11,5 @@
 }
 
 .table.table-bordered .r3 {
-    width: 25%;
+    width: 35%;
 }

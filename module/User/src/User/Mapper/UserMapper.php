@@ -275,5 +275,28 @@ class UserMapper extends BaseMapper
         
         return $paginator;
     }
+    
+    /**
+     * Set user default bank account.
+     * 
+     * @param int $uid User identifier
+     * @param int $aid Account identifier
+     */
+    public function setUserDefaultBankAccount($uid, $aid)
+    {
+        $data = array(
+            'default_aid' => (int)$aid,
+        );
+        
+        $sql = new Sql($this->getDbAdapter());
+        
+        $update = $sql->update();
+        $update->table('users');
+        $update->set($data);
+        $update->where(array('uid' => (int)$uid));
+        
+        $statement = $sql->prepareStatementForSqlObject($update);
+        $statement->execute();
+    }
 
 }

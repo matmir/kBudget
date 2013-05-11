@@ -191,6 +191,20 @@ return array(
                                     ),
                                 ),
                             ),
+                            'default' => array(
+                                'type' => 'segment',
+                                'description' => 'Route to set default bank account',
+                                'options' => array(
+                                    'route' => 'default/:aid',
+                                    'constraints' => array(
+                                        'type' => '\d+',
+                                    ),
+                                    'defaults' => array(
+                                        'controller' => 'User\Controller\Account',
+                                        'action' => 'default',
+                                    ),
+                                ),
+                            ),
                         ),
                     ),
                 ),

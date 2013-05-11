@@ -36,9 +36,13 @@ class AccountController extends BaseController
         // Get user bank account list
         $accounts = $this->get('User\AccountMapper')->getAccounts($uid);
         
+        // Get user default bank id
+        $daid = $this->get('User\UserMapper')->getUser($uid)->default_aid;
+        
         $view = new ViewModel();
         
         $view->setVariable('accounts', $accounts);
+        $view->setVariable('defaultAccount', $daid);
         
         return $view;
     }
@@ -140,6 +144,11 @@ class AccountController extends BaseController
         ));
     }
     
+    /**
+     * Delete bank account
+     *
+     * @return \Zend\View\Model\ViewModel
+     */
     public function deleteAction()
     {
         // Get user identifier
@@ -190,5 +199,46 @@ class AccountController extends BaseController
             'account' => $account,
         );
     }
-
+    
+    /**
+     * Set default bank account
+     *
+     */
+    public function defaultAction()
+    {
+        // Get user identifier
+        $uid = $this->get('userId');
+        
+        // Get account id
+        $aid = (int) $this->params()->fromRoute('aid', 0);
+        if (!$aid) {
+            return $this->redirect()->toRoute('user/account');
+        }
+        
+        // Get user bank account list
+        $accounts = $this->get('User\AccountMapper')->getAccounts($uid);
+        
+        // Get user default bank id
+        $daid = $this->get('User\UserMapper')->getUser($uid)->default_aid;
+        
+        // Check if given account id is user accout
+        $aid_ok = false;
+        foreach ($accounts as $account) {
+            
+            if ($account->aid == $aid) {
+                $aid_ok = true;
+            }
+            
+        }
+        
+        if ($aid_ok) {
+            
+            // Save default account id
+            $this->get('User\UserMapper')->setUserDefaultBankAccount($uid, $aid);
+            
+        }
+        
+        return $this->redirect()->toRoute('user/account');
+        
+    }
 }
