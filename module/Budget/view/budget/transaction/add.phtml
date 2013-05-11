@@ -24,7 +24,10 @@ Typ transakcji: <b><?php echo ($t_type==0)?('Przychód'):('Wydatek'); ?></b>
     <div class="span12">
         <?php
         $form = $this->form;
-        $form->setAttribute('action', $this->url('transaction/add', array('type' => $t_type)));
+        $form->setAttribute('action', $this->url('transaction/add', array(
+                                                                    'type' => $t_type,
+                                                                    'aid' => $this->aid
+                                                                    )));
         $form->prepare();
         
         echo $this->form()->openTag($form);
@@ -33,6 +36,9 @@ Typ transakcji: <b><?php echo ($t_type==0)?('Przychód'):('Wydatek'); ?></b>
         <table class="TableClear">
             <tr>
                 <td colspan="2"><?php echo $this->formHidden($form->get('tid')); ?></td>
+            </tr>
+            <tr>
+                <td colspan="2"><?php echo $this->formHidden($form->get('aid')); ?></td>
             </tr>
             <tr>
                 <td colspan="2"><?php echo $this->formHidden($form->get('t_type')); ?></td>

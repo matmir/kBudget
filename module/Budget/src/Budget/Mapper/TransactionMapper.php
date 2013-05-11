@@ -21,18 +21,21 @@ use Budget\Model\Transaction;
 class TransactionMapper extends BaseMapper
 {
     /**
-        Pobiera wszystkie elementy transakcji
-        @param int $uid Identyfikator usera
-        @param array $dt_param tablica z parametrami daty $dt {
-                                                        'type' => 'month/between/all',
-                                                        'dt_month' => 'yyyy-mm' dla mieniąca lub 'dt_up' i 'dt_down' dla zakresu
-                                                    }
-        @param int $t_type Typ transakcji (-1 - wszystkie, 0 - przychód, 1 - wydatek)
-        @param int $pg Numer przeglądanej strony
-        @param bool $pagged Flaga czy zwracać Paginator (true) czy tablicę transakcji (false)
-        @return array() Tablica zawierająca transakcje (Transaction)
-    */
-    public function getTransactions($uid, $dt_param, $t_type=-1, $pg=1, $pagged=false)
+     * Get user transactions from specified account
+     * 
+     * @param int $uid User id
+     * @param int $aid Bank account id
+     * @param array $dt_param {
+                                'type' => 'month/between/all',
+                                'dt_month' => 'yyyy-mm' form type 'month' or 'dt_up' and 'dt_down' for 'between'
+                              }
+     * @param int $t_type ('-1' all transactions, '0' profits, '1' expense
+     * @param int $pg Actual page number
+     * @param bool $pagged Return paginator
+     * @throws \Exception
+     * @return \Zend\Paginator\Paginator|multitype:
+     */
+    public function getTransactions($uid, $aid, $dt_param, $t_type=-1, $pg=1, $pagged=false)
     {
         // Spr czy parametr z datą jest tablicą
         if (!is_array($dt_param)) {
@@ -52,7 +55,10 @@ class TransactionMapper extends BaseMapper
         
         $select->from(array('t' => 'transaction'))
                 ->join(array('c' => 'category'),'t.cid = c.cid')
-                ->where(array('t.uid' => (int)$uid))
+                ->where(array(
+                        't.uid' => (int)$uid,
+                        't.aid' => (int)$aid,
+                ))
                 ->order(array(
                               't.t_date DESC',
                               't.tid DESC',
@@ -100,7 +106,7 @@ class TransactionMapper extends BaseMapper
         if ($pagged) {
             
             $paginator = new Paginator(new DbSelect($select, $sql));
-            $paginator->setItemCountPerPage(20);
+            $paginator->setItemCountPerPage(15);
             $paginator->setCurrentPageNumber((int)$pg);
             
             return $paginator;
@@ -155,6 +161,7 @@ class TransactionMapper extends BaseMapper
     {
         $data = array(
             'uid' => $transaction->uid,
+            'aid' => $transaction->aid,
             'cid'  => $transaction->cid,
             't_type'  => $transaction->t_type,
             't_date'  => $transaction->t_date,
@@ -247,7 +254,7 @@ class TransactionMapper extends BaseMapper
         @param int $t_type Typ transakcji (0 - przychód, 1 - wydatek)
         @return int Najmniejszy rok dostępny w transakcjach usera
     */
-    public function getSumOfTransactions($uid, $dt, $t_type)
+    public function getSumOfTransactions($uid, $aid, $dt, $t_type)
     {
         // Spr czy parametr z datą jest tablicą
         if (!is_array($dt)) {
@@ -265,6 +272,7 @@ class TransactionMapper extends BaseMapper
         $select->from(array('t' => 'transaction'))
                 ->where(array('t.uid' => (int)$uid,
                               't.t_type' => (int)$t_type,
+                              't.aid' => (int)$aid,
                               ));
             
         // Wybrany miesiąc    

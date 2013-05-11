@@ -40,6 +40,9 @@ Typ transakcji: <b><?php echo ($t_type==0)?('Przychód'):('Wydatek'); ?></b>
                 <td colspan="2"><?php echo $this->formHidden($form->get('tid')); ?></td>
             </tr>
             <tr>
+                <td colspan="2"><?php echo $this->formHidden($form->get('aid')); ?></td>
+            </tr>
+            <tr>
                 <td colspan="2"><?php echo $this->formHidden($form->get('t_type')); ?></td>
             </tr>
             <tr>
@@ -144,6 +147,7 @@ Typ transakcji: <b><?php echo ($t_type==0)?('Przychód'):('Wydatek'); ?></b>
 <div class="span12">
     <a href="<?php echo $this->url('transactions',
                 array(
+                    'aid' => $this->aid,
                     'month'=>$dt['month'],
                     'year'=>$dt['year'],
                     'page' => $this->page,

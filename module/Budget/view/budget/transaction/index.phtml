@@ -11,10 +11,10 @@ $this->headTitle($title);
 
 <div class="btn-group">
     <a href="<?php echo $this->url('transaction/add',
-            array('type'=>0));?>" class="btn btn-success">Dodaj przychód</a>
+            array('type'=>0, 'aid'=>$this->aid));?>" class="btn btn-success">Dodaj przychód</a>
             
     <a href="<?php echo $this->url('transaction/add',
-            array('type'=>1));?>" class="btn btn-danger">Dodaj wydatek</a>
+            array('type'=>1, 'aid'=>$this->aid));?>" class="btn btn-danger">Dodaj wydatek</a>
             
     <a href="<?php echo $this->url('import');?>" class="btn btn-info">Importuj wyciąg</a>
 </div>
@@ -38,6 +38,10 @@ $this->headTitle($title);
     echo $this->form()->openTag($form);
     ?>
     <table>
+        <tr>
+            <td><?php echo $form->get('aid')->getLabel(); ?></td>
+            <td><?php echo $this->formElement($form->get('aid')); ?></td>
+        </tr>
         <tr>
             <td><?php echo $form->get('month')->getLabel(); ?></td>
             <td><?php echo $this->formElement($form->get('month')); ?></td>
@@ -66,15 +70,15 @@ $this->headTitle($title);
         </tr>
         <tr>
             <td><div class="profit">Przychód</div></td>
-            <td>+<?php echo $sum_profit; ?>zł</td>
+            <td>+<?php echo $this->sum_profit; ?>zł</td>
         </tr>
         <tr>
             <td><div class="expense">Wydatki</div></td>
-            <td>-<?php echo $sum_expense; ?>zł</td>
+            <td>-<?php echo $this->sum_expense; ?>zł</td>
         </tr>
         <tr>
             <td><b>Oszczędności</b></td>
-            <td><?php echo $balance; ?>zł</td>
+            <td><?php echo $this->balance; ?>zł</td>
         </tr>
     </table>
 </div>
@@ -87,7 +91,7 @@ $this->headTitle($title);
     
 <p>Twoje transakcje:</p>
 
-    <?php if (count($transactions)) : ?>
+    <?php if (count($this->transactions)) : ?>
     <table class="table table-bordered">
     <tr>
         <th>Typ</th>
@@ -97,7 +101,7 @@ $this->headTitle($title);
         <th>kategoria</th>
         <th>&nbsp;</th>
     </tr>
-    <?php foreach ($transactions as $transaction) : ?>
+    <?php foreach ($this->transactions as $transaction) : ?>
     <tr>
         <?php if ($transaction->t_type==0): ?>
         <td><div class="label label-success">Przychód</div></td>
@@ -107,7 +111,23 @@ $this->headTitle($title);
         <td><?php echo $this->escapeHtml($transaction->t_date);?></td>
         <td><?php echo (($transaction->t_type==0)?('+'):('-')).$this->escapeHtml($transaction->t_value);?>zł</td>
         <td><?php echo $this->escapeHtml($transaction->t_content);?></td>
-        <td><?php echo $this->escapeHtml($transaction->c_name);?></td>
+        <td>
+        <?php 
+        
+        $cat = $this->categories[$transaction->tid];
+        
+        if ($cat[1] === null) { // Main category
+            
+            echo $this->escapeHtml($cat[0]);
+
+        } else { // Main category + subcategory
+            
+            echo $this->escapeHtml($cat[0].' -> '.$cat[1]);
+
+        }
+        
+        ?>
+        </td>
         <td>
             <a href="<?php echo $this->url('transaction/edit',
                 array(
@@ -135,6 +155,7 @@ $this->headTitle($title);
     <?php echo $this->paginationControl($this->transactions,
                                     'Sliding',
                                     'budget/paginator_control.phtml', array('AddrParams' => array(
+                                                                                            'aid' => $this->aid,
                                                                                             'month' => $dt['month'],
                                                                                             'year' => $dt['year'],
                                                                                         )

@@ -20,6 +20,13 @@ class Transaction extends BaseModel
     public $tid;
     
     /**
+     * Bank account identifier
+     *
+     * @var int
+     */
+    public $aid;
+    
+    /**
      * User identifier
      * 
      * @var int
@@ -39,13 +46,6 @@ class Transaction extends BaseModel
      * @var int
      */
     public $cid;
-    
-    /**
-     * Category name
-     * 
-     * @var string
-     */
-    public $c_name;
     
     /**
      * Transaction date

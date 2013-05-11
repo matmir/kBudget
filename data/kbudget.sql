@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Czas wygenerowania: 04 Maj 2013, 18:11
+-- Czas wygenerowania: 11 Maj 2013, 14:58
 -- Wersja serwera: 5.5.27
 -- Wersja PHP: 5.4.7
 
@@ -23,6 +23,21 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
+-- Struktura tabeli dla tabeli `accounts`
+--
+
+CREATE TABLE IF NOT EXISTS `accounts` (
+  `aid` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Account identifier',
+  `uid` int(10) unsigned NOT NULL COMMENT 'User identifier',
+  `a_name` varchar(30) NOT NULL COMMENT 'Account name',
+  `balance` decimal(10,2) NOT NULL COMMENT 'Account balance',
+  PRIMARY KEY (`aid`),
+  KEY `uid` (`uid`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin2 AUTO_INCREMENT=11 ;
+
+-- --------------------------------------------------------
+
+--
 -- Struktura tabeli dla tabeli `category`
 --
 
@@ -32,8 +47,10 @@ CREATE TABLE IF NOT EXISTS `category` (
   `uid` int(10) unsigned NOT NULL COMMENT 'identyfikator usera',
   `c_type` int(10) unsigned NOT NULL DEFAULT '1' COMMENT '0 - przychód, 1 - wydatek',
   `c_name` varchar(100) NOT NULL COMMENT 'nazwa',
-  PRIMARY KEY (`cid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin2 AUTO_INCREMENT=117 ;
+  PRIMARY KEY (`cid`),
+  KEY `pcid` (`pcid`),
+  KEY `uid` (`uid`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin2 AUTO_INCREMENT=124 ;
 
 -- --------------------------------------------------------
 
@@ -60,14 +77,18 @@ CREATE TABLE IF NOT EXISTS `imports` (
 
 CREATE TABLE IF NOT EXISTS `transaction` (
   `tid` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'identyfikator transakcji',
+  `aid` int(10) unsigned NOT NULL COMMENT 'Account identifier',
   `uid` int(10) unsigned NOT NULL COMMENT 'identyfikator usera',
   `cid` int(10) unsigned NOT NULL COMMENT 'identyfikator kategorii',
   `t_type` tinyint(3) unsigned NOT NULL COMMENT 'typ transakcji (0 - przychód, 1 - wydatek)',
   `t_date` date NOT NULL COMMENT 'data transakcji',
   `t_content` varchar(200) NOT NULL COMMENT 'opis transakcji',
   `t_value` decimal(10,2) NOT NULL COMMENT 'kwota transakcji',
-  PRIMARY KEY (`tid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin2 AUTO_INCREMENT=100 ;
+  PRIMARY KEY (`tid`),
+  KEY `aid` (`aid`),
+  KEY `uid` (`uid`),
+  KEY `cid` (`cid`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin2 AUTO_INCREMENT=115 ;
 
 -- --------------------------------------------------------
 
@@ -85,8 +106,33 @@ CREATE TABLE IF NOT EXISTS `users` (
   `active` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '0 - nieaktywny, 1 - aktywny',
   `register_date` datetime NOT NULL DEFAULT '2013-01-01 00:00:00' COMMENT 'Data rejestracji usera',
   `last_login_date` datetime DEFAULT NULL COMMENT 'Data ostatniego logowania usera',
-  PRIMARY KEY (`uid`)
+  `default_aid` int(10) unsigned NOT NULL COMMENT 'Default bank account',
+  PRIMARY KEY (`uid`),
+  KEY `default_aid` (`default_aid`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=latin2 AUTO_INCREMENT=5 ;
+
+--
+-- Ograniczenia dla zrzutów tabel
+--
+
+--
+-- Ograniczenia dla tabeli `accounts`
+--
+ALTER TABLE `accounts`
+  ADD CONSTRAINT `accounts_ibfk_1` FOREIGN KEY (`uid`) REFERENCES `users` (`uid`);
+
+--
+-- Ograniczenia dla tabeli `category`
+--
+ALTER TABLE `category`
+  ADD CONSTRAINT `category_ibfk_1` FOREIGN KEY (`pcid`) REFERENCES `category` (`cid`),
+  ADD CONSTRAINT `category_ibfk_2` FOREIGN KEY (`uid`) REFERENCES `users` (`uid`);
+
+--
+-- Ograniczenia dla tabeli `imports`
+--
+ALTER TABLE `imports`
+  ADD CONSTRAINT `imports_ibfk_1` FOREIGN KEY (`uid`) REFERENCES `users` (`uid`);
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

@@ -1,9 +1,4 @@
 <?php
-/**
-    @author Mateusz Mirosławski
-    
-    Formularz do sortowania transakcji wg. miesiąca.
-*/
 
 namespace Budget\Form;
 
@@ -15,15 +10,33 @@ use Zend\InputFilter\InputFilter;
 use Zend\InputFilter\InputFilterAwareInterface;
 use Zend\InputFilter\InputFilterInterface;
 
-class TransactionRangeSelectForm extends Form
+/**
+ * Transaction filter form
+ * 
+ * @author Mateusz Mirosławski
+ *
+ */
+class TransactionFilterForm extends Form
 {
     public function __construct($name = null)
     {
         // we want to ignore the name passed
-        parent::__construct('transaction-month');
+        parent::__construct('transaction-filter');
         $this->setAttribute('method', 'post');
         
-        // Miesiące
+        // Bank accounts
+        $this->add(array(
+            'type'  => 'Zend\Form\Element\Select',
+            'name' => 'aid',
+            'options' => array(
+                'label' => 'Konto: ',
+                'value_options' => array(
+                    '0' => 'Main',
+                ),
+            ),
+        ));
+        
+        // Months
         $this->add(array(
             'type'  => 'Zend\Form\Element\Select',
             'name' => 'month',
@@ -46,7 +59,7 @@ class TransactionRangeSelectForm extends Form
             ),
         ));
         
-        // Rok
+        // Year
         $this->add(array(
             'type'  => 'Zend\Form\Element\Text',
             'name' => 'year',
@@ -70,14 +83,28 @@ class TransactionRangeSelectForm extends Form
     }
 }
 
-/*
-    Filtry dla formularza
-*/
-class TransactionRangeSelectFilter implements InputFilterAwareInterface
+/**
+ * Filters for TransactionFilterForm
+ * 
+ * @author Mateusz Mirosławski
+ *
+ */
+class TransactionFilterFormFilter implements InputFilterAwareInterface
 {
     protected $inputFilter;
-    private $minYear; // minimalny rok
     
+    /**
+     * Min value of the year
+     * 
+     * @var unknown
+     */
+    private $minYear;
+    
+    /**
+     * Constructor
+     * 
+     * @param int $mYear Min value of the year
+     */
     public function __construct($mYear=1970)
     {
         $this->minYear = (int)$mYear;
@@ -94,7 +121,16 @@ class TransactionRangeSelectFilter implements InputFilterAwareInterface
             $inputFilter = new InputFilter();
             $factory     = new InputFactory();
 
-            // miesiąc
+            // Bank account
+            $inputFilter->add($factory->createInput(array(
+                'name'     => 'aid',
+                'required' => true,
+                'filters'  => array(
+                    array('name' => 'Int'),
+                ),
+            )));
+            
+            // Month
             $inputFilter->add($factory->createInput(array(
                 'name'     => 'month',
                 'required' => true,
@@ -103,7 +139,7 @@ class TransactionRangeSelectFilter implements InputFilterAwareInterface
                 ),
             )));
 
-            // rok
+            // Year
             $inputFilter->add($factory->createInput(array(
                 'name'     => 'year',
                 'required' => true,

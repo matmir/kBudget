@@ -215,23 +215,7 @@ class AccountController extends BaseController
             return $this->redirect()->toRoute('user/account');
         }
         
-        // Get user bank account list
-        $accounts = $this->get('User\AccountMapper')->getAccounts($uid);
-        
-        // Get user default bank id
-        $daid = $this->get('User\UserMapper')->getUser($uid)->default_aid;
-        
-        // Check if given account id is user accout
-        $aid_ok = false;
-        foreach ($accounts as $account) {
-            
-            if ($account->aid == $aid) {
-                $aid_ok = true;
-            }
-            
-        }
-        
-        if ($aid_ok) {
+        if ($this->get('User\AccountMapper')->isUserAccount($aid, $uid)) {
             
             // Save default account id
             $this->get('User\UserMapper')->setUserDefaultBankAccount($uid, $aid);

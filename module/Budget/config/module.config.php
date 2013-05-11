@@ -20,8 +20,9 @@ return array(
                 'type' => 'segment',
                 'description' => 'Route to Transactions list with date params',
                 'options' => array(
-                    'route' => '/transactions[/:month/:year/:page]',
+                    'route' => '/transactions[/:aid/:month/:year/:page]',
                     'constraints' => array(
+                        'aid' => '\d+',
                         'month' => '\d+',
                         'year' => '\d+',
                         'page' => '\d+'
@@ -29,6 +30,7 @@ return array(
                     'defaults' => array(
                         'controller' => 'Budget\Controller\Transaction',
                         'action' => 'index',
+                        'aid' => 0,
                         'month' => date('m'),
                         'year' => date('Y'),
                         'page' => 1
@@ -53,14 +55,16 @@ return array(
                         'type' => 'segment',
                         'description' => 'Route to add transaction',
                         'options' => array(
-                            'route' => 'add/:type',
+                            'route' => 'add/:type/:aid',
                             'constraints' => array(
                                 'type' => '\d+',
+                                'aid' => '\d+',
                             ),
                             'defaults' => array(
                                 'controller' => 'Budget\Controller\Transaction',
                                 'action' => 'add',
                                 'type' => 1,
+                                'aid' => 0,
                             ),
                         ),
                     ),

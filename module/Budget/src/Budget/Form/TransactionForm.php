@@ -29,6 +29,12 @@ class TransactionForm extends Form
             'name' => 'tid',
         ));
         
+        // Bank account id
+        $this->add(array(
+            'type'  => 'Zend\Form\Element\Hidden',
+            'name' => 'aid',
+        ));
+        
         // Transaction type
         $this->add(array(
             'type'  => 'Zend\Form\Element\Hidden',
@@ -172,6 +178,15 @@ class TransactionFilter implements InputFilterAwareInterface
             // Transaction id
             $inputFilter->add($factory->createInput(array(
                 'name'     => 'tid',
+                'required' => true,
+                'filters'  => array(
+                    array('name' => 'Int'),
+                ),
+            )));
+            
+            // Bank account id
+            $inputFilter->add($factory->createInput(array(
+                'name'     => 'aid',
                 'required' => true,
                 'filters'  => array(
                     array('name' => 'Int'),

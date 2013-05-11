@@ -5,16 +5,13 @@ namespace Budget\Controller;
 use Base\Controller\BaseController;
 
 use Budget\Model\Transaction;
-use Budget\Model\TransactionMapper;
-
 use User\Model\Category;
-use User\Model\CategoryMapper;
 
 use Budget\Form\TransactionForm;
 use Budget\Form\TransactionFilter;
 
-use Budget\Form\TransactionRangeSelectForm;
-use Budget\Form\TransactionRangeSelectFilter;
+use Budget\Form\TransactionFilterForm;
+use Budget\Form\TransactionFilterFormFilter;
 
 /**
  * Transaction controller
@@ -34,97 +31,132 @@ class TransactionController extends BaseController
         
         $page = (int) $this->params()->fromRoute('page', 1);
         
-        // Formularz od wyboru zakresu transakcji
-        $formRange = new TransactionRangeSelectForm();
+        // Bank account id
+        $aid = (int) $this->params()->fromRoute('aid', 0);
+        if (!$aid) {
+            
+            // Load default account id
+            $aid = $this->get('User\UserMapper')->getUser($uid)->default_aid;
+            
+        } else {
+            
+            // Check if given account id is user accout
+            if (!$this->get('User\AccountMapper')->isUserAccount($aid, $uid)) {
+                
+                // Load default account id
+                $aid = $this->get('User\UserMapper')->getUser($uid)->default_aid;
+                
+            }
+            
+        }
         
-        // Pobranie miesiąca z adresu
+        // Get user bank accounts
+        $accounts = $this->get('User\AccountMapper')->getUserAccountsToSelect($uid);
+        
+        // Filter form
+        $form = new TransactionFilterForm();
+        $form->get('aid')->setValueOptions($accounts);
+        $form->get('aid')->setValue($aid);
+        
+        // Get date
         $m = (int) $this->params()->fromRoute('month', date('m'));
-        // Pobranie roku z adresu
         $Y = (int) $this->params()->fromRoute('year', date('Y'));
         
-        /* SPRAWDZIĆ PODANĄ DATĘ!! */
-        
-        // Uzupełnienie formularza filtrującego
-        $formRange->setData(array(
-                                  'month' => $m,
-                                  'year' => $Y,
-                                  ));
-        
-        // Dodanie początkowego '0' w miesiącu (dla zapytania SQL)
-        $ms = ($m < 10) ? ((string)'0'.$m) : ((string)$m);
-        // Złożenie daty
-        $dt = $Y.'-'.$ms;
-        
-        // Parametry daty
-        $date_param = array(
-            'type' => 'month',
-            'dt_month' => $dt,
+        // Insert date to the form
+        $form->setData(
+            array(
+                'month' => $m,
+                'year' => $Y,
+            )
         );
         
-        // Pobranie sumy wydatków
-        $sum_expense = $this->get('Budget\TransactionMapper')->getSumOfTransactions($uid, $date_param, 1);
-        // Pobranie sumy przychodów
-        $sum_profit = $this->get('Budget\TransactionMapper')->getSumOfTransactions($uid, $date_param, 0);
+        // Parse date
+        $dt = new \DateTime($Y.'-'.$m.'-01');
         
-        // Bilans
-        $balance = $sum_profit - $sum_expense;
+        // Date params
+        $date_param = array(
+            'type' => 'month',
+            'dt_month' => $dt->format('Y-m'),
+        );
+        
+        // Get sum of expenses and profits
+        $sum_expense = $this->get('Budget\TransactionMapper')->getSumOfTransactions($uid, $aid, $date_param, 1);
+        $sum_profit = $this->get('Budget\TransactionMapper')->getSumOfTransactions($uid, $aid, $date_param, 0);
+        $monthBalance = $sum_profit - $sum_expense;
+        
+        // Get transactions
+        $transactions = $this->get('Budget\TransactionMapper')->getTransactions($uid, $aid, $date_param, -1, $page, true);
+        
+        // Get categories names (tid, main_category, sub_category)
+        $transactionsCopy = clone $transactions;
+        $categories = array();
+        foreach ($transactionsCopy as $transaction) {
+            
+            // Check if category has parent
+            if ($transaction->pcid === null) {
+                // Main category
+                $categories[$transaction->tid] = array($transaction->c_name, null);
+            } else {
+                // Subcategory
+                $parent = $this->get('User\CategoryMapper')->getCategory($transaction->pcid, $uid);
+                
+                $categories[$transaction->tid] = array($parent->c_name, $transaction->c_name);
+            }
+            
+        }
         
         return array(
-            'transactions' => $this->get('Budget\TransactionMapper')->getTransactions($uid, $date_param, -1, $page, true),
-            'formRange' => $formRange,
+            'transactions' => $transactions,
+            'categories' => $categories,
+            'formRange' => $form,
             'dt' => array('month' => $m, 'year' => $Y),
+            'aid' => $aid,
             'sum_expense' => $sum_expense,
             'sum_profit' => $sum_profit,
-            'balance' => $balance,
+            'balance' => $monthBalance,
             'page' => $page,
         );
     }
     
-    // Filtracja transakcji
+    /**
+     * Filter transaction list
+     */
     public function filterAction()
     {
-        // Identyfikator zalogowanego usera
+        // User identifier
         $uid = $this->get('userId');
         
-        // Minimalny rok w transakcjach usera
+        // Min year of user transactions
         $minYear = $this->get('Budget\TransactionMapper')->getMinYearOfTransaction($uid);
         
-        // Formularz od wyboru zakresu transakcji
-        $formRange = new TransactionRangeSelectForm();
-        // Filtracja formularza
-        $formFilters = new TransactionRangeSelectFilter($minYear);
+        // Get user bank accounts
+        $accounts = $this->get('User\AccountMapper')->getUserAccountsToSelect($uid);
+        
+        // Filter form
+        $formRange = new TransactionFilterForm();
+        $formRange->get('aid')->setValueOptions($accounts);
+        $formFilters = new TransactionFilterFormFilter($minYear);
         
         $request = $this->getRequest();
         if ($request->isPost()) {
             $formRange->setInputFilter($formFilters->getInputFilter());
             $formRange->setData($request->getPost());
-
+            
             if ($formRange->isValid()) {
-                $Y = $formRange->get('year')->getValue();
-                $m = $formRange->get('month')->getValue();
                 
-                // Przekierowanie do listy transakcji
-                return $this->redirect()->toRoute('transactions', array(
-                                                                       'month' => (int)$m,
-                                                                       'year' => (int)$Y,
-                                                                       'page' => 1,
-                                                                       ));
-            } else { // Błąd formularze (ktoś coś kombinuje)
-                // Przekierowanie do głównej strony
-                return $this->redirect()->toRoute('transactions', array(
-                                                                    'month' => date('m'),
-                                                                    'year' => date('Y'),
-                                                                    'page' => 1,
-                                                                    ));
+                $data = $formRange->getData();
+                
+                return $this->redirect()->toRoute('transactions', array_merge($data, array('page' => 1)));
+                
             }
-        } else { // Brak parametrów
-            // Przekierowanie do głównej strony
-            return $this->redirect()->toRoute('transactions', array(
-                                                                    'month' => date('m'),
-                                                                    'year' => date('Y'),
-                                                                    'page' => 1,
-                                                                    ));
+            
         }
+        
+        return $this->redirect()->toRoute('transactions', array(
+                                                            'month' => date('m'),
+                                                            'year' => date('Y'),
+                                                            'page' => 1,
+        ));
     }
 
     /**
@@ -144,7 +176,19 @@ class TransactionController extends BaseController
             
         }
         
+        // Get account id
+        $aid = (int) $this->params()->fromRoute('aid', 0);
+        // Check if given account id is user accout
+        if (!$this->get('User\AccountMapper')->isUserAccount($aid, $uid)) {
+        
+            return $this->redirect()->toRoute('transactions');
+        
+        }
+        
         $form = new TransactionForm();
+        
+        // Set account id
+        $form->get('aid')->setValue($aid);
         
         // Get user main categories
         $userMainCat = $this->get('User\CategoryMapper')->getUserCategoriesToSelect($uid, $t_type);
@@ -243,6 +287,7 @@ class TransactionController extends BaseController
                     $t_dt = explode('-', $transaction->t_date);
                     
                     return $this->redirect()->toRoute('transactions', array(
+                                                                           'aid' => $aid,
                                                                            'month' => $t_dt[1],
                                                                            'year' => $t_dt[0],
                                                                            'page' => 1,
@@ -255,6 +300,7 @@ class TransactionController extends BaseController
         
         return array(
             'form' => $form,
+            'aid' => $aid,
             't_type' => $t_type,
         );
     }
@@ -406,9 +452,10 @@ class TransactionController extends BaseController
                     $t_dt = explode('-', $transaction->t_date);
                     
                     return $this->redirect()->toRoute('transactions', array(
+                                                                           'aid' => $transaction->aid,
                                                                            'month' => $t_dt[1],
                                                                            'year' => $t_dt[0],
-                                                                           'page' => 1,
+                                                                           'page' => $page,
                                                                            ));
                     
                 }
@@ -421,6 +468,7 @@ class TransactionController extends BaseController
             'form' => $form,
             'dt' => array('month' => $m, 'year' => $Y),
             't_type' => $transaction->t_type,
+            'aid' => $transaction->aid,
             'page' => $page,
         );
     }
@@ -440,6 +488,8 @@ class TransactionController extends BaseController
             return $this->redirect()->toRoute('transaction');
         }
         
+        $transaction = $this->get('Budget\TransactionMapper')->getTransaction($tid, $uid);
+        
         // Pobranie miesiąca z adresu
         $m = (int) $this->params()->fromRoute('month', date('m'));
         // Pobranie roku z adresu
@@ -456,6 +506,7 @@ class TransactionController extends BaseController
 
             // Przekierowanie do listy transakcji
             return $this->redirect()->toRoute('transactions', array(
+                                                                   'aid' => $transaction->aid,
                                                                    'month' => (int)$m,
                                                                    'year' => (int)$Y,
                                                                    'page' => $page,
@@ -465,7 +516,7 @@ class TransactionController extends BaseController
         return array(
             'tid'    => $tid,
             'dt' => array('month' => $m, 'year' => $Y),
-            'transaction' => $this->get('Budget\TransactionMapper')->getTransaction($tid, $uid),
+            'transaction' => $transaction,
             'page' => $page,
         );
     }

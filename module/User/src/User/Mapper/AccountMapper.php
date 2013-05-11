@@ -52,6 +52,30 @@ class AccountMapper extends BaseMapper
     }
     
     /**
+     * Get user bank accounts for select element.
+     * Return array (tbl['aid'] = account_name)
+     *
+     * @param int $uid User identifier
+     * @return array
+     */
+    public function getUserAccountsToSelect($uid)
+    {
+        // Get accounts
+        $accounts = $this->getAccounts($uid);
+        
+        // Return array
+        $retArray = array();
+        
+        // Insert values into the return array
+        foreach ($accounts as $account)
+        {
+            $retArray[$account->aid] = $account->a_name;
+        }
+        
+        return $retArray;
+    }
+    
+    /**
      * Checks if the given account name exists in database.
      * Return 0 if not exists or account id if exists
      * 
@@ -82,6 +106,28 @@ class AccountMapper extends BaseMapper
             
             return $data['aid'];
             
+        }
+    }
+    
+    /**
+     * Check if given account id is user account
+     * 
+     * @param int $aid Account id
+     * @param int $uid User id
+     * @return boolean
+     */
+    public function isUserAccount($aid, $uid)
+    {
+        $data = $this->getAccount($aid, $uid);
+        
+        if ($data === null) {
+        
+            return false;
+        
+        } else {
+        
+            return true;
+        
         }
     }
     
@@ -149,8 +195,8 @@ class AccountMapper extends BaseMapper
         $statement = $sql->prepareStatementForSqlObject($select);
         $row = $statement->execute();
         
-        if (!$row) {
-            throw new \Exception('There is no account with id '.$aid);
+        if (!$row->count()) {
+            return null;
         }
         
         $account = new Account($row->current());
