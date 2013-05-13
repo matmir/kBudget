@@ -1,0 +1,18 @@
+.table td.account-header {
+	text-align: center;
+	font-weight: bold;
+}
+
+.table td.account-balance {
+	text-align: center;
+}
+
+.balance-profit {
+	color: #3a8a3a;
+	font-weight: bold;
+}
+
+.balance-loss {
+	color: #cf0000;
+	font-weight: bold;
+}

@@ -50,8 +50,11 @@ class TransactionController extends BaseController
             
         }
         
-        // Get user bank accounts
+        // Get user bank accounts to select object
         $accounts = $this->get('User\AccountMapper')->getUserAccountsToSelect($uid);
+        
+        // Get actual account data
+        $account = $this->get('User\AccountMapper')->getAccount($aid, $uid);
         
         // Filter form
         $form = new TransactionFilterForm();
@@ -113,7 +116,8 @@ class TransactionController extends BaseController
             'aid' => $aid,
             'sum_expense' => $sum_expense,
             'sum_profit' => $sum_profit,
-            'balance' => $monthBalance,
+            'accountBalance' => $account->balance,
+            'monthBalance' => $monthBalance,
             'page' => $page,
         );
     }

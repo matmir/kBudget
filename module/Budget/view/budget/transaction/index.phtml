@@ -2,6 +2,9 @@
 
 $title = 'kBudget - Transakcje';
 $this->headTitle($title);
+
+$this->headLink()->prependStylesheet($this->basePath('/css/transaction-list.css'));
+
 ?>
 <h1><?php echo $this->escapeHtml($title); ?></h1>
 
@@ -62,11 +65,29 @@ $this->headTitle($title);
     </div>
 </div>
 
-<!-- Bilans (prawa strona) -->
+<!-- Saldo na koncie (prawa strona) -->
 <div class="span3">
     <table class="table table-striped">
         <tr>
-            <td colspan="2" style="text-align: center;"><b>Bilans miesięczny</b></td>
+            <td class="account-header">Aktualny stan konta</td>
+        </tr>
+        <tr>
+            <td class="account-balance">
+            <?php if ($this->accountBalance >= 0) : ?>
+            <div class="balance-profit"><?php echo '+'.$this->accountBalance; ?>zł</div>
+            <?php else: ?>
+            <div class="balance-loss"><?php echo $this->accountBalance; ?>zł</div>
+            <?php endif;?>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<!-- Bilans miesięczny (prawa strona) -->
+<div class="span3">
+    <table class="table table-striped">
+        <tr>
+            <td colspan="2" class="account-header">Bilans miesięczny</td>
         </tr>
         <tr>
             <td><div class="profit">Przychód</div></td>
@@ -78,7 +99,13 @@ $this->headTitle($title);
         </tr>
         <tr>
             <td><b>Oszczędności</b></td>
-            <td><?php echo $this->balance; ?>zł</td>
+            <td>
+            <?php if ($this->monthBalance >= 0) : ?>
+            <div class="balance-profit"><?php echo '+'.$this->monthBalance; ?>zł</div>
+            <?php else: ?>
+            <div class="balance-loss"><?php echo $this->monthBalance; ?>zł</div>
+            <?php endif;?>
+            </td>
         </tr>
     </table>
 </div>
