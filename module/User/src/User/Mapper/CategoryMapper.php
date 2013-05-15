@@ -314,5 +314,37 @@ class CategoryMapper extends BaseMapper
         
         return $row->getAffectedRows();
     }
+    
+    /**
+     * Get transfer category identifier (unique hidden category)
+     * 
+     * @param int $uid User id
+     * @throws \Exception
+     * @return int
+     */
+    public function getTransferCategoryId($uid)
+    {
+        $sql = new Sql($this->getDbAdapter());
+        $select = $sql->select();
+        
+        $select->from(array('c' => 'category'))
+        ->where(array('c.c_type' => 2,
+                'c.uid' => (int)$uid));
+        
+        $statement = $sql->prepareStatementForSqlObject($select);
+        $row = $statement->execute();
+        
+        if (!$row->count()) {
+            throw new \Exception('There is no transfer category!');
+        }
+        
+        if ($row->count() > 1) {
+            throw new \Exception('There should be only one transfer category!');
+        }
+        
+        $category = new Category($row->current());
+        
+        return $category->cid;
+    }
 
 }

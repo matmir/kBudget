@@ -13,6 +13,9 @@ use Budget\Form\TransactionFilter;
 use Budget\Form\TransactionFilterForm;
 use Budget\Form\TransactionFilterFormFilter;
 
+use Budget\Form\TransferForm;
+use Budget\Form\TransferFilter;
+
 /**
  * Transaction controller
  * 
@@ -93,6 +96,7 @@ class TransactionController extends BaseController
         // Get categories names (tid, main_category, sub_category)
         $transactionsCopy = clone $transactions;
         $categories = array();
+        $accountTransfers = array();
         foreach ($transactionsCopy as $transaction) {
             
             // Check if category has parent
@@ -110,6 +114,7 @@ class TransactionController extends BaseController
         
         return array(
             'transactions' => $transactions,
+            'accountsNames' => $accounts,
             'categories' => $categories,
             'formRange' => $form,
             'dt' => array('month' => $m, 'year' => $Y),
@@ -522,6 +527,366 @@ class TransactionController extends BaseController
             'dt' => array('month' => $m, 'year' => $Y),
             'transaction' => $transaction,
             'page' => $page,
+        );
+    }
+    
+    /**
+     * Add transfer between user bank accounts
+     */
+    public function transferAddAction()
+    {
+        // User identifier
+        $uid = $this->get('userId');
+        
+        // Get account id
+        $aid = (int) $this->params()->fromRoute('aid', 0);
+        // Check if given account id is user accout
+        if (!$this->get('User\AccountMapper')->isUserAccount($aid, $uid)) {
+        
+            return $this->redirect()->toRoute('transactions');
+        
+        }
+        
+        $form = new TransferForm();
+        
+        // Get user number of accounts
+        $count = $this->get('User\AccountMapper')->getUserAccountCount($uid);
+        
+        // Flag - if there is only one bank account
+        $ERR = false;
+        
+        if ($count > 1) {
+            
+            // Get user bank accounts
+            $accounts = $this->get('User\AccountMapper')->getUserAccountsToSelect($uid);
+            
+            // Init transfer form
+            $form->get('aid')->setValueOptions($accounts);
+            $form->get('taid')->setValueOptions($accounts);
+            
+            // Set bank account id from which we transfer money (default)
+            $form->get('aid')->setValue($aid);
+            
+            // Set the submit value
+            $form->get('submit')->setValue('Dodaj');
+            
+            $request = $this->getRequest();
+            if ($request->isPost()) {
+            
+                $postData = $request->getPost();
+            
+                $accountsValid = true;
+            
+                // Check bank accounts
+                if ($postData['aid'] == $postData['taid']) {
+            
+                    $form->get('taid')->setMessages(
+                        array(
+                            'Bank account must be different than above bank account!'
+                        )
+                    );
+            
+                    $accountsValid = false;
+            
+                }
+            
+                // Insert POST data into the form
+                $form->setData($postData);
+            
+                $formFilters = new TransferFilter();
+                $form->setInputFilter($formFilters->getInputFilter());
+            
+                if ($form->isValid() && $accountsValid) {
+            
+                    // Get data from form
+                    $data = $form->getData();
+            
+                    // Get user transfer category id (hidden category for transfers)
+                    $tcid = $this->get('User\CategoryMapper')->getTransferCategoryId($uid);
+                    
+                    // Outgoing transfer
+                    $outTransaction = new Transaction();
+                    $outTransaction->aid = $data['aid'];
+                    $outTransaction->taid = $data['taid'];
+                    $outTransaction->uid = $uid;
+                    $outTransaction->t_type = 2;
+                    $outTransaction->cid = $tcid;
+                    $outTransaction->t_date = $data['t_date'];
+                    $outTransaction->t_content = $data['t_content'];
+                    $outTransaction->t_value = $data['t_value'];
+                    
+                    // Incoming transfer
+                    $inTransaction = new Transaction();
+                    $inTransaction->aid = $data['taid'];
+                    $inTransaction->taid = $data['aid'];
+                    $inTransaction->uid = $uid;
+                    $inTransaction->t_type = 3;
+                    $inTransaction->cid = $tcid;
+                    $inTransaction->t_date = $data['t_date'];
+                    $inTransaction->t_content = $data['t_content'];
+                    $inTransaction->t_value = $data['t_value'];
+            
+                    // Save transfer
+                    $this->get('Budget\TransferMapper')->saveTransfer($outTransaction, $inTransaction);
+                    
+                    // Transaction date
+                    $t_dt = explode('-', $outTransaction->t_date);
+                    
+                    return $this->redirect()->toRoute('transactions', array(
+                            'aid' => $aid,
+                            'month' => $t_dt[1],
+                            'year' => $t_dt[0],
+                            'page' => 1,
+                    ));
+            
+                }
+            }
+            
+        } else {
+            
+            $ERR = true;
+            
+        }
+        
+        return array(
+            'form' => $form,
+            'aid' => $aid,
+            'ERR' => $ERR,
+        );
+    }
+    
+    /**
+     * Edit transfer between user bank accounts
+     */
+    public function transferEditAction()
+    {
+        // User identifier
+        $uid = $this->get('userId');
+        
+        $page = (int) $this->params()->fromRoute('page', 1);
+        
+        // Get date from the url
+        $m = (int) $this->params()->fromRoute('month', date('m'));
+        $Y = (int) $this->params()->fromRoute('year', date('Y'));
+        
+        // Get transaction id
+        $tid = (int) $this->params()->fromRoute('tid', 0);
+        // Check if given account id is user accout
+        if (!$tid) {
+        
+            return $this->redirect()->toRoute('transactions');
+        
+        }
+        
+        // Get account id
+        $aid = (int) $this->params()->fromRoute('aid', 0);
+        // Check if given account id is user accout
+        if (!$this->get('User\AccountMapper')->isUserAccount($aid, $uid)) {
+        
+            return $this->redirect()->toRoute('transactions');
+        
+        }
+        
+        // Get transaction data
+        $transaction = $this->get('Budget\TransactionMapper')->getTransaction($tid, $uid);
+        
+        // Check if there is the transaction
+        if ($transaction === null) {
+            return $this->redirect()->toRoute('transactions');
+        }
+        
+        // Check if the given transaction is transfer
+        if (!($transaction->t_type==2 || $transaction->t_type==3)) {
+            return $this->redirect()->toRoute('transactions');
+        }
+        
+        $form = new TransferForm();
+        
+        // Get user number of accounts
+        $count = $this->get('User\AccountMapper')->getUserAccountCount($uid);
+        
+        // Flag - if there is only one bank account
+        $ERR = false;
+        
+        if ($count > 1) {
+        
+            // Get user bank accounts
+            $accounts = $this->get('User\AccountMapper')->getUserAccountsToSelect($uid);
+        
+            // Init transfer form
+            $form->get('aid')->setValueOptions($accounts);
+            $form->get('taid')->setValueOptions($accounts);
+        
+            // Insert data into the form
+            $form->setData($transaction->getArrayCopy());
+            
+            // Revert bank accounts
+            if ($transaction->t_type==3) {
+                
+                $form->get('aid')->setValue($transaction->taid);
+                $form->get('taid')->setValue($transaction->aid);
+                
+            }
+            
+            // Set the submit value
+            $form->get('submit')->setValue('Edytuj');
+        
+            $request = $this->getRequest();
+            if ($request->isPost()) {
+        
+                $postData = $request->getPost();
+        
+                $accountsValid = true;
+        
+                // Check bank accounts
+                if ($postData['aid'] == $postData['taid']) {
+        
+                    $form->get('taid')->setMessages(
+                        array(
+                            'Bank account must be different than above bank account!'
+                        )
+                    );
+        
+                    $accountsValid = false;
+        
+                }
+        
+                // Insert POST data into the form
+                $form->setData($postData);
+        
+                $formFilters = new TransferFilter();
+                $form->setInputFilter($formFilters->getInputFilter());
+        
+                if ($form->isValid() && $accountsValid) {
+        
+                    // Get data from form
+                    $data = $form->getData();
+        
+                    // Get user transfer category id (hidden category for transfers)
+                    $tcid = $transaction->cid;
+                    
+                    // Get transaction identifiers
+                    if ($transaction->t_type==2) {
+                        $outId = $transaction->tid;
+                        $tr = $this->get('Budget\TransferMapper')->getTransaction($tid, $uid, 3);
+                        $inId = $tr['transaction']->tid;
+                    } else {
+                        $tr = $this->get('Budget\TransferMapper')->getTransaction($tid, $uid, 2);
+                        $outId = $tr['transaction']->tid;
+                        $inId = $transaction->tid;
+                    }
+        
+                    // Outgoing transfer
+                    $outTransaction = new Transaction();
+                    $outTransaction->tid = $outId;
+                    $outTransaction->aid = $data['aid'];
+                    $outTransaction->taid = $data['taid'];
+                    $outTransaction->uid = $uid;
+                    $outTransaction->t_type = 2;
+                    $outTransaction->cid = $tcid;
+                    $outTransaction->t_date = $data['t_date'];
+                    $outTransaction->t_content = $data['t_content'];
+                    $outTransaction->t_value = $data['t_value'];
+        
+                    // Incoming transfer
+                    $inTransaction = new Transaction();
+                    $inTransaction->tid = $inId;
+                    $inTransaction->aid = $data['taid'];
+                    $inTransaction->taid = $data['aid'];
+                    $inTransaction->uid = $uid;
+                    $inTransaction->t_type = 3;
+                    $inTransaction->cid = $tcid;
+                    $inTransaction->t_date = $data['t_date'];
+                    $inTransaction->t_content = $data['t_content'];
+                    $inTransaction->t_value = $data['t_value'];
+        
+                    // Save transactions
+                    $this->get('Budget\TransferMapper')->saveTransfer($outTransaction, $inTransaction);
+        
+                    // Transaction date
+                    $t_dt = explode('-', $outTransaction->t_date);
+        
+                    return $this->redirect()->toRoute('transactions', array(
+                            'aid' => $aid,
+                            'month' => $t_dt[1],
+                            'year' => $t_dt[0],
+                            'page' => $page,
+                    ));
+        
+                }
+            }
+        
+        } else {
+        
+            $ERR = true;
+        
+        }
+        
+        return array(
+            'form' => $form,
+            'tid' => $transaction->tid,
+            'aid' => $aid,
+            'ERR' => $ERR,
+            'dt' => array('month' => $m, 'year' => $Y),
+            'page' => $page,
+        );
+    }
+    
+    /**
+     * Delete user transfer
+     */
+    public function transferDeleteAction()
+    {
+        // User id
+        $uid = $this->get('userId');
+        
+        $page = (int) $this->params()->fromRoute('page', 1);
+        
+        $tid = (int) $this->params()->fromRoute('tid', 0);
+        if (!$tid) {
+            return $this->redirect()->toRoute('transaction');
+        }
+        
+        $transaction = $this->get('Budget\TransactionMapper')->getTransaction($tid, $uid);
+        
+        // Check if there is the transaction
+        if ($transaction === null) {
+            return $this->redirect()->toRoute('transactions');
+        }
+        
+        // Check if the given transaction is transfer
+        if (!($transaction->t_type==2 || $transaction->t_type==3)) {
+            return $this->redirect()->toRoute('transactions');
+        }
+        
+        // Get date from address
+        $m = (int) $this->params()->fromRoute('month', date('m'));
+        $Y = (int) $this->params()->fromRoute('year', date('Y'));
+        
+        $request = $this->getRequest();
+        if ($request->isPost()) {
+            $del = $request->getPost('del', 'No');
+        
+            if ($del == 'Yes') {
+                $tid = (int) $request->getPost('tid');
+                
+                $this->get('Budget\TransferMapper')->deleteTransfer($transaction);
+            }
+        
+            // Redirect to the transaction list
+            return $this->redirect()->toRoute('transactions', array(
+                    'aid' => $transaction->aid,
+                    'month' => (int)$m,
+                    'year' => (int)$Y,
+                    'page' => $page,
+            ));
+        }
+        
+        return array(
+                'tid'    => $tid,
+                'dt' => array('month' => $m, 'year' => $Y),
+                'transaction' => $transaction,
+                'page' => $page,
         );
     }
 }

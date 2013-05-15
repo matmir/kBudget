@@ -19,6 +19,9 @@ $this->headLink()->prependStylesheet($this->basePath('/css/transaction-list.css'
     <a href="<?php echo $this->url('transaction/add',
             array('type'=>1, 'aid'=>$this->aid));?>" class="btn btn-danger">Dodaj wydatek</a>
             
+    <a href="<?php echo $this->url('transaction/transfer-add',
+            array('aid'=>$this->aid));?>" class="btn btn-warning">Transfer</a>
+            
     <a href="<?php echo $this->url('import');?>" class="btn btn-info">Importuj wyciąg</a>
 </div>
     
@@ -132,44 +135,74 @@ $this->headLink()->prependStylesheet($this->basePath('/css/transaction-list.css'
     <tr>
         <?php if ($transaction->t_type==0): ?>
         <td><div class="label label-success">Przychód</div></td>
-        <?php else: ?>
+        <?php elseif ($transaction->t_type==1): ?>
         <td><div class="label label-important">Wydatek</div></td>
+        <?php else: ?>
+        <td><div class="label label-warning">Transfer</div></td>
         <?php endif; ?>
         <td><?php echo $this->escapeHtml($transaction->t_date);?></td>
-        <td><?php echo (($transaction->t_type==0)?('+'):('-')).$this->escapeHtml($transaction->t_value);?>zł</td>
+        <td><?php echo (($transaction->t_type==0||$transaction->t_type==3)?('+'):('-')).$this->escapeHtml($transaction->t_value);?>zł</td>
         <td><?php echo $this->escapeHtml($transaction->t_content);?></td>
         <td>
         <?php 
-        
-        $cat = $this->categories[$transaction->tid];
-        
-        if ($cat[1] === null) { // Main category
-            
-            echo $this->escapeHtml($cat[0]);
+        if ($transaction->t_type==0 || $transaction->t_type==1) {
+            $cat = $this->categories[$transaction->tid];
 
-        } else { // Main category + subcategory
+            if ($cat[1] === null) { // Main category
             
-            echo $this->escapeHtml($cat[0].' -> '.$cat[1]);
+                echo $this->escapeHtml($cat[0]);
+            
+            } else { // Main category + subcategory
+            
+                echo $this->escapeHtml($cat[0].' -> '.$cat[1]);
+            
+            }
+        } else if ($transaction->t_type==2) { // Outgoing transfer
+
+            echo 'Transfer do: '.$this->accountsNames[$transaction->taid];
+
+        } else if ($transaction->t_type==3) { // Incoming transfer
+
+            echo 'Transfer z: '.$this->accountsNames[$transaction->taid];
 
         }
+        
         
         ?>
         </td>
         <td>
-            <a href="<?php echo $this->url('transaction/edit',
-                array(
-                    'month'=>$dt['month'],
-                    'year'=>$dt['year'],
-                    'tid' => $transaction->tid,
-                    'page' => $this->page,
-                    ));?>">Edit</a>
-            <a href="<?php echo $this->url('transaction/delete',
-                array(
-                    'month'=>$dt['month'],
-                    'year'=>$dt['year'],
-                    'tid' => $transaction->tid,
-                    'page' => $this->page,
-                    ));?>">Usuń</a>
+            <?php if ($transaction->t_type==0 || $transaction->t_type==1): ?>
+                <a href="<?php echo $this->url('transaction/edit',
+                    array(
+                        'month'=>$dt['month'],
+                        'year'=>$dt['year'],
+                        'tid' => $transaction->tid,
+                        'page' => $this->page,
+                        ));?>">Edit</a>
+                <a href="<?php echo $this->url('transaction/delete',
+                    array(
+                        'month'=>$dt['month'],
+                        'year'=>$dt['year'],
+                        'tid' => $transaction->tid,
+                        'page' => $this->page,
+                        ));?>">Usuń</a>
+            <?php else: ?>
+                <a href="<?php echo $this->url('transaction/transfer-edit',
+                    array(
+                        'month'=>$dt['month'],
+                        'year'=>$dt['year'],
+                        'tid' => $transaction->tid,
+                        'aid' => $this->aid,
+                        'page' => $this->page,
+                        ));?>">Edit</a>
+                <a href="<?php echo $this->url('transaction/transfer-delete',
+                    array(
+                        'month'=>$dt['month'],
+                        'year'=>$dt['year'],
+                        'tid' => $transaction->tid,
+                        'page' => $this->page,
+                        ));?>">Usuń</a>
+            <?php endif;?>
         </td>
     </tr>
     <?php endforeach; ?>

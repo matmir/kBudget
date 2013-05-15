@@ -1,0 +1,31 @@
+<?php
+
+$title = 'Usuwanie transferu';
+$this->headTitle($title);
+?>
+<h1><?php echo $this->escapeHtml($title); ?></h1>
+
+<!-- Pytanie -->
+<div class="row">
+    <div class="span12"> 
+            <p>Czy na pewno usunąć transfer
+                '<?php echo $this->escapeHtml($transaction->t_content); ?>' o wartości
+                <?php echo $this->escapeHtml($transaction->t_value); ?>zł ?
+            </p>
+            <?php
+            $url = $this->url('transaction/transfer-delete', array(
+                'month' => $dt['month'],
+                'year' => $dt['year'],
+                'tid'     => $this->tid,
+                'page' => $this->page,
+            ));
+            ?>
+            <form action="<?php echo $url; ?>" method="post">
+            <div>
+                <input type="hidden" name="tid" value="<?php echo (int) $transaction->tid; ?>" />
+                <input type="submit" name="del" value="Yes" />
+                <input type="submit" name="del" value="No" />
+            </div>
+            </form>
+    </div>
+</div>

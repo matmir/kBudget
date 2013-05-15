@@ -26,10 +26,10 @@ class TransactionMapper extends BaseMapper
      * @param int $uid User id
      * @param int $aid Bank account id
      * @param array $dt_param {
-                                'type' => 'month/between/all',
-                                'dt_month' => 'yyyy-mm' form type 'month' or 'dt_up' and 'dt_down' for 'between'
-                              }
-     * @param int $t_type ('-1' all transactions, '0' profits, '1' expense
+     *                          'type' => 'month/between/all',
+     *                          'dt_month' => 'yyyy-mm' form type 'month' or 'dt_up' and 'dt_down' for 'between'
+     *                        }
+     * @param int $t_type ('-1' all transactions, '0' profits, '1' expense, '2' outgoing transfers, '3' incoming transfers
      * @param int $pg Actual page number
      * @param bool $pagged Return paginator
      * @throws \Exception
@@ -37,17 +37,17 @@ class TransactionMapper extends BaseMapper
      */
     public function getTransactions($uid, $aid, $dt_param, $t_type=-1, $pg=1, $pagged=false)
     {
-        // Spr czy parametr z datą jest tablicą
+        // Check if the date param is correct
         if (!is_array($dt_param)) {
-            throw new \Exception("Parametr z datą musi być tablicą!");
+            throw new \Exception('The date param must be an array!');
         }
-        // Spr. pola z typem
+        // Check date type
         if (!isset($dt_param['type'])) {
-            throw new \Exception("Brak typu daty w parametrach z tablicą!");
+            throw new \Exception('Missing type parameter in dt_param array');
         }
-        // Spr. pola z numerem strony
+        // Check page number
         if ($pg <= 0) {
-            throw new \Exception("Numer strony musi być liczbą dodatnią!");
+            throw new \Exception('The page number must be an positive');
         }
         
         $sql = new Sql($this->getDbAdapter());
@@ -63,23 +63,21 @@ class TransactionMapper extends BaseMapper
                               't.t_date DESC',
                               't.tid DESC',
                               ));
-        // Wybrany miesiąc    
+           
         if ($dt_param['type'] == 'month') {
             
-            // Spr. parametru
             if (!isset($dt_param['dt_month'])) {
-                throw new \Exception("Brak parametru z miesiącem!");
+                throw new \Exception('No parameter with the month!');
             }
-            //echo $dt['dt_month'];
+            
             $select->where(array(
                               't.t_date LIKE ?' => (string)$dt_param['dt_month'].'-%',
                               ));
             
-        } elseif ($dt_param['type'] == 'between') { // Wybrany zakres
+        } elseif ($dt_param['type'] == 'between') {
             
-            // Spr. parametru
             if (!(isset($dt_param['dt_up'])&&isset($dt_param['dt_down']))) {
-                throw new \Exception("Brak parametru z zakresem dat!");
+                throw new \Exception('No parameter with the range!');
             }
             
             $select->where(array(
@@ -88,21 +86,20 @@ class TransactionMapper extends BaseMapper
                               ));
             
         }
-        // Jeśli typ daty inny niż 2 powyższe to wybiera cały zakres
+        // If date type is different than above it choose all range
         
-        // Typ transakcji do pobrania
+        // Transaction type
         if ($t_type != -1) {
             
-            // Spr. parametru
-            if (!($t_type==0 || $t_type==1)) {
-                throw new \Exception("Niepoprawny parametr z typem transakcji!!");
+            if (!($t_type==0 || $t_type==1 || $t_type==2 || $t_type==3)) {
+                throw new \Exception('Wrong transaction type parameter!');
             }
             
             $select->where(array('t.t_type' => (int)$t_type));
             
         }
         
-        // Czy zwracać paginator
+        // Return Paginator?
         if ($pagged) {
             
             $paginator = new Paginator(new DbSelect($select, $sql));
@@ -111,14 +108,13 @@ class TransactionMapper extends BaseMapper
             
             return $paginator;
             
-        } else { // Zwracać tablicę transakcji
+        } else { // Return array of the Transaction objects
             
             $statement = $sql->prepareStatementForSqlObject($select);
             $results = $statement->execute();
             
             $retObj = array();
             
-            // Przelatuję po wynikach
             while (($tbl=$results->current())!=null)
             {
                 $ob = new Transaction();
@@ -132,10 +128,11 @@ class TransactionMapper extends BaseMapper
     }
     
     /**
-        Pobiera najmniejszą wartość roku z transakcji usera
-        @param int $uid Identyfikator usera
-        @return int Najmniejszy rok dostępny w transakcjach usera
-    */
+     * Get min year from user transactions.
+     * 
+     * @param int $uid User identifier
+     * @return int
+     */
     public function getMinYearOfTransaction($uid)
     {
         $sql = new Sql($this->getDbAdapter());
@@ -154,14 +151,19 @@ class TransactionMapper extends BaseMapper
     }
     
     /**
-        Zapis transakcji (dodawanie lub edycja)
-        @param Transaction $transaction Obiekt reprezentujący transakcję.
-    */
+     * Save transaction (edit or add new).
+     * Return tid of new transaction. If edited then return 0.
+     * 
+     * @param Transaction $transaction Transaction object
+     * @throws \Exception
+     * @return int
+     */
     public function saveTransaction(Transaction $transaction)
     {
         $data = array(
             'uid' => $transaction->uid,
             'aid' => $transaction->aid,
+            'taid' => $transaction->taid,
             'cid'  => $transaction->cid,
             't_type'  => $transaction->t_type,
             't_date'  => $transaction->t_date,
@@ -178,7 +180,9 @@ class TransactionMapper extends BaseMapper
             $insert->values($data);
             
             $statement = $sql->prepareStatementForSqlObject($insert);
-            $statement->execute();
+            $val = $statement->execute()->getGeneratedValue();
+            
+            return $val;
         } else { // edycja
             // Spr. czy istnieje
             if ($this->getTransaction($tid, $data['uid'])) {
@@ -191,6 +195,8 @@ class TransactionMapper extends BaseMapper
                 
                 $statement = $sql->prepareStatementForSqlObject($update);
                 $statement->execute();
+                
+                return 0;
             } else {
                 throw new \Exception('Wybrana transakcja nie istnieje!');
             }
@@ -198,11 +204,13 @@ class TransactionMapper extends BaseMapper
     }
     
     /**
-        Pobranie wybranej transakcji
-        @param int $tid Identyfikator transakcji
-        @param int $uid Identyfikator usera
-        @return Transaction Zwraca obiekt reprezentujący transakcję
-    */
+     * Get transaction
+     * 
+     * @param int $tid Transaction identifier
+     * @param int $uid User identifier
+     * @throws \Exception
+     * @return \Budget\Model\Transaction
+     */
     public function getTransaction($tid, $uid)
     {
         $sql = new Sql($this->getDbAdapter());
@@ -216,21 +224,19 @@ class TransactionMapper extends BaseMapper
         $statement = $sql->prepareStatementForSqlObject($select);
         $row = $statement->execute();
         
-        if (!$row) {
-            throw new \Exception("Nie można znaleźć rekordu $tid");
+        if (!$row->count()) {
+            throw new \Exception('There is no transaction!');
         }
         
-        $transaction = new Transaction();
-        $transaction->exchangeArray($row->current());
-        
-        return $transaction;
+        return new Transaction($row->current());
     }
     
     /**
-        Usunięcie transakcji
-        @param int $tid Identyfikator transakcji
-        @param int $uid Identyfikator usera
-    */
+     * Delete transaction
+     * 
+     * @param int $tid Transaction identifier
+     * @param int $uid User identifier
+     */
     public function deleteTransaction($tid, $uid)
     {
         $sql = new Sql($this->getDbAdapter());
@@ -241,7 +247,7 @@ class TransactionMapper extends BaseMapper
                              'uid' => (int)$uid));
         
         $statement = $sql->prepareStatementForSqlObject($delete);
-        $row = $statement->execute();
+        $statement->execute();
     }
     
     /**
@@ -254,42 +260,59 @@ class TransactionMapper extends BaseMapper
         @param int $t_type Typ transakcji (0 - przychód, 1 - wydatek)
         @return int Najmniejszy rok dostępny w transakcjach usera
     */
+    /**
+     * Get sum of transaction values from specified type
+     * 
+     * @param int $uid User identifier
+     * @param int $aid Bank account identifier
+     * @param array $dt {
+     *                     'type' => 'month/between/all',
+     *                     'dt_month' => 'yyyy-mm' form type 'month' or 'dt_up' and 'dt_down' for 'between'
+     *                   }
+     * @param int $t_type Transaction type (0 - income with incoming transfers, 1 - expense with outgoing transfers)
+     * @throws \Exception
+     * @return float
+     */
     public function getSumOfTransactions($uid, $aid, $dt, $t_type)
     {
-        // Spr czy parametr z datą jest tablicą
+        // Check if the date param is correct
         if (!is_array($dt)) {
-            throw new \Exception("Parametr z datą musi być tablicą!");
+            throw new \Exception('The date param must be an array!');
         }
-        // Spr. pola z typem
+        // Check date type
         if (!isset($dt['type'])) {
-            throw new \Exception("Brak typu daty w parametrach z tablicą!");
+            throw new \Exception('Missing type parameter in dt_param array');
         }
         
         $sql = new Sql($this->getDbAdapter());
         $select = $sql->select();
         
+        // Prepare type array
+        if ($t_type==0) {
+            $tp = array(0, 3);
+        } else {
+            $tp = array(1, 2);
+        }
+        
         $select->columns(array('sm' => new Expression('SUM(t.t_value)')));
         $select->from(array('t' => 'transaction'))
                 ->where(array('t.uid' => (int)$uid,
-                              't.t_type' => (int)$t_type,
+                              't.t_type' => $tp,
                               't.aid' => (int)$aid,
                               ));
-            
-        // Wybrany miesiąc    
+                
         if ($dt['type'] == 'month') {
             
-            // Spr. parametru
             if (!isset($dt['dt_month'])) {
-                throw new \Exception("Brak parametru z miesiącem!");
+                throw new \Exception('No parameter with the month!');
             }
-            //echo $dt['dt_month'];
+            
             $select->where(array(
                               't.t_date LIKE ?' => (string)$dt['dt_month'].'-%',
                               ));
             
-        } elseif ($dt['type'] == 'between') { // Wybrany zakres
+        } elseif ($dt['type'] == 'between') {
             
-            // Spr. parametru
             if (!(isset($dt['dt_up'])&&isset($dt['dt_down']))) {
                 throw new \Exception("Brak parametru z zakresem dat!");
             }
@@ -300,7 +323,7 @@ class TransactionMapper extends BaseMapper
                               ));
             
         }
-        // Jeśli typ inny niż 2 powyższe to sumuje cały zakres
+        // If date type is different than above it choose all range
         
         $statement = $sql->prepareStatementForSqlObject($select);
         $row = $statement->execute();

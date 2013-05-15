@@ -1,0 +1,104 @@
+<?php
+
+$title = 'Transfer środków';
+$this->headTitle($title);
+
+?>
+<h1><?php echo $this->escapeHtml($title); ?></h1>
+
+<!-- Formularz transferu -->
+<div class="row">
+    
+    <div class="span12">
+    
+    <?php if (!$this->ERR): ?>
+    
+        <?php
+        $form = $this->form;
+        $form->setAttribute('action', $this->url('transaction/transfer-add', array(
+                                                                    'aid' => $this->aid
+                                                                    )));
+        $form->prepare();
+        
+        echo $this->form()->openTag($form);
+        ?>
+        
+        <table class="TableClear">
+            <tr>
+                <td colspan="2"><?php echo $this->formHidden($form->get('tid')); ?></td>
+            </tr>
+            <tr>
+                <td><?php echo $form->get('aid')->getLabel(); ?></td>
+                <td><?php echo $this->formElement($form->get('aid')) ?></td>
+            </tr>
+            <?php
+                echo $this->formElementErrors()
+                    ->setMessageOpenFormat('<tr><td colspan="2">')
+                    ->setMessageSeparatorString('</td></tr><tr><td colspan="2">')
+                    ->setMessageCloseString('</td></tr>')
+                    ->render($form->get('aid'));
+            ?>
+            <tr>
+                <td><?php echo $form->get('taid')->getLabel(); ?></td>
+                <td><?php echo $this->formElement($form->get('taid')) ?></td>
+            </tr>
+            <?php
+                echo $this->formElementErrors()
+                    ->setMessageOpenFormat('<tr><td colspan="2">')
+                    ->setMessageSeparatorString('</td></tr><tr><td colspan="2">')
+                    ->setMessageCloseString('</td></tr>')
+                    ->render($form->get('taid'));
+            ?>
+            <tr>
+                <td><?php echo $form->get('t_date')->getLabel(); ?></td>
+                <td><?php echo $this->formElement($form->get('t_date')) ?></td>
+            </tr>
+            <?php
+                echo $this->formElementErrors()
+                    ->setMessageOpenFormat('<tr><td colspan="2">')
+                    ->setMessageSeparatorString('</td></tr><tr><td colspan="2">')
+                    ->setMessageCloseString('</td></tr>')
+                    ->render($form->get('t_date'));
+            ?>
+            <tr>
+                <td><?php echo $form->get('t_content')->getLabel(); ?></td>
+                <td><?php echo $this->formElement($form->get('t_content')) ?></td>
+            </tr>
+            <?php
+                echo $this->formElementErrors()
+                    ->setMessageOpenFormat('<tr><td colspan="2">')
+                    ->setMessageSeparatorString('</td></tr><tr><td colspan="2">')
+                    ->setMessageCloseString('</td></tr>')
+                    ->render($form->get('t_content'));
+            ?>
+            <tr>
+                <td><?php echo $form->get('t_value')->getLabel(); ?></td>
+                <td><?php echo $this->formElement($form->get('t_value')) ?></td>
+            </tr>
+            <?php
+                echo $this->formElementErrors()
+                    ->setMessageOpenFormat('<tr><td colspan="2">')
+                    ->setMessageSeparatorString('</td></tr><tr><td colspan="2">')
+                    ->setMessageCloseString('</td></tr>')
+                    ->render($form->get('t_value'));
+            ?>
+            <tr>
+                <td colspan="2"><?php echo $this->formSubmit($form->get('submit')); ?></td>
+            </tr>
+        </table>
+        
+        <?php $this->form()->closeTag(); ?>
+        
+    <?php else: ?>
+            
+        <div class="alert alert-warning">
+            W systemie istnieje tylko jedno konto bankowe.<br />
+            Dodaj nowe konto bankowe w ustawieniach, a następnie spróbuj ponownie.
+        </div>
+        <a href="<?php echo $this->url('transactions');?>">Powrót</a>
+            
+    <?php endif; ?>
+        
+    </div>
+
+</div>

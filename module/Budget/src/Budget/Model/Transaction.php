@@ -27,6 +27,13 @@ class Transaction extends BaseModel
     public $aid;
     
     /**
+     * Bank account identifier which transfers money
+     * 
+     * @var int
+     */
+    public $taid;
+    
+    /**
      * User identifier
      * 
      * @var int
@@ -34,7 +41,7 @@ class Transaction extends BaseModel
     public $uid;
     
     /**
-     * Transaction type (0 - income, 1 - expense)
+     * Transaction type (0 - income, 1 - expense, 2 - outgoing transfer, 3 - incoming transfer)
      * 
      * @var int
      */
@@ -75,6 +82,9 @@ class Transaction extends BaseModel
      */
     public function __construct(array $params = array())
     {
+        $this->tid = null;
+        $this->taid = null;
+        
         parent::__construct($params);
     }
 }

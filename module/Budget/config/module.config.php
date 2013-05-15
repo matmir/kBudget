@@ -116,6 +116,56 @@ return array(
                             ),
                         ),
                     ),
+                    'transfer-add' => array(
+                        'type' => 'segment',
+                        'description' => 'Route to add transfer',
+                        'options' => array(
+                            'route' => 'transfer-add/:aid',
+                            'constraints' => array(
+                                'aid' => '\d+',
+                            ),
+                            'defaults' => array(
+                                'controller' => 'Budget\Controller\Transaction',
+                                'action' => 'transferAdd',
+                                'aid' => 0,
+                            ),
+                        ),
+                    ),
+                    'transfer-edit' => array(
+                        'type' => 'segment',
+                        'description' => 'Route to edit transfer',
+                        'options' => array(
+                            'route' => 'transfer-edit/:month/:year/:tid/:aid/:page',
+                            'constraints' => array(
+                                'month' => '\d+',
+                                'year' => '\d+',
+                                'tid' => '\d+',
+                                'aid' => '\d+',
+                                'page' => '\d+',
+                            ),
+                            'defaults' => array(
+                                'controller' => 'Budget\Controller\Transaction',
+                                'action' => 'transferEdit',
+                            ),
+                        ),
+                    ),
+                    'transfer-delete' => array(
+                        'type' => 'segment',
+                        'description' => 'Route to delete transfer',
+                        'options' => array(
+                            'route' => 'transfer-delete/:month/:year/:tid/:page',
+                            'constraints' => array(
+                                'month' => '\d+',
+                                'year' => '\d+',
+                                'tid' => '\d+',
+                                'page' => '\d+',
+                            ),
+                            'defaults' => array(
+                                'controller' => 'Budget\Controller\Transaction',
+                                'action' => 'transferDelete',
+                            ),
+                        ),
+                    ),
                 ),
             ),
             // Analysis - main
@@ -229,6 +279,7 @@ return array(
         'invokables' => array(
             'Budget\ImportMapper' => 'Budget\Mapper\ImportMapper',
             'Budget\TransactionMapper' => 'Budget\Mapper\TransactionMapper',
+            'Budget\TransferMapper' => 'Budget\Mapper\TransferMapper',
         ),
         'factories' => array(
             'translator' => 'Zend\I18n\Translator\TranslatorServiceFactory',

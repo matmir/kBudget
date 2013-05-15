@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Czas wygenerowania: 11 Maj 2013, 14:58
+-- Czas wygenerowania: 15 Maj 2013, 20:56
 -- Wersja serwera: 5.5.27
 -- Wersja PHP: 5.4.7
 
@@ -45,12 +45,13 @@ CREATE TABLE IF NOT EXISTS `category` (
   `cid` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'identyfikator kategorii',
   `pcid` int(10) unsigned DEFAULT NULL,
   `uid` int(10) unsigned NOT NULL COMMENT 'identyfikator usera',
-  `c_type` int(10) unsigned NOT NULL DEFAULT '1' COMMENT '0 - przychód, 1 - wydatek',
+  `c_type` int(10) unsigned NOT NULL DEFAULT '1' COMMENT '0 - profit, 1 - expense, 2 - transfer',
   `c_name` varchar(100) NOT NULL COMMENT 'nazwa',
   PRIMARY KEY (`cid`),
   KEY `pcid` (`pcid`),
-  KEY `uid` (`uid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin2 AUTO_INCREMENT=124 ;
+  KEY `uid` (`uid`),
+  KEY `uid_2` (`uid`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin2 AUTO_INCREMENT=127 ;
 
 -- --------------------------------------------------------
 
@@ -78,17 +79,36 @@ CREATE TABLE IF NOT EXISTS `imports` (
 CREATE TABLE IF NOT EXISTS `transaction` (
   `tid` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'identyfikator transakcji',
   `aid` int(10) unsigned NOT NULL COMMENT 'Account identifier',
+  `taid` int(10) unsigned DEFAULT NULL COMMENT 'Account which transfers money',
   `uid` int(10) unsigned NOT NULL COMMENT 'identyfikator usera',
   `cid` int(10) unsigned NOT NULL COMMENT 'identyfikator kategorii',
-  `t_type` tinyint(3) unsigned NOT NULL COMMENT 'typ transakcji (0 - przychód, 1 - wydatek)',
+  `t_type` tinyint(3) unsigned NOT NULL COMMENT 'transaction type (0 - profit, 1 - expense, 2 - outgoing transfer, 3 incoming transfer)',
   `t_date` date NOT NULL COMMENT 'data transakcji',
   `t_content` varchar(200) NOT NULL COMMENT 'opis transakcji',
   `t_value` decimal(10,2) NOT NULL COMMENT 'kwota transakcji',
   PRIMARY KEY (`tid`),
   KEY `aid` (`aid`),
   KEY `uid` (`uid`),
-  KEY `cid` (`cid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin2 AUTO_INCREMENT=115 ;
+  KEY `cid` (`cid`),
+  KEY `taid` (`taid`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin2 AUTO_INCREMENT=138 ;
+
+-- --------------------------------------------------------
+
+--
+-- Struktura tabeli dla tabeli `transfers`
+--
+
+CREATE TABLE IF NOT EXISTS `transfers` (
+  `trid` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'transfer identifier',
+  `uid` int(10) unsigned NOT NULL COMMENT 'user identifier',
+  `tid_out` int(10) unsigned NOT NULL COMMENT 'outgoing transaction id',
+  `tid_in` int(10) unsigned NOT NULL COMMENT 'incoming transaction id',
+  PRIMARY KEY (`trid`),
+  KEY `uid` (`uid`),
+  KEY `tid_out` (`tid_out`),
+  KEY `tid_in` (`tid_in`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin2 AUTO_INCREMENT=6 ;
 
 -- --------------------------------------------------------
 
