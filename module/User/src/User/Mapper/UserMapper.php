@@ -1,9 +1,4 @@
 <?php
-/**
-    @author Mateusz Mirosławski
-    
-    Klasa zajmująca się operowaniem na danych usera w bazie danych.
-*/
 
 namespace User\Mapper;
 
@@ -15,13 +10,21 @@ use User\Model\User;
 use Zend\Paginator\Paginator;
 use Zend\Paginator\Adapter\DbSelect;
 
+/**
+ * User mapper
+ * 
+ * @author Mateusz Mirosławski
+ *
+ */
 class UserMapper extends BaseMapper
 {
     /**
-        Sprawdza (po loginie) czy dany user istnieje
-        @param string $u_login Login usera
-        @return int Zwraca identyfikator istniejącego usera lub 0 gdy user nie istnieje
-    */
+     * Check if user login exist in the database.
+     * If user exist return his identifier.
+     * 
+     * @param string $u_login User login
+     * @return int
+     */
     public function isUserLoginExists($u_login)
     {
         $sql = new Sql($this->getDbAdapter());
@@ -33,20 +36,22 @@ class UserMapper extends BaseMapper
         $statement = $sql->prepareStatementForSqlObject($select);
         $row = $statement->execute();
         
-        $dane = $row->current();
+        $data = $row->current();
         
-        $user = new User();
-        $user->exchangeArray($dane);
-        
-        // Zwrócenie uid-a (gdy brak to 0)
-        return ($user->uid==null)?(0):($user->uid);
+        if ($data === null) {
+            return 0;
+        } else {
+            return $data['uid'];
+        }
     }
     
     /**
-        Sprawdza czy dany e-mail istnieje w bazie
-        @param string $u_email E-mail
-        @return bool Zwraca true gdy podany e-mail istnieje w bazie
-    */
+     * Check if given e-mail address exist in the database.
+     * If address exist return user identifier of this address.
+     * 
+     * @param string $u_email User e-mail address
+     * @return int
+     */
     public function isEmailExists($u_email)
     {
         $sql = new Sql($this->getDbAdapter());
@@ -58,21 +63,22 @@ class UserMapper extends BaseMapper
         $statement = $sql->prepareStatementForSqlObject($select);
         $row = $statement->execute();
         
-        $dane = $row->current();
+        $data = $row->current();
         
-        $user = new User();
-        $user->exchangeArray($dane);
-        
-        // Zwrócenie uid
-        return ($user->uid==null)?(0):($user->uid);
+        if ($data === null) {
+            return 0;
+        } else {
+            return $data['uid'];
+        }
     }
     
     /**
-        Sprawdza czy dany e-mail należy do podanego usera
-        @param string $u_email e-mail usera
-        @param int $uid Identyfikator usera
-        @return bool Zwraca true gdy podany e-mail należy do usera
-    */
+     * Check if given e-mail is user address.
+     * 
+     * @param string $u_email E-mail address
+     * @param int $uid User identifier
+     * @return bool
+     */
     public function isUserEmail($u_email, $uid)
     {
         $sql = new Sql($this->getDbAdapter());
@@ -86,34 +92,23 @@ class UserMapper extends BaseMapper
         $statement = $sql->prepareStatementForSqlObject($select);
         $row = $statement->execute();
         
-        $dane = $row->current();
+        $data = $row->current();
         
-        $user = new User();
-        $user->exchangeArray($dane);
-        
-        // Zwrócenie true gdy jest uid w modelu
-        return ($user->uid==null)?(false):(true);
+        return ($data === null)?(false):(true);
     }
     
     /**
-        Dodanie usera
-        @param User $user Obiekt reprezentujący usera.
-    */
+     * Add new user. Return user identifier.
+     * 
+     * @param User $user User object
+     * @return int
+     */
     public function addUser(User $user)
     {
-        // Wygenerowanie soli do hasła
-        $dynamicSalt = '';
-        for ($i = 0; $i < 50; $i++) {
-            $dynamicSalt .= chr(rand(33, 126));
-        }
-        
-        // Złożenie danych usera
         $data = array(
             'login'  => $user->login,
             'email'  => $user->email,
-            'pass' => md5($user->pass),
-            //'pass' => md5($user->pass . $dynamicSalt),
-            'passs'=> $dynamicSalt,
+            'pass' => $user->pass,
             'u_type' => 0,
             'active' => 1,
             'register_date' => date('Y-m-d H:i:s'),
@@ -126,27 +121,21 @@ class UserMapper extends BaseMapper
         $insert->values($data);
         
         $statement = $sql->prepareStatementForSqlObject($insert);
-        $statement->execute();
+        $val = $statement->execute()->getGeneratedValue();
+        
+        return $val;
     }
     
     /**
-        Zmiana hasła
-        @param int $uid identyfikator usera
-        @param string $new_pass Nowe hasło
-    */
+     * Change user password.
+     * 
+     * @param int $uid User identifier
+     * @param string $new_pass New encrypted password
+     */
     public function changeUserPass($uid, $new_pass)
     {
-        // Wygenerowanie soli do hasła
-        $dynamicSalt = '';
-        for ($i = 0; $i < 50; $i++) {
-            $dynamicSalt .= chr(rand(33, 126));
-        }
-        
-        // Złożenie danych usera
         $data = array(
-            'pass' => md5($new_pass),
-            //'pass' => md5($new_pass . $dynamicSalt),
-            'passs'=> $dynamicSalt,
+            'pass' => (string)$new_pass,
         );
         
         $sql = new Sql($this->getDbAdapter());
@@ -161,13 +150,13 @@ class UserMapper extends BaseMapper
     }
     
     /**
-        Zmiana emaila
-        @param int $uid identyfikator usera
-        @param string $new_email Nowe hasło
-    */
+     * Change user e-mail address
+     * 
+     * @param int $uid User identifier
+     * @param string $new_email New e-mail address
+     */
     public function changeUserEmail($uid, $new_email)
     {
-        // Złożenie danych usera
         $data = array(
             'email' => (string)$new_email,
         );
@@ -184,17 +173,18 @@ class UserMapper extends BaseMapper
     }
     
     /**
-        Ustawia flagę aktywacji usera
-        @param int $uid Identyfikator usera
-        @param int $act Flaga aktywacji (0 lub 1)
-    */
+     * Set user activation flag
+     * 
+     * @param int $uid User identifier
+     * @param int $act New activation flag
+     * @throws \Exception
+     */
     public function setUserActive($uid, $act)
     {
         if (!($act==0 || $act==1)) {
-            throw new \Exception("Błędna wartość flagi aktywacji użytkownika!");
+            throw new \Exception('Activation flag must be 0 or 1');
         }
         
-        // Złożenie danych usera
         $data = array(
             'active' => (int)$act,
         );
@@ -211,9 +201,10 @@ class UserMapper extends BaseMapper
     }
     
     /**
-        Ustawia datę ostatniego logowania usera
-        @param int $uid Identyfikator usera
-    */
+     * Set user last login date
+     * 
+     * @param int $uid User identifier
+     */
     public function setUserLoginDate($uid)
     {
         $sql = new Sql($this->getDbAdapter());
@@ -228,10 +219,12 @@ class UserMapper extends BaseMapper
     }
     
     /**
-        Pobranie danych usera
-        @param int $uid Identyfikator usera
-        @return User Zwraca obiekt reprezentujący usera
-    */
+     * Get user data
+     * 
+     * @param int $uid User identifier
+     * @throws \Exception
+     * @return User
+     */
     public function getUser($uid)
     {
         $sql = new Sql($this->getDbAdapter());
@@ -243,25 +236,24 @@ class UserMapper extends BaseMapper
         $statement = $sql->prepareStatementForSqlObject($select);
         $row = $statement->execute();
         
-        if (!$row) {
-            throw new \Exception("Nie można znaleść rekordu $uid");
+        if (!$row->count()) {
+            throw new \Exception('User does not exist!');
         }
         
-        $user = new User();
-        $user->exchangeArray($row->current());
-        
-        return $user;
+        return new User($row->current());
     }
     
     /**
-        Pobiera wszystkich userów z systemu
-        @param int $pg Numer aktualnej strony do wyświetlenia
-        @return Paginator
-    */
+     * Get all users.
+     * 
+     * @param int $pg Page number
+     * @throws \Exception
+     * @return \Zend\Paginator\Paginator
+     */
     public function getUsers($pg)
     {
         if ($pg <=0) {
-            throw new \Exception("Niepoprawny numer strony!");
+            throw new \Exception('Page number must be greater than 0!');
         }
         
         $sql = new Sql($this->getDbAdapter());

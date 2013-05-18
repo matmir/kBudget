@@ -31,13 +31,13 @@ class CategoryMapper extends BaseMapper
         $select = $sql->select();
     
         $select->from(array('c' => 'category'))
-        ->where(array(
-                'c.uid' => (int)$uid,
-        )
-        )
-        ->order(array(
-                'c.c_name ASC',
-        ));
+                ->where(array(
+                        'c.uid' => (int)$uid,
+                        )
+                )
+                ->order(array(
+                        'c.c_name ASC',
+                ));
     
         // Check category type
         if ($c_type != -1) {

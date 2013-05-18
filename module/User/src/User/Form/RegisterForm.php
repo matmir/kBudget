@@ -1,9 +1,4 @@
 <?php
-/**
-    @author Mateusz Mirosławski
-    
-    Formularz rejestracji usera.
-*/
 
 namespace User\Form;
 
@@ -16,6 +11,12 @@ use Zend\InputFilter\InputFilter;
 use Zend\InputFilter\InputFilterAwareInterface;
 use Zend\InputFilter\InputFilterInterface;
 
+/**
+ * Register form
+ * 
+ * @author Mateusz Mirosławski
+ *
+ */
 class RegisterForm extends Form
 {
     public function __construct($cfg, $name = null)
@@ -24,17 +25,15 @@ class RegisterForm extends Form
         parent::__construct('register');
         $this->setAttribute('method', 'post');
         
-        // spr.czy parametr jest tablicą
+        // Check config parameter
         if (!is_array($cfg)) {
-            throw new \Exception("Parametr z ustawieniami musi być tablicą!");
+            throw new \Exception('Config parameter must be an array!');
         }
-        // Spr. pól z loginem
         if (!((isset($cfg['minLoginLength']))&&(isset($cfg['maxLoginLength'])))) {
-            throw new \Exception("Brak ustawień dla pól z logowaniem!");
+            throw new \Exception('Missing fields with login!');
         }
-        // Spr. pól z hasłem
         if (!((isset($cfg['minPassLength']))&&(isset($cfg['maxPassLength'])))) {
-            throw new \Exception("Brak ustawień dla pól z hasłem!");
+            throw new \Exception('Missing fields with password!');
         }
         
         // Login
@@ -46,6 +45,18 @@ class RegisterForm extends Form
             ),
             'attributes' => array(
                 'maxlength' => $cfg['maxLoginLength'],
+            ),
+        ));
+        
+        // Default bank account name
+        $this->add(array(
+            'type'  => 'Zend\Form\Element\Text',
+            'name' => 'bankAccount',
+            'options' => array(
+                'label' => 'Nazwa konta bankowego: ',
+            ),
+            'attributes' => array(
+                'maxlength' => 30,
             ),
         ));
         
@@ -109,7 +120,7 @@ class RegisterForm extends Form
             ),
         ));
         
-        // Knefel
+        // Submit
         $this->add(array(
             'type'  => 'Zend\Form\Element\Submit',
             'name' => 'submit',
@@ -121,31 +132,34 @@ class RegisterForm extends Form
     }
 }
 
-/*
-    Filtry dla formularza
-*/
+/**
+ * Register form filters
+ * 
+ * @author Mateusz Mirosławski
+ *
+ */
 class RegisterFormFilter implements InputFilterAwareInterface
 {
     protected $inputFilter;
-    protected $login_cfg; // konfiguracja długości loginu/hasła
+    protected $login_cfg;
     
     /**
-        Konstruktor
-        @param array() Tablica z konfiguracją długości loginu/hasła
-    */
+     * Constructor
+     * 
+     * @param array $cfg Array with login/pass length configuration
+     * @throws \Exception
+     */
     public function __construct($cfg)
     {
-        // spr.czy parametr jest tablicą
+        // Check config parameter
         if (!is_array($cfg)) {
-            throw new \Exception("Parametr z ustawieniami musi być tablicą!");
+            throw new \Exception('Config parameter must be an array!');
         }
-        // Spr. pól z loginem
         if (!((isset($cfg['minLoginLength']))&&(isset($cfg['maxLoginLength'])))) {
-            throw new \Exception("Brak ustawień dla pól z logowaniem!");
+            throw new \Exception('Missing fields with login!');
         }
-        // Spr. pól z hasłem
         if (!((isset($cfg['minPassLength']))&&(isset($cfg['maxPassLength'])))) {
-            throw new \Exception("Brak ustawień dla pól z hasłem!");
+            throw new \Exception('Missing fields with password!');
         }
         
         $this->login_cfg = $cfg;
@@ -182,13 +196,33 @@ class RegisterFormFilter implements InputFilterAwareInterface
                 ),
             )));
             
+            // Account name
+            $inputFilter->add($factory->createInput(array(
+                'name'     => 'bankAccount',
+                'required' => true,
+                'filters'  => array(
+                    array('name' => 'StripTags'),
+                    array('name' => 'StringTrim'),
+                ),
+                'validators' => array(
+                    array(
+                        'name'    => 'StringLength',
+                        'options' => array(
+                            'encoding' => 'UTF-8',
+                            'min'      => 2,
+                            'max'      => 30,
+                        ),
+                    ),
+                ),
+            )));
+            
             // e-mail
             $inputFilter->add($factory->createInput(array(
                 'name'     => 'email',
                 'required' => true,
             )));
             
-            // Hasło 1
+            // Password 1
             $inputFilter->add($factory->createInput(array(
                 'name'     => 'pass1',
                 'required' => true,
@@ -204,7 +238,7 @@ class RegisterFormFilter implements InputFilterAwareInterface
                 ),
             )));
             
-            // Hasło 2
+            // Password 2
             $inputFilter->add($factory->createInput(array(
                 'name'     => 'pass2',
                 'required' => true,

@@ -9,6 +9,6 @@ return array(
         'minLoginLength' => 4,
         'maxLoginLength' => 30,
         'minPassLength' => 6,
-        'maxPassLength' => 100,
+        'maxPassLength' => 30,
     )
 );

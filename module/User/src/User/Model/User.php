@@ -39,7 +39,6 @@ class User extends BaseModel
      * @var string
      */
     public $pass;
-    public $passs;
     
     /**
      * User type. (0 - user, 1 - admin, 2 - demo)
@@ -77,9 +76,10 @@ class User extends BaseModel
     public $default_aid;
     
     /**
-        Generuje nowe hasło.
-        @return string String z hasłem
-    */
+     * Gen new password
+     * 
+     * @return string
+     */
     public function genNewPass()
     {
         $pas = '';

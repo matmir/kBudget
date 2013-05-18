@@ -132,10 +132,11 @@ class AccountMapper extends BaseMapper
     }
     
     /**
-     * Save bank account
+     * Save bank account. Return new bank account id or 0 if account was edited.
      * 
      * @param Account $account Existing or new account object
      * @throws \Exception
+     * @return int
      */
     public function saveAccount(Account $account)
     {
@@ -156,7 +157,9 @@ class AccountMapper extends BaseMapper
             $insert->values($data);
             
             $statement = $sql->prepareStatementForSqlObject($insert);
-            $statement->execute();
+            $val = $statement->execute()->getGeneratedValue();
+        
+            return $val;
         } else { // edit existing account
             // Checks if the account exists
             if ($this->getAccount($aid, $data['uid'])) {
@@ -169,6 +172,8 @@ class AccountMapper extends BaseMapper
                 
                 $statement = $sql->prepareStatementForSqlObject($update);
                 $statement->execute();
+                
+                return 0;
             } else {
                 throw new \Exception('Chosen account does not exists!');
             }

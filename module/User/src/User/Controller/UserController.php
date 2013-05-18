@@ -1,16 +1,12 @@
 <?php
-/**
-    @author Mateusz Mirosławski
-    
-    Kontroler usera (logowanie/wylogowanie, rejestracja, edycja)
-*/
 
 namespace User\Controller;
 
 use Base\Controller\BaseController;
 
 use User\Model\User;
-use User\Model\UserMapper;
+use User\Model\Account;
+use User\Model\Category;
 
 use User\Form\LoginForm;
 use User\Form\LoginFormFilter;
@@ -31,66 +27,70 @@ use Zend\Mail;
 use Zend\Mail\Transport\Smtp as SmtpTransport;
 use Zend\Mail\Transport\SmtpOptions;
 
+use Zend\Crypt\Password\Bcrypt;
+
+/**
+ * User Controller
+ * 
+ * @author Mateusz Mirosławski
+ *
+ */
 class UserController extends BaseController
 {
-    // Główna strona
     public function indexAction()
     {
     }
     
-    // Wylogowanie
+    /**
+     * Logout action
+     */
     public function logoutAction()
     {
         $this->get('Auth\UserAuthentication')->clearIdentity();
         
-        // Przekierowanie do głownej strony
         return $this->redirect()->toRoute('main');
     }
     
-    // Logowanie
+    /**
+     * Login action
+     */
     public function loginAction()
     {
-        // Ustawienia długości loginu/hasła
+        // Get the user login/pass length
         $cfg = $this->get('user_login_cfg');
         
-        // Formularz
         $form = new LoginForm($cfg);
-        // Filtry
         $formFilters = new LoginFormFilter($cfg);
         
-        // Flaga błędu logowania
+        // Error flag
         $ERR = 0;
 
         $request = $this->getRequest();
         if ($request->isPost()) {
             
-            // Filtry
             $form->setInputFilter($formFilters->getInputFilter());
-            // Uzupełnienie formularza
             $form->setData($request->getPost());
             
-            // Spr. poprawności
             if ($form->isValid()) {
                 
                 // Authentication service
                 $userAuth = $this->get('Auth\UserAuthentication');
                 
-                // Autoryzacja pozytywna
+                // Authentication
                 if ($userAuth->authenticate($form->get('login')->getValue(), $form->get('pass')->getValue())) {
                     
                     // User id
                     $uid = $this->get('userId');
                     
-                    // Data logowania
+                    // Update login date
                     $this->get('User\UserMapper')->setUserLoginDate($uid);
                     
-                    // Przekierowanie do listy transakcji
                     return $this->redirect()->toRoute('transactions', array(
                                                                            'month' => (int)date('m'),
                                                                            'year' => (int)date('Y'),
                                                                            'page' => 1,
                                                                            ));
-                } else { // Błąd w logowaniu
+                } else {
                     $ERR = 1;
                 }
             }
@@ -102,71 +102,93 @@ class UserController extends BaseController
         );
     }
     
-    // Rejestracja
+    /**
+     * Register action
+     */
     public function registerAction()
     {
-        // Ustawienia długości loginu/hasła
+        // Get the user login/pass length
         $cfg = $this->get('user_login_cfg');
         
-        // Wylogowanie zalogowanego usera
+        // Logout logged in user
         $this->get('Auth\UserAuthentication')->clearIdentity();
         
-        // Formularz
         $form = new RegisterForm($cfg);
-        // Filtry
         $formFilters = new RegisterFormFilter($cfg);
         
-        // Flaga błędu (1 - login istnieje, 2 - e-mail istnieje, 3 - hasła się nie zgadzają)
+        // Err flag (1 - login exist, 2 - e-mail exist, 3 - passwords are different)
         $ERR = 0;
-        // Flaga potwierdzenia rejestracji (0 - niezarejestrowany, 1 - zarejestrowany)
+        // Confirm flag (0 - not registered, 1 - registered)
         $CONFIRM = 0;
 
         $request = $this->getRequest();
         if ($request->isPost()) {
             
-            // Filtry
             $form->setInputFilter($formFilters->getInputFilter());
-            // Uzupełnienie formularza
             $form->setData($request->getPost());
             
-            // Spr. poprawności formularza
             if ($form->isValid()) {
                 
-                // Spr. czy podano nieistniejący login
+                // Check existing of the given login
                 $u_login = (string)$form->get('login')->getValue();
                 if ($this->get('User\UserMapper')->isUserLoginExists($u_login)==0) {
                     
-                    // Spr. czy podano e-mail, którego nie ma w bazie
+                    // Check existing of the given e-mail address
                     $u_email = (string)$form->get('email')->getValue();
                     if ($this->get('User\UserMapper')->isEmailExists($u_email)==0) {
                         
-                        // Spr. poprawności wpisanych haseł
+                        // Validation of given passwords
                         $p1 = (string)$form->get('pass1')->getValue();
                         $p2 = (string)$form->get('pass2')->getValue();
                         if ($p1 == $p2) {
                             
-                            // Model usera
+                            // Create new user
                             $user = new User();
-                            // Uzupełnienie modelu danymi
                             $user->login = $u_login;
                             $user->email = $u_email;
-                            $user->pass = $p1;
                             
-                            // Dodanie usera do bazy
-                            $this->get('User\UserMapper')->addUser($user);
+                            $bcrypt = new Bcrypt();
+                            $bcrypt->setCost(\Auth\Service\UserAuthentication::bCOST);
                             
-                            // Potwierdzenie rejestracji
+                            $user->pass = $bcrypt->create($p1);
+                            // Add user to the database
+                            $uid = $this->get('User\UserMapper')->addUser($user);
+                            
+                            // Create bank account
+                            $account = new Account(
+                                array(
+                                    'uid' => $uid,
+                                    'a_name' => (string)$form->get('bankAccount')->getValue()
+                                )
+                            );
+                            // Add bank account to the database
+                            $aid = $this->get('User\AccountMapper')->saveAccount($account);
+                            
+                            // Set default user bank account
+                            $this->get('User\UserMapper')->setUserDefaultBankAccount($uid, $aid);
+                            
+                            // Create hidden category to the transfers
+                            $category = new Category(
+                                array(
+                                    'uid' => $uid,
+                                    'c_type' => 2,
+                                    'c_name' => 'Transfer'
+                                )
+                            );
+                            // Add category to the database
+                            $this->get('User\CategoryMapper')->saveCategory($category);
+                            
                             $CONFIRM = 1;
                             
-                        } else { // Niepoprawne hasła
+                        } else {
                             $ERR = 3;
                         }
                         
-                    } else { // Podany email jest w bazie
+                    } else {
                         $ERR = 2;
                     }
                     
-                } else { // Podany login istnieje
+                } else {
                     $ERR = 1;
                 }
                 
@@ -180,50 +202,51 @@ class UserController extends BaseController
         );
     }
     
-    // Reset hasła
+    /**
+     * Password reset action
+     */
     public function passrstAction()
     {
-        // Ustawienia e-maila
+        // Get e-mail configuration
         $cfg = $this->get('email_cfg');
         
-        // Wylogowanie zalogowanego usera
+        // Logout logged in user
         $this->get('Auth\UserAuthentication')->clearIdentity();
         
-        // Formularz
         $form = new PasswordResetForm();
-        // Filtry
         $formFilters = new PasswordResetFormFilter();
         
-        // Flaga błędu (1 - login istnieje, 2 - e-mail istnieje, 3 - hasła się nie zgadzają)
+        // Err flag (1 - login exist, 2 - e-mail exist, 3 - passwords are different)
         $ERR = 0;
-        // Flaga potwierdzenia rejestracji (0 - niezarejestrowany, 1 - zarejestrowany)
+        // Confirm flag (0 - password not reset, 1 - password reset)
         $CONFIRM = 0;
 
         $request = $this->getRequest();
         if ($request->isPost()) {
             
-            // Filtry
             $form->setInputFilter($formFilters->getInputFilter());
-            // Uzupełnienie formularza
             $form->setData($request->getPost());
             
-            // Spr. poprawności formularza
             if ($form->isValid()) {
                 
-                // Spr. czy podano istniejący e-mail
+                // Check existing of the given e-mail address
                 $u_email = (string)$form->get('email')->getValue();
                 $uid = $this->get('User\UserMapper')->isEmailExists($u_email);
                 if ($uid) {
                     
-                    // Pobranie danych usera
+                    // Get user data
                     $user = $this->get('User\UserMapper')->getUser($uid);
-                    // Generacja nowego hasła
-                    $new_pass = $user->genNewPass();
-                    // Zmiana hasła w bazie
-                    $this->get('User\UserMapper')->changeUserPass($uid, $new_pass);
                     
-                    // Wysłanie maila
-                    $mail = new Mail\Message();
+                    $bcrypt = new Bcrypt();
+                    $bcrypt->setCost(\Auth\Service\UserAuthentication::bCOST);
+                    // Generate new password
+                    $new_pass = $user->genNewPass();
+                    $encrypted_pass = $bcrypt->create($new_pass);
+                    // Change user password
+                    $this->get('User\UserMapper')->changeUserPass($uid, $encrypted_pass);
+                    
+                    // Send e-mail
+                    $mail = new Mail\Message(); // TODO: Move e-mail transport to the service
                     $mail->setBody('Twój login: '.$user->login."\nTwoje hasło: ".$new_pass);
                     $mail->setFrom($cfg['FromAddr'], $cfg['FromName']);
                     $mail->addTo($user->email, $user->login);
@@ -244,7 +267,7 @@ class UserController extends BaseController
                     
                     $CONFIRM = 1;
                     
-                } else { // E-mail nie istnieje
+                } else {
                     $ERR = 1;
                 }
                 
@@ -258,24 +281,23 @@ class UserController extends BaseController
         );
     }
     
-    // Zmiana emaila
+    /**
+     * Change e-mail action
+     */
     public function emailAction()
     {
-        // Identyfikator zalogowanego usera
+        // Get user identifier
         $uid = $this->get('userId');
     
-        // Pobranie danych usera
+        // Get user data
         $user = $this->get('User\UserMapper')->getUser($uid);
     
-        // Aktualny e-mail
         $actual_email = $user->email;
     
-        // Formularz
         $form = new EmailForm();
-        // Filtry
         $formFilters = new EmailFormFilter();
     
-        // Flaga błędu (1 - podany e-mail istnieje, 2 - wszystko ok)
+        // Err flag (1 - e-mail exist, 2 - ok)
         $ERR = 0;
     
         $request = $this->getRequest();
@@ -286,21 +308,19 @@ class UserController extends BaseController
     
             if ($form->isValid()) {
     
-                // Nowy e-mail
+                // Get new e-mail address
                 $new_email = (string)$form->get('email')->getValue();
     
-                // Spr. Czy podanego e-maila nie ma w bazie
+                // Check if the given e-mail address exist in the database
                 if ($this->get('User\UserMapper')->isEmailExists($new_email)==0) {
     
-                    // Zmiana e-maila w bazie
                     $this->get('User\UserMapper')->changeUserEmail($uid, $new_email);
     
-                    // Wszystko ok
                     $ERR = 2;
     
                     $actual_email = $new_email;
     
-                } else { // Podany adres istnieje
+                } else {
                     $ERR = 1;
                 }
     
@@ -315,24 +335,24 @@ class UserController extends BaseController
         );
     }
     
-    // Zmiana hasła
+    /**
+     * Change user password
+     */
     public function passwordAction()
     {
-        // Ustawienia długości loginu/hasła
+        // Get configuration of login/password lenght
         $cfg = $this->get('user_login_cfg');
     
-        // Identyfikator zalogowanego usera
+        // User id
         $uid = $this->get('userId');
     
-        // Pobranie danych usera
+        // Get user data
         $user = $this->get('User\UserMapper')->getUser($uid);
     
-        // Formularz
         $form = new PasswordChangeForm($cfg);
-        // Filtry
         $formFilters = new PasswordChangeFormFilter($cfg);
     
-        // Flaga błędu (1 - Błędne aktualne hasło, 2 - nowe hasła się nie zgadzają, 3 - hasło zmieniono)
+        // Err flag (1 - Actual password if wrong, 2 - new passwords are different, 3 - password changed)
         $ERR = 0;
     
         $request = $this->getRequest();
@@ -343,26 +363,28 @@ class UserController extends BaseController
     
             if ($form->isValid()) {
     
-                // Sprawdzenie poprawności aktualnego hasła
+                $bcrypt = new Bcrypt();
+                $bcrypt->setCost(\Auth\Service\UserAuthentication::bCOST);
+                
+                // Validation of the actual password
                 $p = (string)$form->get('pass')->getValue();
-                if ($user->pass == md5($p)) {
+                if ($bcrypt->verify($p, $user->pass)) {
     
-                    // Spr. poprawności wprowadzonych nowych haseł
+                    // Validation of the new passwords
                     $p1 = (string)$form->get('pass1')->getValue();
                     $p2 = (string)$form->get('pass2')->getValue();
                     if ($p1 == $p2) {
     
-                        // Zmiana hasła w bazie
-                        $this->get('User\UserMapper')->changeUserPass($uid, $p1);
+                        // Save new password
+                        $this->get('User\UserMapper')->changeUserPass($uid, $bcrypt->create($p1));
     
-                        // Flaga
                         $ERR = 3;
     
-                    } else { // Wprowadzono błędne nowe hasła
+                    } else {
                         $ERR = 2;
                     }
     
-                } else { // Podane hasło jest błędne
+                } else {
                     $ERR = 1;
                 }
     
@@ -371,8 +393,8 @@ class UserController extends BaseController
         }
     
         return array(
-                'ERR' => $ERR,
-                'form' => $form,
+            'ERR' => $ERR,
+            'form' => $form,
         );
     }
 

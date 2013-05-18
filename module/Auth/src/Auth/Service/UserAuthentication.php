@@ -2,27 +2,30 @@
 
 namespace Auth\Service;
 
-use Zend\ServiceManager\ServiceLocatorAwareInterface;
-use Zend\ServiceManager\ServiceLocatorInterface;
-
-use Zend\Authentication\Adapter\DbTable as AuthAdapter;
+use Base\Service\BaseService;
+use Auth\Adapter\AuthAdapter;
 use Zend\Authentication\AuthenticationService;
 use Zend\Db\Adapter\Adapter;
 
 /**
  * User authentication service
+ * 
+ * @author Mateusz Mirosławski
+ *
  */
-class UserAuthentication implements ServiceLocatorAwareInterface
+class UserAuthentication extends BaseService
 {
     /**
-     * @var \Zend\ServiceManager\ServiceLocatorInterface
+     * Bcrypt cost
+     * 
+     * @var int
      */
-    protected $serviceLocator;
+    const bCOST = 15;
     
     /** 
      * Authentication adapter
      * 
-     * @var \Zend\Authentication\Adapter\DbTable
+     * @var AuthAdapter
      */
     protected $authAdapter;
     
@@ -51,8 +54,8 @@ class UserAuthentication implements ServiceLocatorAwareInterface
                 'users',
                 'login',
                 'pass',
-                //'MD5(CONCAT(?, passs)) AND active = 1' // DOPISAĆ SOLENIE!!!
-                'MD5(?) AND active = 1'
+                self::bCOST,
+                array('active' => 1)
         );
     }
     
@@ -87,7 +90,7 @@ class UserAuthentication implements ServiceLocatorAwareInterface
         if ($result->isValid()) {
         
             $storage = $this->authService->getStorage();
-            $storage->write($this->authAdapter->getResultRowObject(array(
+            $storage->write($this->authAdapter->getAuthDataObject(array(
                     'uid',
                     'login',
                     'u_type',
@@ -145,21 +148,5 @@ class UserAuthentication implements ServiceLocatorAwareInterface
         }
     
         return $this->authService->clearIdentity();
-    }
-    
-    /**
-     * @param \Zend\ServiceManager\ServiceLocatorInterface $serviceLocator
-     */
-    public function setServiceLocator(ServiceLocatorInterface $serviceLocator)
-    {
-        $this->serviceLocator = $serviceLocator;
-    }
-    
-    /**
-     * @return \Zend\ServiceManager\ServiceLocatorInterface
-     */
-    public function getServiceLocator()
-    {
-        return $this->serviceLocator;
     }
 }

@@ -57,6 +57,17 @@ $this->headTitle($title);
                 ->render($form->get('login'));
         ?>
         <tr>
+            <td><?php echo $form->get('bankAccount')->getLabel(); ?></td>
+            <td><?php echo $this->formElement($form->get('bankAccount')) ?></td>
+        </tr>
+        <?php
+            echo $this->formElementErrors()
+                ->setMessageOpenFormat('<tr><td colspan="2"><div class="alert alert-error">')
+                ->setMessageSeparatorString('</div></td></tr><tr><td colspan="2"><div class="alert alert-error">')
+                ->setMessageCloseString('</div></td></tr>')
+                ->render($form->get('bankAccount'));
+        ?>
+        <tr>
             <td><?php echo $form->get('email')->getLabel(); ?></td>
             <td><?php echo $this->formElement($form->get('email')) ?></td>
         </tr>
