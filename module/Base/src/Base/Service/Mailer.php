@@ -58,11 +58,8 @@ class Mailer extends BaseService
      * @param array $msg
      * @throws \Exception
      */
-    private function checkMessageStructure($msg)
+    private function checkMessageStructure(array $msg)
     {
-        if (!is_array($msg)) {
-            throw new \Exception('Message must be an aray!');
-        }
         if (!array_key_exists('toAddress', $msg)) {
             throw new \Exception('Message must contain recipient address (key - "toAddress")!');
         }
