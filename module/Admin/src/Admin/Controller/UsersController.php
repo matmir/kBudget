@@ -15,6 +15,8 @@ use User\Model\UserMapper;
 use Admin\Form\PasswordAdminChangeForm;
 use Admin\Form\PasswordAdminChangeFormFilter;
 
+use Zend\Crypt\Password\Bcrypt;
+
 class UsersController extends BaseController
 {
     // Main page
@@ -95,8 +97,11 @@ class UsersController extends BaseController
                 $p2 = (string)$form->get('pass2')->getValue();
                 if ($p1 == $p2) {
                     
+                    $bcrypt = new Bcrypt();
+                    $bcrypt->setCost(\Auth\Service\UserAuthentication::bCOST);
+                    
                     // Zmiana hasła w bazie
-                    $this->get('User\UserMapper')->changeUserPass($uid, $p1);
+                    $this->get('User\UserMapper')->changeUserPass($uid, $bcrypt->create($p1));
                     
                     // Hasło zmieniono
                     $ERR = 3;
