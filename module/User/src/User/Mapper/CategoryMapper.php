@@ -17,6 +17,13 @@ use User\Model\Category;
 class CategoryMapper extends BaseMapper
 {
     /**
+     * MySQL category table name
+     *
+     * @var string
+     */
+    const TABLE = 'categories';
+    
+    /**
      * Get user categories of the same type
      * 
      * @param int $uid User identifier
@@ -30,7 +37,7 @@ class CategoryMapper extends BaseMapper
         $sql = new Sql($this->getDbAdapter());
         $select = $sql->select();
     
-        $select->from(array('c' => 'category'))
+        $select->from(array('c' => self::TABLE))
                 ->where(array(
                         'c.uid' => (int)$uid,
                         )
@@ -138,7 +145,7 @@ class CategoryMapper extends BaseMapper
         $sql = new Sql($this->getDbAdapter());
         $select = $sql->select();
         
-        $select->from(array('c' => 'category'))
+        $select->from(array('c' => self::TABLE))
                 ->where(array('c.c_name' => (string)$c_name,
                               'c.uid' => (int)$uid,
                               'c.c_type' => (int)$c_type,
@@ -190,7 +197,7 @@ class CategoryMapper extends BaseMapper
         // Add new category
         if ($cid == 0) {
             $insert = $sql->insert();
-            $insert->into('category');
+            $insert->into(self::TABLE);
             $insert->values($data);
             
             $statement = $sql->prepareStatementForSqlObject($insert);
@@ -201,7 +208,7 @@ class CategoryMapper extends BaseMapper
                 
                 $update = $sql->update();
                 
-                $update->table('category');
+                $update->table(self::TABLE);
                 $update->set($data);
                 $update->where(array('cid' => $cid));
                 
@@ -226,7 +233,7 @@ class CategoryMapper extends BaseMapper
         $sql = new Sql($this->getDbAdapter());
         $select = $sql->select();
         
-        $select->from(array('c' => 'category'))
+        $select->from(array('c' => self::TABLE))
                 ->where(array('c.cid' => (int)$cid,
                               'c.uid' => (int)$uid));
         
@@ -255,7 +262,7 @@ class CategoryMapper extends BaseMapper
         $select = $sql->select();
         
         $select->columns(array('cn' => new Expression('count(*)')))
-                ->from(array('t' => 'transaction'))
+                ->from(array('t' => \Budget\Mapper\TransactionMapper::TABLE))
                 ->where(array('t.cid' => (int)$cid,
                               't.uid' => (int)$uid,
                               ));
@@ -281,7 +288,7 @@ class CategoryMapper extends BaseMapper
         $select = $sql->select();
     
         $select->columns(array('cn' => new Expression('count(*)')))
-            ->from(array('c' => 'category'))
+            ->from(array('c' => self::TABLE))
             ->where(array('c.pcid' => (int)$cid,
                         'c.uid' => (int)$uid,
         ));
@@ -305,7 +312,7 @@ class CategoryMapper extends BaseMapper
         $sql = new Sql($this->getDbAdapter());
     
         $delete = $sql->delete();
-        $delete->from('category');
+        $delete->from(self::TABLE);
         $delete->where(array('cid' => (int)$cid,
                              'uid' => (int)$uid));
         
@@ -327,7 +334,7 @@ class CategoryMapper extends BaseMapper
         $sql = new Sql($this->getDbAdapter());
         $select = $sql->select();
         
-        $select->from(array('c' => 'category'))
+        $select->from(array('c' => self::TABLE))
         ->where(array('c.c_type' => 2,
                 'c.uid' => (int)$uid));
         

@@ -22,6 +22,13 @@ use Budget\Model\Transfer;
 class TransferMapper extends BaseMapper
 {
     /**
+     * MySQL import table name
+     *
+     * @var string
+     */
+    const TABLE = 'transfers';
+    
+    /**
      * Get transfer transactions.
      * array('incoming','outgoing')
      * 
@@ -35,7 +42,7 @@ class TransferMapper extends BaseMapper
         $sql = new Sql($this->getDbAdapter());
         $select = $sql->select();
     
-        $select->from(array('t' => 'transfers'))
+        $select->from(array('t' => self::TABLE))
                 ->where(array('t.trid' => (int)$trid,
                         't.uid' => (int)$uid));
     
@@ -79,7 +86,7 @@ class TransferMapper extends BaseMapper
         $sql = new Sql($this->getDbAdapter());
         $select = $sql->select();
         
-        $select->from(array('t' => 'transfers'))
+        $select->from(array('t' => self::TABLE))
                 ->where(array('t.uid' => (int)$uid));
         
         if ($t_type==2) { // Get outgoing
@@ -145,7 +152,7 @@ class TransferMapper extends BaseMapper
             
             $sql = new Sql($this->getDbAdapter());
             $insert = $sql->insert();
-            $insert->into('transfers');
+            $insert->into(self::TABLE);
             $insert->values($data);
         
             $statement = $sql->prepareStatementForSqlObject($insert);
@@ -182,7 +189,7 @@ class TransferMapper extends BaseMapper
         $sql = new Sql($this->getDbAdapter());
         
         $delete = $sql->delete();
-        $delete->from('transaction');
+        $delete->from(\Budget\Mapper\TransactionMapper::TABLE);
         $delete->where(
                 array(
                     'tid' => array((int)$outId, (int)$inId),
@@ -201,7 +208,7 @@ class TransferMapper extends BaseMapper
         $sql = new Sql($this->getDbAdapter());
         
         $delete = $sql->delete();
-        $delete->from('transfers');
+        $delete->from(self::TABLE);
         $delete->where(array('trid' => (int)$trId,
                 'uid' => (int)$uid));
         

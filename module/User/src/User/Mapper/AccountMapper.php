@@ -16,6 +16,12 @@ use User\Model\Account;
  */
 class AccountMapper extends BaseMapper
 {
+    /**
+     * MySQL bank account table name
+     *
+     * @var string
+     */
+    const TABLE = 'accounts';
     
     /**
      * Get user accounts.
@@ -29,7 +35,7 @@ class AccountMapper extends BaseMapper
         $sql = new Sql($this->getDbAdapter());
         $select = $sql->select();
     
-        $select->from(array('a' => 'accounts'))
+        $select->from(array('a' => self::TABLE))
                 ->where(array(
                     'a.uid' => (int)$uid,
                 ))
@@ -88,7 +94,7 @@ class AccountMapper extends BaseMapper
         $sql = new Sql($this->getDbAdapter());
         $select = $sql->select();
         
-        $select->from(array('a' => 'accounts'))
+        $select->from(array('a' => self::TABLE))
                 ->where(array('a.a_name' => (string)$a_name,
                               'a.uid' => (int)$uid,
                               ));
@@ -153,7 +159,7 @@ class AccountMapper extends BaseMapper
         // Add new account
         if ($aid == 0) {
             $insert = $sql->insert();
-            $insert->into('accounts');
+            $insert->into(self::TABLE);
             $insert->values($data);
             
             $statement = $sql->prepareStatementForSqlObject($insert);
@@ -166,7 +172,7 @@ class AccountMapper extends BaseMapper
                 
                 $update = $sql->update();
                 
-                $update->table('accounts');
+                $update->table(self::TABLE);
                 $update->set($data);
                 $update->where(array('aid' => $aid));
                 
@@ -193,7 +199,7 @@ class AccountMapper extends BaseMapper
         $sql = new Sql($this->getDbAdapter());
         $select = $sql->select();
         
-        $select->from(array('a' => 'accounts'))
+        $select->from(array('a' => self::TABLE))
                 ->where(array('a.aid' => (int)$aid,
                               'a.uid' => (int)$uid));
         
@@ -222,7 +228,7 @@ class AccountMapper extends BaseMapper
         $select = $sql->select();
         
         $select->columns(array('cn' => new Expression('count(*)')))
-                ->from(array('t' => 'transaction'))
+                ->from(array('t' => \Budget\Mapper\TransactionMapper::TABLE))
                 ->where(array('t.aid' => (int)$aid,
                               't.uid' => (int)$uid,
                               ));
@@ -247,7 +253,7 @@ class AccountMapper extends BaseMapper
         $select = $sql->select();
         
         $select->columns(array('cn' => new Expression('count(*)')))
-        ->from(array('a' => 'accounts'))
+        ->from(array('a' => self::TABLE))
         ->where(array(
                 'a.uid' => (int)$uid,
         ));
@@ -275,7 +281,7 @@ class AccountMapper extends BaseMapper
             $sql = new Sql($this->getDbAdapter());
             
             $delete = $sql->delete();
-            $delete->from('accounts');
+            $delete->from(self::TABLE);
             $delete->where(array('aid' => (int)$aid,
                     'uid' => (int)$uid));
             

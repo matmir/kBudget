@@ -21,6 +21,13 @@ use Budget\Model\Transaction;
 class TransactionMapper extends BaseMapper
 {
     /**
+     * MySQL transaction table name
+     * 
+     * @var string
+     */
+    const TABLE = 'transactions';
+    
+    /**
      * Get user transactions from specified account
      * 
      * @param int $uid User id
@@ -53,8 +60,8 @@ class TransactionMapper extends BaseMapper
         $sql = new Sql($this->getDbAdapter());
         $select = $sql->select();
         
-        $select->from(array('t' => 'transaction'))
-                ->join(array('c' => 'category'),'t.cid = c.cid')
+        $select->from(array('t' => self::TABLE))
+                ->join(array('c' => \User\Mapper\CategoryMapper::TABLE),'t.cid = c.cid')
                 ->where(array(
                         't.uid' => (int)$uid,
                         't.aid' => (int)$aid,
@@ -138,7 +145,7 @@ class TransactionMapper extends BaseMapper
         $sql = new Sql($this->getDbAdapter());
         $select = $sql->select();
         
-        $select->from(array('t' => 'transaction'),'MIN(t_date)')
+        $select->from(array('t' => self::TABLE),'MIN(t_date)')
                 ->where(array('t.uid' => (int)$uid));
         
         $statement = $sql->prepareStatementForSqlObject($select);
@@ -176,7 +183,7 @@ class TransactionMapper extends BaseMapper
         $tid = (int)$transaction->tid;
         if ($tid == 0) { // dodanie nowego wpisu
             $insert = $sql->insert();
-            $insert->into('transaction');
+            $insert->into(self::TABLE);
             $insert->values($data);
             
             $statement = $sql->prepareStatementForSqlObject($insert);
@@ -189,7 +196,7 @@ class TransactionMapper extends BaseMapper
                 
                 $update = $sql->update();
                 
-                $update->table('transaction');
+                $update->table(self::TABLE);
                 $update->set($data);
                 $update->where(array('tid' => $tid));
                 
@@ -216,8 +223,8 @@ class TransactionMapper extends BaseMapper
         $sql = new Sql($this->getDbAdapter());
         $select = $sql->select();
         
-        $select->from(array('t' => 'transaction'))
-                ->join(array('c' => 'category'),'t.cid = c.cid')
+        $select->from(array('t' => self::TABLE))
+                ->join(array('c' => \User\Mapper\CategoryMapper::TABLE),'t.cid = c.cid')
                 ->where(array('t.tid' => (int)$tid,
                               't.uid' => (int)$uid));
         
@@ -242,7 +249,7 @@ class TransactionMapper extends BaseMapper
         $sql = new Sql($this->getDbAdapter());
         
         $delete = $sql->delete();
-        $delete->from('transaction');
+        $delete->from(self::TABLE);
         $delete->where(array('tid' => (int)$tid,
                              'uid' => (int)$uid));
         
@@ -250,16 +257,6 @@ class TransactionMapper extends BaseMapper
         $statement->execute();
     }
     
-    /**
-        Pobiera sumę transakcji wybranego typu z wybranej daty lub zakresu dat
-        @param int $uid Identyfikator usera
-        @param array $dt tablica z parametrami daty $dt {
-                                                        'type' => 'month/between/all',
-                                                        'dt_month' => 'yyyy-mm' dla mieniąca lub 'dt_up' i 'dt_down' dla zakresu
-                                                    }
-        @param int $t_type Typ transakcji (0 - przychód, 1 - wydatek)
-        @return int Najmniejszy rok dostępny w transakcjach usera
-    */
     /**
      * Get sum of transaction values from specified type
      * 
@@ -295,7 +292,7 @@ class TransactionMapper extends BaseMapper
         }
         
         $select->columns(array('sm' => new Expression('SUM(t.t_value)')));
-        $select->from(array('t' => 'transaction'))
+        $select->from(array('t' => self::TABLE))
                 ->where(array('t.uid' => (int)$uid,
                               't.t_type' => $tp,
                               't.aid' => (int)$aid,

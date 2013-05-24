@@ -19,6 +19,13 @@ use Zend\Paginator\Adapter\DbSelect;
 class UserMapper extends BaseMapper
 {
     /**
+     * MySQL user table name
+     *
+     * @var string
+     */
+    const TABLE = 'users';
+    
+    /**
      * Check if user login exist in the database.
      * If user exist return his identifier.
      * 
@@ -30,7 +37,7 @@ class UserMapper extends BaseMapper
         $sql = new Sql($this->getDbAdapter());
         $select = $sql->select();
         
-        $select->from(array('u' => 'users'))
+        $select->from(array('u' => self::TABLE))
                 ->where(array('u.login' => (string)$u_login));
         
         $statement = $sql->prepareStatementForSqlObject($select);
@@ -57,7 +64,7 @@ class UserMapper extends BaseMapper
         $sql = new Sql($this->getDbAdapter());
         $select = $sql->select();
         
-        $select->from(array('u' => 'users'))
+        $select->from(array('u' => self::TABLE))
                 ->where(array('u.email' => (string)$u_email));
         
         $statement = $sql->prepareStatementForSqlObject($select);
@@ -84,7 +91,7 @@ class UserMapper extends BaseMapper
         $sql = new Sql($this->getDbAdapter());
         $select = $sql->select();
         
-        $select->from(array('u' => 'users'))
+        $select->from(array('u' => self::TABLE))
                 ->where(array('u.email' => (string)$u_email,
                               'u.uid' => (int)$uid,
                               ));
@@ -117,7 +124,7 @@ class UserMapper extends BaseMapper
         $sql = new Sql($this->getDbAdapter());
 
         $insert = $sql->insert();
-        $insert->into('users');
+        $insert->into(self::TABLE);
         $insert->values($data);
         
         $statement = $sql->prepareStatementForSqlObject($insert);
@@ -141,7 +148,7 @@ class UserMapper extends BaseMapper
         $sql = new Sql($this->getDbAdapter());
 
         $update = $sql->update();
-        $update->table('users');
+        $update->table(self::TABLE);
         $update->set($data);
         $update->where(array('uid' => (int)$uid));
         
@@ -164,7 +171,7 @@ class UserMapper extends BaseMapper
         $sql = new Sql($this->getDbAdapter());
 
         $update = $sql->update();
-        $update->table('users');
+        $update->table(self::TABLE);
         $update->set($data);
         $update->where(array('uid' => (int)$uid));
         
@@ -192,7 +199,7 @@ class UserMapper extends BaseMapper
         $sql = new Sql($this->getDbAdapter());
 
         $update = $sql->update();
-        $update->table('users');
+        $update->table(self::TABLE);
         $update->set($data);
         $update->where(array('uid' => (int)$uid));
         
@@ -210,7 +217,7 @@ class UserMapper extends BaseMapper
         $sql = new Sql($this->getDbAdapter());
 
         $update = $sql->update();
-        $update->table('users');
+        $update->table(self::TABLE);
         $update->set(array('last_login_date' => date('Y-m-d H:i:s')));
         $update->where(array('uid' => (int)$uid));
         
@@ -230,7 +237,7 @@ class UserMapper extends BaseMapper
         $sql = new Sql($this->getDbAdapter());
         $select = $sql->select();
         
-        $select->from(array('u' => 'users'))
+        $select->from(array('u' => self::TABLE))
                 ->where(array('u.uid' => (int)$uid));
         
         $statement = $sql->prepareStatementForSqlObject($select);
@@ -259,7 +266,7 @@ class UserMapper extends BaseMapper
         $sql = new Sql($this->getDbAdapter());
         $select = $sql->select();
         
-        $select->from(array('u' => 'users'));
+        $select->from(array('u' => self::TABLE));
         
         $paginator = new Paginator(new DbSelect($select, $sql));
         $paginator->setItemCountPerPage(20);
@@ -283,7 +290,7 @@ class UserMapper extends BaseMapper
         $sql = new Sql($this->getDbAdapter());
         
         $update = $sql->update();
-        $update->table('users');
+        $update->table(self::TABLE);
         $update->set($data);
         $update->where(array('uid' => (int)$uid));
         

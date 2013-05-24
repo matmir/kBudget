@@ -51,7 +51,7 @@ class UserAuthentication extends BaseService
         
         // Create auth adapter
         $this->authAdapter = new AuthAdapter($dbAdapter,
-                'users',
+                \User\Mapper\UserMapper::TABLE,
                 'login',
                 'pass',
                 self::bCOST,

@@ -16,6 +16,13 @@ use Budget\Model\Import;
 class ImportMapper extends BaseMapper
 {
     /**
+     * MySQL import table name
+     *
+     * @var string
+     */
+    const TABLE = 'imports';
+    
+    /**
         Pobiera informacje dotyczące aktualnego importu wyciągu
         @param int $uid Identyfikator usera
         @return Jeśli są informacja to Obiekt Import inaczej null
@@ -25,7 +32,7 @@ class ImportMapper extends BaseMapper
         $sql = new Sql($this->getDbAdapter());
         $select = $sql->select();
         
-        $select->from(array('i' => 'imports'))
+        $select->from(array('i' => self::TABLE))
                 ->where(array('i.uid' => (int)$uid));
         
         $statement = $sql->prepareStatementForSqlObject($select);
@@ -70,7 +77,7 @@ class ImportMapper extends BaseMapper
             $data['uid'] = (int)$import->uid;
             
             $insert = $sql->insert();
-            $insert->into('imports');
+            $insert->into(self::TABLE);
             $insert->values($data);
             
             $statement = $sql->prepareStatementForSqlObject($insert);
@@ -80,7 +87,7 @@ class ImportMapper extends BaseMapper
                 
             $update = $sql->update();
             
-            $update->table('imports');
+            $update->table(self::TABLE);
             $update->set($data);
             $update->where(array('uid' => (int)$import->uid));
             
@@ -98,7 +105,7 @@ class ImportMapper extends BaseMapper
         $sql = new Sql($this->getDbAdapter());
     
         $delete = $sql->delete();
-        $delete->from('imports');
+        $delete->from(self::TABLE);
         $delete->where(array('uid' => (int)$uid));
         
         $statement = $sql->prepareStatementForSqlObject($delete);
