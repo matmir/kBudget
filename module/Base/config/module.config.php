@@ -19,6 +19,9 @@ return array(
     ),
     // Services
     'service_manager' => array(
+        'invokables' => array(
+            'Base\Mailer' => 'Base\Service\Mailer',
+        ),
         'factories' => array(
             'translator' => 'Zend\I18n\Translator\TranslatorServiceFactory',
         ),

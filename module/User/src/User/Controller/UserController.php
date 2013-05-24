@@ -23,10 +23,6 @@ use User\Form\PasswordChangeFormFilter;
 use User\Form\EmailForm;
 use User\Form\EmailFormFilter;
 
-use Zend\Mail;
-use Zend\Mail\Transport\Smtp as SmtpTransport;
-use Zend\Mail\Transport\SmtpOptions;
-
 use Zend\Crypt\Password\Bcrypt;
 
 /**
@@ -207,9 +203,6 @@ class UserController extends BaseController
      */
     public function passrstAction()
     {
-        // Get e-mail configuration
-        $cfg = $this->get('email_cfg');
-        
         // Logout logged in user
         $this->get('Auth\UserAuthentication')->clearIdentity();
         
@@ -245,25 +238,15 @@ class UserController extends BaseController
                     // Change user password
                     $this->get('User\UserMapper')->changeUserPass($uid, $encrypted_pass);
                     
+                    // Prepare e-mail message
+                    $msg = array(
+                        'toAddress' => $user->email,
+                        'toName' => $user->login,
+                        'subject' => 'Reset hasła',
+                        'body' => 'Twój login: '.$user->login."\nTwoje hasło: ".$new_pass
+                    );
                     // Send e-mail
-                    $mail = new Mail\Message(); // TODO: Move e-mail transport to the service
-                    $mail->setBody('Twój login: '.$user->login."\nTwoje hasło: ".$new_pass);
-                    $mail->setFrom($cfg['FromAddr'], $cfg['FromName']);
-                    $mail->addTo($user->email, $user->login);
-                    $mail->setSubject('Reset hasła');
-                    
-                    $transport = new SmtpTransport();
-                    $options   = new SmtpOptions(array(
-                        'name'              => 'localhost',
-                        'host'              => $cfg['host'],
-                        'connection_class'  => 'login',
-                        'connection_config' => array(
-                            'username' => $cfg['login'],
-                            'password' => $cfg['pass'],
-                        ),
-                    ));
-                    $transport->setOptions($options);
-                    $transport->send($mail);
+                    $this->get('Base\Mailer')->send($msg);
                     
                     $CONFIRM = 1;
                     
