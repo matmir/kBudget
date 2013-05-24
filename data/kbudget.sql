@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Czas wygenerowania: 24 Maj 2013, 11:12
+-- Czas wygenerowania: 24 Maj 2013, 11:16
 -- Wersja serwera: 5.5.27
 -- Wersja PHP: 5.4.7
 
@@ -121,7 +121,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `email` varchar(50) NOT NULL COMMENT 'User e-mail',
   `login` varchar(30) NOT NULL COMMENT 'User login',
   `pass` varchar(60) NOT NULL COMMENT 'User password',
-  `u_type` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'User type (0 - user, 1 - admin)',
+  `u_type` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'User type (0 - user, 1 - admin, 2 - demo)',
   `active` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Activation flag (0 - inactive, 1 - active)',
   `register_date` datetime NOT NULL DEFAULT '2013-01-01 00:00:00' COMMENT 'User register date',
   `last_login_date` datetime DEFAULT NULL COMMENT 'Last login date',
