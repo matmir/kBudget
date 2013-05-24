@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Czas wygenerowania: 24 Maj 2013, 11:16
+-- Czas wygenerowania: 24 Maj 2013, 13:24
 -- Wersja serwera: 5.5.27
 -- Wersja PHP: 5.4.7
 
@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS `categories` (
   KEY `pcid` (`pcid`),
   KEY `uid` (`uid`),
   KEY `uid_2` (`uid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin2 AUTO_INCREMENT=137 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin2 AUTO_INCREMENT=138 ;
 
 -- --------------------------------------------------------
 
@@ -91,7 +91,51 @@ CREATE TABLE IF NOT EXISTS `transactions` (
   KEY `uid` (`uid`),
   KEY `cid` (`cid`),
   KEY `taid` (`taid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin2 AUTO_INCREMENT=148 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin2 AUTO_INCREMENT=174 ;
+
+--
+-- Wyzwalacze `transactions`
+--
+DROP TRIGGER IF EXISTS `update_balance_on_delete`;
+DELIMITER //
+CREATE TRIGGER `update_balance_on_delete` BEFORE DELETE ON `transactions`
+ FOR EACH ROW BEGIN
+	IF OLD.t_type = 0 OR OLD.t_type = 3 THEN -- income
+ 		UPDATE accounts SET balance = balance - OLD.t_value WHERE aid=OLD.aid;
+	ELSEIF OLD.t_type = 1 OR OLD.t_type = 2 THEN -- expense
+ 		UPDATE accounts SET balance = balance + OLD.t_value WHERE aid=OLD.aid;
+	END IF;
+END
+//
+DELIMITER ;
+DROP TRIGGER IF EXISTS `update_balance_on_insert`;
+DELIMITER //
+CREATE TRIGGER `update_balance_on_insert` BEFORE INSERT ON `transactions`
+ FOR EACH ROW BEGIN
+	IF NEW.t_type = 0 OR NEW.t_type = 3 THEN
+ 		UPDATE accounts SET balance = balance + NEW.t_value WHERE aid=NEW.aid;
+	ELSEIF NEW.t_type = 1 OR NEW.t_type = 2 THEN
+ 		UPDATE accounts SET balance = balance - NEW.t_value WHERE aid=NEW.aid;
+	END IF;
+END
+//
+DELIMITER ;
+DROP TRIGGER IF EXISTS `update_balance_on_update`;
+DELIMITER //
+CREATE TRIGGER `update_balance_on_update` BEFORE UPDATE ON `transactions`
+ FOR EACH ROW BEGIN
+	DECLARE DIFF DECIMAL(10,2);
+        SET DIFF = (NEW.t_value - OLD.t_value);
+	IF DIFF != 0 THEN
+        	IF NEW.t_type=0 OR NEW.t_type=3 THEN -- profit
+ 			UPDATE accounts SET balance = balance + DIFF WHERE aid=NEW.aid;
+                ELSEIF NEW.t_type=1 OR NEW.t_type=2 THEN -- expense
+                	UPDATE accounts SET balance = balance - DIFF WHERE aid=NEW.aid;
+                END IF;
+	END IF;
+END
+//
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -108,7 +152,7 @@ CREATE TABLE IF NOT EXISTS `transfers` (
   KEY `uid` (`uid`),
   KEY `tid_out` (`tid_out`),
   KEY `tid_in` (`tid_in`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin2 AUTO_INCREMENT=8 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin2 AUTO_INCREMENT=14 ;
 
 -- --------------------------------------------------------
 
