@@ -11,8 +11,8 @@ $this->headTitle($title);
 <div class="alert alert-info">
     Serwis umożliwia zaimportowanie transakcji z wyciągu bankowego zapisanego w formacie <b>CSV</b>.<br />
     Wystarczy zalogować się do własnego konta bankowego i wyeksportować historię transakcji do pliku CSV.
-    Następnie z poniżeszej listy wybieramy nazwę banku oraz wskazujemy na zapisany plik i naciskamy 'Wyślij',
-    aby rozpocząć procedurę importu.
+    Następnie z poniżeszej listy wybieramy konto do którego chemy importować transakcje, nazwę banku oraz wskazujemy
+    na zapisany plik i naciskamy 'Wyślij', aby rozpocząć procedurę importu.
 </div>
 
 </div>
@@ -30,6 +30,17 @@ echo $this->form()->openTag($form);
 ?>
 
 <table>
+    <tr>
+        <td><?php echo $form->get('aid')->getLabel(); ?></td>
+        <td><?php echo $this->formElement($form->get('aid')) ?></td>
+    </tr>
+    <?php
+        echo $this->formElementErrors()
+            ->setMessageOpenFormat('<tr><td colspan="2"><div class="alert alert-error">')
+            ->setMessageSeparatorString('</div></td></tr><tr><td colspan="2"><div class="alert alert-error">')
+            ->setMessageCloseString('</div></td></tr>')
+            ->render($form->get('aid'));
+    ?>
     <tr>
         <td><?php echo $form->get('bank')->getLabel(); ?></td>
         <td><?php echo $this->formElement($form->get('bank')) ?></td>

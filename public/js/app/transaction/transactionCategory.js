@@ -148,7 +148,7 @@ $(function() {
 				// Get subcategories
 				$.ajax({
         			type: 'POST',
-        		    url: '/user/category/get-subcategories',
+        		    url: '/user/category/get-categories',
         		    cache: false,
         		    data: {
                         'cid': cid,

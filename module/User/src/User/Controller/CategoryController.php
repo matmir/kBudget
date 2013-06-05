@@ -54,11 +54,11 @@ class CategoryController extends BaseController
     }
     
     /**
-     * Get sub categories. Used in categoryList.js via ajax
+     * Get categories. Used in categoryList.js via ajax
      * 
      * @return \Zend\View\Model\JsonModel;
      */
-    public function subcategoryAction()
+    public function categoryAction()
     {
         // Identifier of logged in user
         $uid = $this->get('userId');
@@ -75,6 +75,8 @@ class CategoryController extends BaseController
             
             // Check if POST data are corrected
             if ((isset($data['cid'])) && (isset($data['c_type']))) {
+                
+                $data['cid'] = ($data['cid']==0)?(null):($data['cid']);
                 
                 try {
                     

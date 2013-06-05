@@ -269,6 +269,7 @@ return array(
             'Budget\ImportMapper' => 'Budget\Mapper\ImportMapper',
             'Budget\TransactionMapper' => 'Budget\Mapper\TransactionMapper',
             'Budget\TransferMapper' => 'Budget\Mapper\TransferMapper',
+            'Budget\BankService' => 'Budget\Service\BankService',
         ),
     ),
 );

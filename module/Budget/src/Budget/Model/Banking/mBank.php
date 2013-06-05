@@ -1,173 +1,163 @@
 <?php
-/**
-    @author Mateusz Mirosławski
-    
-    Klasa importująca wyciągi z mBank-u
-*/
 
 namespace Budget\Model\Banking;
 
 use Budget\Model\Banking\Bank;
+use Budget\Model\Banking\Exception\EndBankFile;
+use Budget\Model\Banking\Exception\ParseBankFileError;
 use Budget\Model\Transaction;
 
+/**
+ * Class importing transactions from mBank CSV file
+ * 
+ * @author Mateusz Mirosławski
+ *
+ */
 class mBank extends Bank
 {
-    
-    // Wzorzec nagłówka z danymi w wyciągu
-    private $header_template = "#Data operacji;#Data księgowania;#Opis operacji;#Tytuł;#Nadawca/Odbiorca;#Numer konta;#Kwota;#Saldo po operacji;";
+    /**
+     * Pattern of the header with the data in the CSV file
+     * 
+     * @var string
+     */
+    const HEADER = "#Data operacji;#Data księgowania;#Opis operacji;#Tytuł;#Nadawca/Odbiorca;#Numer konta;#Kwota;#Saldo po operacji;";
     
     /**
-        Konstruktor
-        @param string $file Nazwa załadowanego pliku z wyciągiem
-        @param int $pos Pozycja wskaźnika linii w pliku
-        @param int $max_lines Max. liczba linii przetwarzanych jednorazowo
-    */
+     *  Constructor
+     *
+     * @param string $file CSV file name
+     * @param int $pos Line position in the CSV file
+     * @param int $max_lines Number of lines processed once
+     * @throws \Exception
+     */
     public function __construct($file, $pos, $max_lines)
     {
         parent::__construct($file, $pos, $max_lines);
     }
     
     /**
-        Przetwarza dane z wyciągu mBank-owego
-        @return array() Tablica obiektów Transaction
-    */
-    protected function parse()
+     * Parsing data from the given CSV file.
+     * Return array of the Transaction objects.
+     *
+     * @return array
+     */
+    public function parseData()
     {
-        $ret = array();
+        // Return array
+        $returnArray = array();
         
-        // Spr. pozycji w pliku
+        // Check file position
         if ($this->getPos() == 0) {
-            // Pozycja nagłówka z danymi +1
+            // Position of the header with the data +1
             $hpos = $this->findDataHeaderPos()+1;
-            // Ustawienie pozycji
+            // Set position on the first data to import
             $this->setPos($hpos);
         }
         
-        // Flaga zakończenia przetwarzania
-        $this->END_PARSE = false;
-        
-        // Flaga zatrzymania nieskończonej pętli
-        $stop = false;
-        
-        // znacznik przeparsowanych linii
+        // Parsed line count
         $pl = 0;
         
-        try {
+        // Move the line by line starting from the position of the first data to import
+        while (true) {
             
-            // Przechodzę po kolejnych liniach w pliku zaczynając od pozycji nagłówka danych +1
-            while ($stop == false) {
-                
-                // Pobranie linii
-                $line = $this->convert(trim($this->getLine()));
-                
-                // Spr. czy nie trafiono na pusą linię
-                if ($line == '') {
-                    
-                    // Koniec danych => koniec parsowania
-                    $this->END_PARSE = true;
-                    // Zatrzymanie pętli
-                    break;
-                }
-                
-                // Wyciągnięcie danych z linii
-                $dane = explode(';', $line);
-                
-                if (count($dane) != 9) {
-                    
-                    // Flaga błędu
-                    $this->ERR_PARSE = true;
-                    // Zatrzymanie pętli
-                    break;
-                }
-                
-                // Umieszczenie danych w obiekcie
-                $tr = new Transaction();
-                $tr->t_date = $dane[0];
-                $tr->t_value = abs(str_replace(array(',',' '),array('.',''),$dane[6]));
-                $tr->t_type = ($dane[6]<0)?(1):(0);
-                $tr->t_content = str_replace('"', '', $dane[3]);
-                
-                // Do tablicy wynikowej
-                array_push($ret, $tr);
-                
-                // Zwiększenie licznika przeparsowanych linii
-                $pl++;
-                
-                // Spr. liczby przetworzonych linii
-                if ($pl == ($this->max_parse_lines)) {
-                    // Zatrzymanie pętli
-                    break;
-                }
-                
+            // Get line from the CSV file
+            $line = $this->convert(trim($this->getLine()));
+            
+            // Check if there is empty line
+            if ($line == '') {
+                // End of the data
+                break;
             }
             
-        } catch (EndBankFileException $e) {
-            // Koniec pliku - zatrzymać pętle
-            $stop = true;
+            // Get data from the line
+            $data = explode(';', $line);
+            
+            // Check correction of the data
+            if (count($data) != 9) {
+                throw new ParseBankFileError();
+            }
+            
+            // Insert data into the Transaction object
+            $tr = new Transaction();
+            $date = new \DateTime($data[0]);
+            $tr->t_date = $date->format('Y-m-d');
+            $value = str_replace(array(',',' '),array('.',''),$data[6]);
+            $tr->t_type = ($value<0)?(1):(0);
+            $tr->t_value = abs($value);
+            $tr->t_content = str_replace('"', '', $data[3]);
+            
+            // Insert into the return array
+            array_push($returnArray, $tr);
+            
+            // Increment parsed line count
+            $pl++;
+            
+            // Check parsed line count
+            if ($pl == ($this->max_parse_lines)) {
+                // Stop the loop
+                break;
+            }
         }
         
-        return $ret;
+        return $returnArray;
     }
     
     /**
-        Zwraca liczbę wszystkich transakcji w parsowanym pliku
-        @return int Liczba transakcji do przetworzenia
-    */
+     * Returns the number of all transactions in the file
+     * 
+     * @return int
+     */
     public function count()
     {
-        // Odczyt starej pozycji w pliku
+        // Get actual line position
         $old_pos = $this->getPos();
         
-        // Ustawienie pozycji na początek pliku
+        // Set line position at the top of the file
         $this->setPos(0);
         
-        // Znalezienie nagłówka danych
+        // Find header with the transactions data
         $hpos = $this->findDataHeaderPos();
         
-        // Ustawienie wskaźnik na pierszą linię z danymi
+        // Set position on the first transaction data
         $this->setPos($hpos+1);
         
-        // Flaga zatrzymania pętli
-        $stop = false;
-        
-        // Liczba transakcji
+        // Number of the transaction in the CSV file
         $tr_count = 0;
         
-        try {
-            
-            // Pętla zliczająca
-            while ($stop == false) {
-                
-                // Pobranie linii
+        // Counting loop
+        while (true) {
+        
+            try {
+                // Get the line
                 $line = $this->convert($this->getLine());
-                
-                // Spr. czy nie trafiono na pusą linię
-                if ($line == '') {
-                    // Zatrzymanie pętli
-                    break;
-                }
-                
-                // Zwiększenie liczby transakcji
-                $tr_count += 1;
-                
+            } catch (EndBankFile $e) {
+                // Stop the loop
+                break;
             }
             
-        } catch (EndBankFileException $e) {
-            // Koniec pliku - zatrzymać pętle
-            $stop = true;
+            // Check if there is empty line
+            if ($line == '') {
+                // Stop the loop
+                break;
+            }
+        
+            // Increment number of the transactions
+            $tr_count += 1;
+        
         }
         
-        // Ustawienie wskaźnika pliku na poprzednią wartość
+        // Set the file position on the old value
         $this->setPos($old_pos);
         
         return $tr_count;
     }
     
     /**
-        Konwersja znaków na utf-8
-        @param string $line Linia z napisami
-        @return string Przekonwertowana linia znaków
-    */
+     * Convert line on utf-8 chars
+     * 
+     * @param string $line Line with the chars
+     * @return string
+     */
     private function convert($line)
     {
         $fc = iconv('windows-1250', 'utf-8', $line);
@@ -176,45 +166,44 @@ class mBank extends Bank
     }
     
     /**
-        Wyszukuje pozycję nagłówka z danymi
-        @return int Pozycja (numer linii) nagłówka z danymi w pliku
-    */
+     * Find the line number with the header
+     * 
+     * @return number
+     */
     private function findDataHeaderPos()
     {
-        // Pierwotna pozycja wskaźnika
+        // Get actual line position
         $old_pos = $this->getPos();
         
-        // Wskaźnik na początek pliku
+        // Set line position at the top of the file
         $this->setPos(0);
         
-        // Pozycja nagłówka
+        // Position of the header
         $hpos = 0;
         
-        // Flaga zatrzymania pętli
-        $stop = false;
+        // Finding the pattern of the header
+        while (true) {
         
-        try {
-            // Szukam wzorca nagłówka
-            while ($stop == false) {
-                
-                // Odczyt linii
+            try {
+                // Get the line
                 $line = $this->convert($this->getLine());
-                // Spr. czy nagłówek
-                if ($line == $this->header_template) {
-                    // Zatrzymanie pętli
-                    break;
-                }
-                
-                // Zwiększenie pozycji
-                $hpos += 1;
-                
+            } catch (EndBankFile $e) {
+                // Stop the loop
+                break;
             }
-        } catch (EndBankFileException $e) {
-            // Koniec pliku - zatrzymać pętle
-            $stop = true;
+            
+            // Check if there is header
+            if ($line == self::HEADER) {
+                // Stop the loop
+                break;
+            }
+        
+            // Increment header position
+            $hpos += 1;
+        
         }
         
-        // Przywrócenie poprzedniej pozycji wskaźnika
+        // Set the file position on the old value
         $this->setPos($old_pos);
         
         return $hpos;

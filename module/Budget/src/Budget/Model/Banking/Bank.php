@@ -1,72 +1,93 @@
 <?php
-/**
-    @author Mateusz Mirosławski
-    
-    Abstrakcyjna klasa do importu wyciągów bankowych
-*/
 
 namespace Budget\Model\Banking;
 
-// Klasa wyjątku generowanego przez klasę Bank gdy osiągnie koniec pliku
-class EndBankFileException extends \Exception {}
+use Budget\Model\Banking\Exception\EndBankFile;
 
+/**
+ * Base abstract bank class for parsing CSV files
+ * 
+ * @author Mateusz Mirosławski
+ *
+ */
 abstract class Bank
 {
-    private $fname;             // Nazwa pliku na dysku
-    private $fpos;                // Aktualna pozycja w pliku
-    private $file_handle;       // Uchwyt do pliku na dysku
-    protected $max_parse_lines;   // Max. liczba linii które można jednorazowo przetworzyć
-    protected $END_PARSE;         // Flaga zakończenia parsowania
-    protected $ERR_PARSE;         // Flaga błędu parsowania
+    /**
+     * CSV file name
+     * 
+     * @var string
+     */
+    private $fname;
     
     /**
-        Konstruktor
-        @param string $file Nazwa załadowanego pliku z wyciągiem
-        @param int $pos Pozycja wskaźnika linii w pliku
-        @param int $max_lines Max. liczba linii przetwarzanych jednorazowo
-    */
+     * Actual line position in file
+     * 
+     * @var int
+     */
+    private $fpos;
+    
+    /**
+     * Handle for the CSV file
+     * 
+     * @var resource
+     */
+    private $file_handle;
+    
+    /**
+     * Number of lines processed once
+     * 
+     * @var int
+     */
+    protected $max_parse_lines;
+    
+    /**
+     *  Constructor
+     *  
+     * @param string $file CSV file name
+     * @param int $pos Line position in the CSV file
+     * @param int $max_lines Number of lines processed once
+     * @throws \Exception
+     */
     public function __construct($file, $pos, $max_lines)
     {
-        // Spr. liczby parsowanych linii
+        // Check number of parsing lines
         if ($max_lines < 2) {
-            throw new \Exception('Max. liczba przetwarzanych linii musi być większa od 2!');
+            throw new \Exception('Number of processed lines must be greater than 2!');
         }
         
-        // spr. czy plik istnieje na dysku
+        // Check if the given file exists
         if (!(file_exists($file))) {
-            throw new \Exception('Podanego pliku nie ma na serwerze!');
+            throw new \Exception('File does not exist!');
         }
         
-        // Spr. pozycji wskaźnika linii
+        // Check given line position
         if ($pos < 0) {
-            throw new \Exception('Numer linii musi być liczbą dodatnią!');
+            throw new \Exception('Line number must be a positive number!');
         }
         
         $this->fname = (string)$file;
         
-        // Otwarcie pliku
+        // Open the file
         $this->file_handle = fopen($this->fname, 'r');
         
         if (!$this->file_handle) {
-            throw new \Exception('Nie można otworzyć pliku!');
+            throw new \Exception('Can not open the file!');
         }
         
-        // Ustawienie wskaźnika linii w pliku
+        // Set line position
         $this->setPos((int)$pos);
         
         $this->max_parse_lines = (int)$max_lines;
-        $this->END_PARSE = false;
-        $this->ERR_PARSE = false;
     }
     
     /**
-        Destruktor
-    */
+     * Destructor
+     */
     public function __destruct() {
         
         if (is_resource($this->file_handle)) {
             
-            // Zamknięcie pliku
+            // Close the file
             fclose($this->file_handle);
             
         }
@@ -74,105 +95,82 @@ abstract class Bank
     }
     
     /**
-        Przetwarza dane dla wybranego banku
-        (musi zostać przesłonięta w klasie pochodnej)
-    */
-    protected abstract function parse();
+     * Parsing data for the given Bank.
+     * Return array of the Transaction objects.
+     * (must be overridden in a derived class)
+     * 
+     * @return array
+     */
+    public abstract function parseData();
     
     /**
-        Zwraca liczbę wszystkich transakcji w parsowanym pliku
-        (musi zostać przesłonięta w klasie pochodnej)
-        @return int Liczba transakcji do przetworzenia
-    */
+     * Returns the number of all transactions in the file
+     * (must be overridden in a derived class)
+     * 
+     * @return int
+     */
     public abstract function count();
     
     /**
-        Przetwarza dane z pliku
-        @return array() Tablica obiektów Transaction
-    */
-    public function parseData()
-    {
-        
-        $ret = $this->parse();
-        
-        return $ret;
-        
-    }
-    
-    /**
-        Ustawia pozycję wskaźnika na danej linii
-        @param int $pos Numer linii
-    */
+     * Set line position in the CSV file
+     * 
+     * @param int $pos Line number
+     * @throws \Exception
+     */
     protected function setPos($pos)
     {
         if ($pos < 0) {
-            throw new \Exception('Numer linii musi być liczbą dodatnią!');
+            throw new \Exception('Line number must be a positive number!');
         }
         
-        // Ustawienie pozycji
+        // Copy line number
         $this->fpos = (int)$pos;
         
-        // Wskazujemy na początek pliku
+        // We point to the beginning of the file
         fseek($this->file_handle, 0);
         
-        // Przesuwamy się linia po linii, aż osiągniemy wartość zadaną
+        // Move the line by line, until we reach the setpoint
         $line = 0;
         while (($buff = fgets($this->file_handle)) !== false) {
             
-            // Spr. czy osiągnęliśmy wartość zadaną
+            // Check if the actual line is the setpoint
             if ($line == $this->fpos) {
-                // Zatrzymanie pętli
+                // Stop the loop
                 break;
             }
             
             $line++;
             
         }
-        
     }
     
     /**
-        Pobiera linię z pliku
-        @return string Linia z pliku
-    */
+     * Get line from CSV file
+     * 
+     * @return string
+     */
     protected function getLine()
     {
         if (($line = fgets($this->file_handle)) !== false) {
             
-            // Zwiększenie wartości wskaźnika linii
+            // Increase line number pointer
             $this->fpos += 1;
             
             return $line;
             
-        } else { // koniec pliku
-            // Wyjątek
-            throw EndBankFileException();
+        } else { // End of the file
+            
+            throw new EndBankFile();
         }
     }
     
     /**
-        Zwraca pozycję aktualnej linii w pliku
-    */
+     * Get atual line position
+     * 
+     * @return int
+     */
     public function getPos()
     {
         return $this->fpos;
-    }
-    
-    /**
-        Zwraca informacje o końcu przetwarzania
-        @return bool Koniec przetwarzania
-    */
-    public function isEndParse()
-    {
-        return $this->END_PARSE;
-    }
-    
-    /**
-        Flaga wystąpienia błędu przetwarzania
-        @return bool Błąd przetwarzania
-    */
-    public function isParseError()
-    {
-        return $this->ERR_PARSE;
     }
 }

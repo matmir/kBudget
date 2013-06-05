@@ -1,9 +1,4 @@
 <?php
-/**
-    @author Mateusz Mirosławski
-    
-    Formularz ładowania pliku z wyciągiem na serwer
-*/
 
 namespace Budget\Form;
 
@@ -15,6 +10,12 @@ use Zend\InputFilter\InputFilter;
 use Zend\InputFilter\InputFilterAwareInterface;
 use Zend\InputFilter\InputFilterInterface;
 
+/**
+ * Form to load CSV file
+ * 
+ * @author Mateusz Mirosławski
+ *
+ */
 class LoadBankFileForm extends Form
 {
     public function __construct($name = null)
@@ -23,28 +24,39 @@ class LoadBankFileForm extends Form
         parent::__construct('bankFile');
         $this->setAttribute('method', 'post');
         
-        // Lista banków
+        // Bank account identifier into which imports transactions
+        $this->add(array(
+            'type'  => 'Zend\Form\Element\Select',
+            'name' => 'aid',
+            'options' => array(
+                'label' => 'Konto do którego importować: ',
+                'value_options' => array(
+                    '0' => '...',
+                ),
+            ),
+        ));
+        
+        // List of supported banks
         $this->add(array(
             'type'  => 'Zend\Form\Element\Select',
             'name' => 'bank',
             'options' => array(
-                'label' => 'Wybierz bank: ',
+                'label' => 'Nazwa banku z którego pochodzi plik CSV: ',
                 'value_options' => array(
                   '0' => 'Bank',
                 ),
             ),
         ));
         
-        // Formatka na wybór pliku
+        // File
         $this->add(array(
             'type'  => 'Zend\Form\Element\File',
             'name' => 'upload_file',
             'options' => array(
-                'label' => 'Wybierz plik: ',
+                'label' => 'Plik z wyciągiem: ',
             ),
             'attributes' => array(
                 'multiple' => false,
-                //'accept' => 'text/csv',
             ),
         ));
         
@@ -59,30 +71,31 @@ class LoadBankFileForm extends Form
     }
 }
 
-/*
-    Filtry dla formularza
-*/
+/**
+ * Upload filters
+ * 
+ * @author Mateusz Mirosławski
+ *
+ */
 class LoadBankFileFormFilter implements InputFilterAwareInterface
 {
     protected $inputFilter;
     private $file_cfg;
     
     /**
-        Konstruktor
-        @param array() Tablica z ustawieniami dla ładowania plików.
-    */
-    public function __construct($cfg)
+     * Constructor
+     * 
+     * @param array $cfg Upload configuration array
+     * @throws \Exception
+     */
+    public function __construct(array $cfg)
     {
-        // spr.czy parametr jest tablicą
-        if (!is_array($cfg)) {
-            throw new \Exception("Parametr z ustawieniami musi być tablicą!");
-        }
-        // Spr. pól
+        // Check fields
         if (!(isset($cfg['maxFileSize']))) {
-            throw new \Exception("Brak ustawień dla wielkości ładowanego pliku!");
+            throw new \Exception('Missing file weight configuration!');
         }
         if (!(isset($cfg['fileExtension']))) {
-            throw new \Exception("Brak ustawień dla typu ładowanego pliku!");
+            throw new \Exception('Missing file extension configuration!');
         }
         
         $this->file_cfg = $cfg;
@@ -99,7 +112,16 @@ class LoadBankFileFormFilter implements InputFilterAwareInterface
             $inputFilter = new InputFilter();
             $factory     = new InputFactory();
 
-            // Lista banków
+            // Bank account identifier into which imports transactions
+            $inputFilter->add($factory->createInput(array(
+                'name' => 'aid',
+                'required' => true,
+                'filters' => array(
+                    array('name' => 'Int'),
+                ),
+            )));
+            
+            // Supported bank list
             $inputFilter->add($factory->createInput(array(
                 'name'     => 'bank',
                 'required' => true,
@@ -109,7 +131,7 @@ class LoadBankFileFormFilter implements InputFilterAwareInterface
                 ),
             )));
             
-            // Formatka z wyborem pliku
+            // File
             $inputFilter->add($factory->createInput(array(
                 'name'     => 'upload_file',
                 'required' => true,

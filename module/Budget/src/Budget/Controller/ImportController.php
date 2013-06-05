@@ -1,15 +1,11 @@
 <?php
-/**
-    @author Mateusz Mirosławski
-    
-    Kontroler zajmujący się importem wyciągów
-*/
 
 namespace Budget\Controller;
 
 use Base\Controller\BaseController;
 
-use Budget\Model\Banking\mBank;
+use Budget\Model\Banking\Exception\EndBankFile;
+use Budget\Model\Banking\Exception\ParseBankFileError;
 
 use Budget\Model\Import;
 use Budget\Model\ImportMapper;
@@ -28,31 +24,43 @@ use Budget\Model\TransactionMapper;
 
 use Zend\File\Transfer\Adapter\Http;
 
+/**
+ * Import CSV file controller
+ * 
+ * @author Mateusz Mirosławski
+ *
+ */
 class ImportController extends BaseController
 {
-    // Główna strona
+    /**
+     * Index action
+     */
     public function indexAction()
     {
-        // Identyfikator zalogowanego usera
+        // Get the logged in user identifier
         $uid = $this->get('userId');
         
-        // Aktualny import
+        // Get actual information about importing
         $import = $this->get('Budget\ImportMapper')->getUserImport($uid);
         
-        // Spr czy są dane
+        // Check if there is import information
         if ($import == null) {
             
-            // Ustawienia ładowania wyciągów
+            // Upload configuration
             $upload_config = $this->get('upload_cfg');
             
-            // Lista obsługiwanych banków
-            $bankList = Import::getBankList();
+            // Get user bank accounts
+            $accounts = $this->get('User\AccountMapper')->getUserAccountsToSelect($uid);
             
-            // Formularz
+            // List of supported banks CSV files
+            $bankList = $this->get('Budget\BankService')->getBankList();
+            
             $form = new LoadBankFileForm();
-            // Wprowadzenie listy banków
+            // Insert bank accounts
+            $form->get('aid')->setValueOptions($accounts);
+            // Insert supported bank list
             $form->get('bank')->setValueOptions($bankList);
-            // Filtry
+            // Filters
             $formFilters = new LoadBankFileFormFilter($upload_config);
     
             $request = $this->getRequest();
@@ -60,70 +68,76 @@ class ImportController extends BaseController
                 
                 $form->setInputFilter($formFilters->getInputFilter());
                 
-                // Przygotowanie danych z formularza
+                // Get data from the form
                 $nonFile = $request->getPost()->toArray();
+                // Get uploaded file information
                 $File = $this->params()->fromFiles('upload_file');
+                // Insert all data into the one array
                 $request_data = array_merge($nonFile, array('upload_file' => $File));
                 
                 $form->setData($request_data);
                 
                 if ($form->isValid()) {
                     
-                    // Adapter do ładowania plików na serwer
+                    // Adapter for the loading files
                     $upload = new Http();
                     
-                    // Typ ładowanego pliku
+                    // Get information about loading file
                     $file_info = $upload->getFileInfo();
                     $file_type = $file_info['upload_file']['type'];
                     
-                    // Spr. zgodności typów
+                    // Check file type
                     if ($file_type == $upload_config['fileType']) {
                         
-                        // Nazwa pliku na serwerze
+                        // Generate new file name
                         $FILE_NAME = md5($uid.date('Y-m-d H:i:s')).'.'.$upload_config['fileExtension'];
                         
-                        // Katalog do ładowania plików
+                        // Set the directory to upload files
                         $upload->setDestination($upload_config['upload_dir']);
                         
-                        // Filtr zmieniający nazwę ładowanego pliku
+                        // Rename file filter
                         $destination = $upload_config['upload_dir'].$FILE_NAME;
                         $upload->setFilters(array('Rename' => array('target' => $destination, 'overwrite' => true)));
                         
-                        // Załadowanie pliku
+                        // Uploading file
                         if ($upload->receive($File['name'])) {
                             
-                            // Informacje dotyczące importu
+                            // Information about upload
                             $new_import = new Import();
                             $new_import->uid = $uid;
+                            $new_import->aid = $form->get('aid')->getValue();
                             $new_import->fname = $FILE_NAME;
-                            $new_import->bank = $bankList[$form->get('bank')->getValue()];
+                            $new_import->bank = $form->get('bank')->getValue();
                             $new_import->fpos = 0;
                             $new_import->nfpos = 0;
                             $new_import->counted = 0;
                             
-                            // Utworzenie obiektu Banku do zliczenia liczby transakcji
-                            switch ($new_import->bank) {
-                                case 'mBank': $bank = new mBank($destination, 0, $upload_config['maxParseLines']); break;
-                            }
-                            // Spr. banku
-                            if (!(isset($bank))) {
-                                throw new \Exception('Błędna nazwa banku!');
-                            }
-                            // Liczba transakcji
+                            // Get bank instance
+                            $bank = $this->get('Budget\BankService')->getBankInstance(
+                                $new_import->bank,
+                                $destination,
+                                0,
+                                $upload_config['maxParseLines']
+                            );
+                            
+                            // Number of the transactions
                             $new_import->count = $bank->count();
                             
-                            // Zapis do bazy
+                            // Save import information
                             $this->get('Budget\ImportMapper')->setUserImport($new_import);
                             
-                            // Przekierowanie do zatwierdzania transakcji
+                            // Redirect to the commiting of the transactions
                             return $this->redirect()->toRoute('import/commit');
                             
                         }
                         
-                    } else { // Błędny typ ładowanego pliku
+                    } else { // Bad type of loaded file
                         
-                        $form->setMessages(array('upload_file' => array('badFileType' => 'Bad file type!')));
-                        
+                        $form->get('upload_file')->setMessages(
+                            array(
+                                'Bad file type!'
+                            )
+                        );
                     }
                 }
                 
@@ -133,51 +147,54 @@ class ImportController extends BaseController
                 'form' => $form,
             );
             
-        } else { // są dane
+        } else { // there are some informations about import
             
-            // Przekierowanie do zatwierdzania transakcji
+            // Redirect to the commiting of the transactions
             return $this->redirect()->toRoute('import/commit');
             
         }
     }
     
-    // Zatwierdzanie importowanych transakcji
+    /**
+     * Commit importing the transactions
+     * 
+     * @throws \Exception
+     */
     public function commitAction()
     {
-        // Identyfikator zalogowanego usera
+        // Logged in user identifier
         $uid = $this->get('userId');
         
-        // Aktualny import
+        // Actual information about importing
         $import = $this->get('Budget\ImportMapper')->getUserImport($uid);
         
-        // Flaga wystąpienia błędu (0 - ok, 1 - błąd parsowania)
+        // Error flag (0 - ok, 1 - parsing error)
         $ERR = 0;
         
-        // Czy są dane do importu
+        // Check if there is import information
         if ($import) {
             
-            // Ustawienia ładowania wyciągów
+            // Upload configuration
             $upload_config = $this->get('upload_cfg');
             
-            // Pozostałe transakcje do zaimportowania
+            // Number of not imported transactions
             $not_imported_count = $import->count - $import->counted;
             
-            // Spr. ograniczenia na przetwarzanie za jednym razem
+            // Get number of importing transaction (for this cycle)
             $tr_count = ($not_imported_count>$upload_config['maxParseLines'])?($upload_config['maxParseLines']):($not_imported_count);
             
-            // Kategorie dla wydatków
+            // Get categories for the expense
             $user_cat_expense = $this->get('User\CategoryMapper')->getUserCategoriesToSelect($uid, 1);
-            // Kategorie dla przychodów
+            // Get categories for the profit
             $user_cat_profit = $this->get('User\CategoryMapper')->getUserCategoriesToSelect($uid, 0);
+            // Get user bank accounts
+            $accounts = $this->get('User\AccountMapper')->getUserAccountsToSelect($uid);
             
-            // Formularz
             $form = new TransactionImportForm($tr_count);
             
-            // Spr. czy są dane z formularza
             $request = $this->getRequest();
             if ($request->isPost()) {
                 
-                // Dane z formularza
                 $request_data = $request->getPost();
                 
                 // Wygenerowanie wszystkich kategorii oraz uzupełnienie flag nowych kategorii
@@ -286,68 +303,63 @@ class ImportController extends BaseController
                     
                 }
                 
-            } else { // Brak danych z formularza
+            } else { // There is no POST data
                 
-                // Nazwa pliku
+                // CSV file name
                 $FILE_NAME = $upload_config['upload_dir'].$import->fname;
                 
-                // Rodzaj banku
-                switch ($import->bank) {
-                    case 'mBank': $bank = new mBank($FILE_NAME, $import->fpos, $upload_config['maxParseLines']); break;
-                }
+                // Get bank instance
+                $bank = $this->get('Budget\BankService')->getBankInstance(
+                    $import->bank,
+                    $FILE_NAME,
+                    $import->fpos,
+                    $upload_config['maxParseLines']
+                );
                 
-                // Spr. banku
-                if (!(isset($bank))) {
-                    throw new \Exception('Błędna nazwa banku!');
-                }
-                
-                // Przetworzenie
-                $tr = $bank->parseData();
-                
-                // Liczba uzyskanych transakcji
-                $tr_count = count($tr);
-                
-                // Spr. czy wystąpił błąd parsowania
-                if (!$bank->isParseError()) {
+                try {
                     
-                    // Uzupełnienie formularza danymi
+                    // Parsing data
+                    $tr = $bank->parseData();
+                    
+                    // Number of returned transactions
+                    $tr_count = count($tr);
+                    
+                    // Insert data into the form
                     for ($i=0; $i<$tr_count; $i++) {
-                        
-                        // Typ transakcji (0 - przychód, 1 - wydatek)
-                        $form->get('t_type'.$i)->setValue($tr[$i]->t_type);
-                        // Lista kategorii
-                        $form->get('cid'.$i)->setValueOptions(($tr[$i]->t_type==0)?($user_cat_profit):($user_cat_expense));
-                        // Nowa kategoria
-                        $form->get('c_name'.$i)->setValue('');
-                        // Data
-                        $form->get('t_date'.$i)->setValue($tr[$i]->t_date);
-                        // Opis
-                        $form->get('t_content'.$i)->setValue($tr[$i]->t_content);
-                        // Wartość
-                        $form->get('t_value'.$i)->setValue($tr[$i]->t_value);
-                        
+                    
+                        // Transaction type
+                        $form->get('t_type-'.$i)->setValue($tr[$i]->t_type);
+                        // Main category list
+                        $form->get('pcid-'.$i)->setValueOptions(($tr[$i]->t_type==0)?($user_cat_profit):($user_cat_expense));
+                        // Bank account list
+                        $form->get('taid-'.$i)->setValueOptions($accounts);
+                        // Transaction date
+                        $form->get('t_date-'.$i)->setValue($tr[$i]->t_date);
+                        // Description
+                        $form->get('t_content-'.$i)->setValue($tr[$i]->t_content);
+                        // Value
+                        $form->get('t_value-'.$i)->setValue($tr[$i]->t_value);
                     }
                     
-                    // Nowa pozycja w pliku
+                    // New position in CSV file
                     $import->nfpos = $bank->getPos();
                     
-                    // Aktualizacja informacji o imporcie
+                    // Update import information
                     $this->get('Budget\ImportMapper')->setUserImport($import);
                     
-                } else { // Błąd parsowania
+                } catch (ParseBankFileError $e) {
                     
-                    // Ustawienie flagi błędu
+                    // Set error flag
                     $ERR = 1;
                     
-                    // Usunięcie informacji o imporcie
-                    $this->getImportMapper()->delUserImport($uid);
-                    // Usunięcie pliku z wyciągiem
+                    // Delete information about import
+                    $this->get('Budget\ImportMapper')->delUserImport($uid);
+                    // Delete CSV file from the server
                     if (unlink($upload_config['upload_dir'].$import->fname) == false) {
-                        
-                        throw new \Exception("Nie można usunąć pliku z wyciągiem!");
-                        
-                    }
                     
+                        throw new \Exception('Can not delete CSV file!');
+                    
+                    }
                 }
                 
             }
@@ -360,42 +372,44 @@ class ImportController extends BaseController
                 'ALL_TR_COUNT' => $import->count,
             );
             
-        } else { // brak danych do importu
+        } else { // There is no data to import
             
-            // Przekierowanie do wyboru banku i pliku
+            // Redirect to the file form
             return $this->redirect()->toRoute('import');
             
         }
         
     }
     
-    // Anulowanie importu transakcji
+    /**
+     * Cancel importing transactions
+     */
     public function cancelAction()
     {
-        // Identyfikator zalogowanego usera
+        // User identifier
         $uid = $this->get('userId');
         
-        // Aktualny import
+        // Get import information
         $import = $this->get('Budget\ImportMapper')->getUserImport($uid);
         
-        // Ustawienia ładowania wyciągów
+        // Get upload configuration
         $upload_config = $this->get('upload_cfg');
         
-        // Czy są dane z importem
+        // Check if there are informations about import
         if ($import) {
             
-            // Usunięcie informacji o imporcie
+            // Delete import information
             $this->get('Budget\ImportMapper')->delUserImport($uid);
-            // Usunięcie pliku z wyciągiem
+            // Delete CSV file from the server
             if (unlink($upload_config['upload_dir'].$import->fname) == false) {
                 
-                throw new \Exception("Nie można usunąć pliku z wyciągiem!");
+                throw new \Exception('Can not delete CSV file!');
                 
             }
             
         }
         
-        // Przekierowanie do listy transakcji
+        // Redirect to the transaction list
         return $this->redirect()->toRoute('transactions', array(
                                                                'month' => date('n'),
                                                                'year' => date('Y'),

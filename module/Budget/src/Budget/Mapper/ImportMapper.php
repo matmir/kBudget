@@ -1,18 +1,17 @@
 <?php
-/**
-    @author Mateusz Mirosławski
-    
-    Klasa zajmująca się rejestrowaniem przebiegu importu w bazie
-*/
 
 namespace Budget\Mapper;
 
 use Base\Mapper\BaseMapper;
-
 use Zend\Db\Sql\Sql;
-
 use Budget\Model\Import;
 
+/**
+ * Import CSV file mapper
+ * 
+ * @author Mateusz Mirosławski
+ *
+ */
 class ImportMapper extends BaseMapper
 {
     /**
@@ -23,10 +22,11 @@ class ImportMapper extends BaseMapper
     const TABLE = 'imports';
     
     /**
-        Pobiera informacje dotyczące aktualnego importu wyciągu
-        @param int $uid Identyfikator usera
-        @return Jeśli są informacja to Obiekt Import inaczej null
-    */
+     * Get information about actual user import
+     * 
+     * @param int $uid User identifier
+     * @return Import
+     */
     public function getUserImport($uid)
     {
         $sql = new Sql($this->getDbAdapter());
@@ -38,30 +38,19 @@ class ImportMapper extends BaseMapper
         $statement = $sql->prepareStatementForSqlObject($select);
         $row = $statement->execute();
         
-        $data = $row->current();
-        
-        // Spr. czy są informacje
-        if ($data==null) {
-            
-            return null;
-        
-        } else {
-            
-            $import = new Import();
-            $import->exchangeArray($data);
-            
-            return $import;
-            
-        }
+        // Check if there is information
+        return ($row->count()==0)?(null):(new Import($row->current()));
     }
     
     /**
-        Ustawia informacje dotyczące importu wyciągu
-        @param Import Obiekt z informacjami dotyczącymi importu
-    */
+     * Set user import information
+     * 
+     * @param Import $import Import object
+     */
     public function setUserImport($import)
     {
         $data = array(
+            'aid' => (int)$import->aid,
             'fname' => (string)$import->fname,
             'bank' => (string)$import->bank,
             'fpos' => (int)$import->fpos,
@@ -72,7 +61,8 @@ class ImportMapper extends BaseMapper
         
         $sql = new Sql($this->getDbAdapter());
 
-        if ($this->getUserImport($import->uid) == null) { // dodanie nowego wpisu
+        // Add new entry?
+        if ($this->getUserImport($import->uid) == null) {
             
             $data['uid'] = (int)$import->uid;
             
@@ -83,7 +73,7 @@ class ImportMapper extends BaseMapper
             $statement = $sql->prepareStatementForSqlObject($insert);
             $statement->execute();
             
-        } else { // edycja
+        } else { // Update entry
                 
             $update = $sql->update();
             
@@ -97,9 +87,10 @@ class ImportMapper extends BaseMapper
     }
     
     /**
-        Usunięcie informacji o imporcie z bazy
-        @param int $uid Identyfikator usera
-    */
+     * Delete import information from the database
+     * 
+     * @param int $uid User identifier
+     */
     public function delUserImport($uid)
     {
         $sql = new Sql($this->getDbAdapter());

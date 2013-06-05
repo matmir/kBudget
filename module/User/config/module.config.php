@@ -105,14 +105,14 @@ return array(
                                     ),
                                 ),
                             ),
-                            'get-subcategories' => array(
+                            'get-categories' => array(
                                 'type' => 'segment',
-                                'description' => 'Route to action which returns subcategories',
+                                'description' => 'Route to action which returns categories',
                                 'options' => array(
-                                    'route' => 'get-subcategories[/]',
+                                    'route' => 'get-categories[/]',
                                     'defaults' => array(
                                         'controller' => 'User\Controller\Category',
-                                        'action' => 'subcategory',
+                                        'action' => 'category',
                                     ),
                                 ),
                             ),

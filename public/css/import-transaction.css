@@ -1,0 +1,31 @@
+#importTable td {
+	vertical-align: top;
+}
+
+#transactionImportForm .transactionType {
+	width: 185px;
+}
+
+#transactionImportForm .transactionCategory {
+    width: 160px;
+}
+
+#transactionImportForm .transactionNewCategory {
+    width: 140px;
+}
+
+#transactionImportForm .transactionDate {
+    width: 150px;
+}
+
+#transactionImportForm .transactionDescription {
+    width: 200px;
+}
+
+#transactionImportForm .transactionValue {
+    width: 80px;
+}
+
+#transactionImportForm .submitCategory {
+    width: 153px;
+}

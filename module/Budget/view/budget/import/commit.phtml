@@ -2,16 +2,24 @@
 
 $title = 'kBudget - Import wyciągu bankowego';
 $this->headTitle($title);
+
+$this->headLink()->prependStylesheet($this->basePath('/css/import-transaction.css'));
+$this->headScript()->prependFile($this->basePath('/js/app/import/transactionImport.js'));
+
 ?>
 <h1><?php echo $this->escapeHtml($title); ?></h1>
 
 <div class="row">
-<div class="span12"></div>
+<div class="span4">
 
-<div class="alert alert-info" style="width: 25%;">
-        Przetworzono <b><?php echo $this->TR_COUNTED; ?></b> z <b><?php echo $this->ALL_TR_COUNT; ?></b> transakcji.
+    <div class="alert alert-info">
+            Przetworzono <b><?php echo $this->TR_COUNTED; ?></b> z <b><?php echo $this->ALL_TR_COUNT; ?></b> transakcji.
+    </div>
+
 </div>
 
+<div class="span8">
+    <div id="catWait"><img alt="Czekaj..." src="/images/loading.gif"></div>
 </div>
 </div>
 
@@ -28,12 +36,12 @@ $form->prepare();
 
 <?php
     echo $this->form()->openTag($form);
+    echo $this->formHidden($form->get('trCount'));
 ?>
-<table>
+<table id="importTable">
     <tr>
-        <th>Typ</th>
-        <th>Kategoria</th>
-        <th>Nowa kategoria</th>
+        <th class="type">Typ</th>
+        <th>Kategoria/Konto</th>
         <th>Data</th>
         <th>Opis</th>
         <th>Wartość</th>
@@ -43,20 +51,36 @@ $form->prepare();
     <tr>
         <td>
         <?php
-            echo $this->formHidden($form->get('t_type'.$i));
-            if ($this->form->get('t_type'.$i)->getValue()==0) {
-                echo '<div class="profit">Przychód</div>';
-            } else {
-                echo '<div class="expense">Wydatek</div>';
-            }
+            echo $this->formElement($form->get('t_type-'.$i));
         ?>
         </td>
-        <td><?php echo $this->formRow($form->get('cid'.$i)); ?></td>
-        <td><?php echo $this->formRow($form->get('c_name'.$i)); ?></td>
-        <td><?php echo $this->formRow($form->get('t_date'.$i)); ?></td>
-        <td><?php echo $this->formRow($form->get('t_content'.$i)); ?></td>
-        <td><?php echo $this->formRow($form->get('t_value'.$i)); ?></td>
-        <td><?php echo $this->formRow($form->get('ignore'.$i)); ?></td>
+        <td>
+            <!-- Categories -->
+            <div id="categoryRow-<?= $i; ?>">
+                <?php echo $this->formElement($form->get('pcid-'.$i)); ?><br />
+                <div id="newMainCategoryRow-<?= $i;?>">
+                    <?php echo $this->formElement($form->get('newMainCategoryName-'.$i)); ?><br />
+                    <input type="button" id="submitNewCategory-<?= $i; ?>" value="Dodaj kategorię" class="submitCategory" />
+                </div>
+                
+                <div id="subCategoryRow-<?= $i; ?>">
+                    <?php echo $this->formElement($form->get('ccid-'.$i)); ?><br />
+                    <div id="newSubCategoryRow-<?= $i;?>">
+                    <?php echo $this->formElement($form->get('newSubCategoryName-'.$i)); ?><br />
+                    <input type="button" id="submitNewSubCategory-<?= $i; ?>" value="Dodaj podkategorię" />
+                    </div>
+                </div>
+            </div>
+            <!-- Bank accounts -->
+            <div id="accountRow-<?= $i; ?>">
+            <?php echo $this->formElement($form->get('taid-'.$i)); ?>
+            </div>
+        
+        </td>
+        <td><?php echo $this->formElement($form->get('t_date-'.$i)); ?></td>
+        <td><?php echo $this->formElement($form->get('t_content-'.$i)); ?></td>
+        <td><?php echo $this->formElement($form->get('t_value-'.$i)); ?></td>
+        <td><?php echo $this->formElement($form->get('ignore-'.$i)); ?></td>
     </tr>
     <?php endfor; ?>
 </table>
