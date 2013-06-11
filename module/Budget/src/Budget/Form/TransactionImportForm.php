@@ -84,7 +84,8 @@ class TransactionImportForm extends Form
                 'options' => array(
                     'label' => 'Kategoria: ',
                     'value_options' => array(
-                        '0' => '...',
+                        '-1' => 'Wybierz...',
+                        '0' => 'Dodaj nową...',
                     ),
                 ),
                 'attributes' => array(
@@ -215,34 +216,30 @@ class TransactionImportForm extends Form
     }
 }
 
-/*
-    Filtry dla formularza
-*/
+/**
+ * Transaction import form filters
+ * 
+ * @author Mateusz Mirosławski
+ *
+ */
 class TransactionImportFormFilter implements InputFilterAwareInterface
 {
     protected $inputFilter;
     private $fCount;
-    private $n_c_required; // Czy wymagane pole od nowej kategorii
     
     /**
-        Konstruktor
-        @param int $forms_count Liczba generowanych formatek (validatorów)
-        @param array() $new_category_required Tablica z flagami wymagania pola z nową kategorią
-    */
-    public function __construct($forms_count, $new_category_required)
+     * 
+     * @param int $forms_count Number of generating fields
+     * @throws \Exception
+     */
+    public function __construct($forms_count)
     {
-        // Spr. liczby generowanych formatek
+        // Check fields number
         if ($forms_count<1) {
-            throw new \Exception('Błędna liczba generowanych formatek!');
-        }
-        
-        // Spr. tablicy z flagami
-        if (!is_array($new_category_required)) {
-            throw new \Exception('Parametr z flagą wymagania nowej kategorii musi być tablicą!');
+            throw new \Exception('Number of fields must be greater or equals 1!');
         }
         
         $this->fCount = (int)$forms_count;
-        $this->n_c_required = $new_category_required;
     }
     
     public function setInputFilter(InputFilterInterface $inputFilter)
@@ -256,91 +253,110 @@ class TransactionImportFormFilter implements InputFilterAwareInterface
             $inputFilter = new InputFilter();
             $factory     = new InputFactory();
             
-            // Generacja odpowiedniej liczby validatorów dla formatek
+            // Number of generated forms
+            $inputFilter->add($factory->createInput(array(
+                'name' => 'trCount',
+                'required' => true,
+                'filters' => array(
+                    array('name' => 'Int'),
+                ),
+            )));
+            
+            // Generate filters
             for ($i=0; $i<$this->fCount; $i++) {
                 
-                // Typ transakcji
+                // Transaction type
                 $inputFilter->add($factory->createInput(array(
-                    'name'     => 't_type'.$i,
+                    'name' => 't_type-'.$i,
                     'required' => true,
                     'filters'  => array(
                         array('name' => 'Int'),
                     ),
                 )));
     
-                // Lista kategorii
+                // Main category
                 $inputFilter->add($factory->createInput(array(
-                    'name'     => 'cid'.$i,
+                    'name' => 'pcid-'.$i,
+                    'required' => true,
+                    'filters' => array(
+                        array('name' => 'Int'),
+                    ),
+                )));
+                
+                // New main category
+                $inputFilter->add($factory->createInput(array(
+                    'name' => 'newMainCategoryName-'.$i,
+                    'required' => false,
+                )));
+                
+                // Subcategory
+                $inputFilter->add($factory->createInput(array(
+                    'name' => 'ccid-'.$i,
+                    'required' => true,
+                    'filters' => array(
+                        array('name' => 'Int'),
+                    ),
+                )));
+                
+                // New subcategory
+                $inputFilter->add($factory->createInput(array(
+                    'name' => 'newSubCategoryName-'.$i,
+                    'required' => false,
+                )));
+                
+                // Bank account id from/to which we transfer money
+                $inputFilter->add($factory->createInput(array(
+                    'name' => 'taid-'.$i,
                     'required' => true,
                     'filters'  => array(
                         array('name' => 'Int'),
                     ),
                 )));
                 
-                // Nowa kategoria
+                // Transaction date
                 $inputFilter->add($factory->createInput(array(
-                    'name'     => 'c_name'.$i,
-                    'required' => $this->n_c_required[$i],
-                    'filters'  => array(
-                        array('name' => 'StripTags'),
-                        array('name' => 'StringTrim'),
-                    ),
+                    'name' => 't_date-'.$i,
+                    'required' => true,
                     'validators' => array(
                         array(
-                            'name'    => 'StringLength',
+                            'name' => 'Between',
                             'options' => array(
-                                'encoding' => 'UTF-8',
-                                'min'      => 1,
-                                'max'      => 100,
-                            ),
-                        ),
-                    ),
-                )));
-                
-                // Data
-                $inputFilter->add($factory->createInput(array(
-                    'name'     => 't_date'.$i,
-                    'required' => true,
-                    'validators'  => array(
-                        array(
-                              'name' => 'Between',
-                              'options' => array(
                                 'min' => '1970-01-01',
                                 'max' => date('Y-m-d'),
-                              ),
-                        ),
-                    ),
-                )));
-                
-                // Opis
-                $inputFilter->add($factory->createInput(array(
-                    'name'     => 't_content'.$i,
-                    'required' => true,
-                    'filters'  => array(
-                        array('name' => 'StripTags'),
-                        array('name' => 'StringTrim'),
-                    ),
-                    'validators' => array(
-                        array(
-                            'name'    => 'StringLength',
-                            'options' => array(
-                                'encoding' => 'UTF-8',
-                                'min'      => 1,
-                                'max'      => 200,
                             ),
                         ),
                     ),
                 )));
                 
-                // Wartość
+                // Transaction description
                 $inputFilter->add($factory->createInput(array(
-                    'name'     => 't_value'.$i,
+                    'name' => 't_content-'.$i,
                     'required' => true,
-                    'filters'  => array(
+                    'filters' => array(
+                        array('name' => 'StripTags'),
+                        array('name' => 'StringTrim'),
+                    ),
+                    'validators' => array(
                         array(
-                              'name' => 'PregReplace',
-                              'options' => array(
-                                'pattern'     => '/,/',
+                            'name' => 'StringLength',
+                            'options' => array(
+                                'encoding' => 'UTF-8',
+                                'min' => 1,
+                                'max' => 200,
+                            ),
+                        ),
+                    ),
+                )));
+                
+                // Transaction value
+                $inputFilter->add($factory->createInput(array(
+                    'name' => 't_value-'.$i,
+                    'required' => true,
+                    'filters' => array(
+                        array(
+                            'name' => 'PregReplace',
+                            'options' => array(
+                                'pattern' => '/,/',
                                 'replacement' => '.',
                             ),
                         ),

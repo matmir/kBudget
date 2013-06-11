@@ -171,6 +171,8 @@ class ImportController extends BaseController
         // Error flag (0 - ok, 1 - parsing error)
         $ERR = 0;
         
+        $categoriesValid = true;
+        
         // Check if there is import information
         if ($import) {
             
@@ -195,112 +197,178 @@ class ImportController extends BaseController
             $request = $this->getRequest();
             if ($request->isPost()) {
                 
-                $request_data = $request->getPost();
+                // Get POST data
+                $data = $request->getPost();
                 
-                // Wygenerowanie wszystkich kategorii oraz uzupełnienie flag nowych kategorii
-                $ncr = array();
+                // Loading all necessary categories for the import form
                 for ($i=0; $i<$tr_count; $i++) {
                     
-                    // Lista kategorii
-                    $form->get('cid'.$i)->setValueOptions(($request_data['t_type'.$i]==0)?($user_cat_profit):($user_cat_expense));
-                    // Flagi
-                    array_push($ncr, ((($request_data['cid'.$i]==0)&&($request_data['ignore'.$i]==0)))?(true):(false));
-                }
-                
-                // Uzupełnienie formularza
-                $form->setData($request_data);
-                
-                // Filtry
-                $formFilters = new TransactionImportFormFilter($tr_count, $ncr);
-                $form->setInputFilter($formFilters->getInputFilter());
-                
-                // Poprawność formularza
-                if ($form->isValid()) {
+                    // Bank account list
+                    $form->get('taid-'.$i)->setValueOptions($accounts);
                     
-                    // Dodanie poszczególnych transakcji do bazy danych
-                    for ($i=0; $i<$tr_count; $i++) {
+                    // Check if the givent transaction is not transfer
+                    if ($data['t_type-'.$i] == 0 || $data['t_type-'.$i] == 1) {
                         
-                        // Spr. czy ignorować wybraną transakcję
-                        if ($form->get('ignore'.$i)->getValue()==1) {
-                            // Ominięcie wykonania reszty pętli
+                        // Check if we must ignore this transaction
+                        if ($data['ignore-'.$i]==1) {
+                            // Jump to the next transaction
                             continue;
                         }
                         
-                        // Przygotowanie transakcji
-                        $transaction = new Transaction();
-                        $transaction->tid = 0;
-                        $transaction->uid = $uid;
-                        $transaction->cid = (int)$form->get('cid'.$i)->getValue();
-                        $transaction->t_type = (int)$form->get('t_type'.$i)->getValue();
-                        $transaction->t_date = (string)$form->get('t_date'.$i)->getValue();
-                        $transaction->t_content = (string)$form->get('t_content'.$i)->getValue();
-                        $transaction->t_value = (double)$form->get('t_value'.$i)->getValue();
-                        
-                        // spr. czy podano nową kategorię
-                        $c_name = $form->get('c_name'.$i)->getValue();
-                        if (($c_name!=null) && ($ncr[$i]==true)) {
-                            // spr. czy taka kategoria istnieje (jeśli tak, to zwraca cid)
-                            $n_cid = $this->get('User\CategoryMapper')->isCategoryNameExists($c_name, $transaction->t_type, $uid);
-                            if ($n_cid == 0) { // Nie istnieje - dodać nową
-                                $new_category = new Category();
-                                $new_category->uid = $uid;
-                                $new_category->c_type = $transaction->t_type;
-                                $new_category->c_name = $c_name;
-                                // Dodanie
-                                $this->get('User\CategoryMapper')->saveCategory($new_category);
-                                // Pobranie nowego id-a kategorii
-                                $n_cid = $this->get('User\CategoryMapper')->isCategoryNameExists($c_name, $transaction->t_type, $uid);
-                            }
-                            
-                            // Nadpisać pole transakcji nowym identyfikatorem kategorii
-                            $transaction->cid = (int)$n_cid;
+                        // Check main category
+                        if ($data['pcid-'.$i] == 0 || $data['pcid-'.$i] == -1) {
+                            $form->get('pcid-'.$i)->setMessages(
+                                array(
+                                    'Select category!'
+                                )
+                            );
+            
+                            $categoriesValid = false;
                         }
                         
-                        // Zapis transakcji
-                        $this->get('Budget\TransactionMapper')->saveTransaction($transaction);
+                        // Insert main category
+                        $form->get('pcid-'.$i)->setValueOptions(($data['t_type-'.$i]==0)?($user_cat_profit):($user_cat_expense));
+                        
+                        // Get subcategories
+                        $subCategories = $this->get('User\CategoryMapper')->getUserCategoriesToSelect($uid, $data['t_type-'.$i], $data['pcid-'.$i]);
+                        
+                        // Insert subcategories
+                        $form->get('ccid-'.$i)->setValueOptions($subCategories);
+                    } else { // Check transfer data
+                        // Check transfer account id
+                        if ($data['taid-'.$i] == $import->aid) {
+                            $form->get('taid-'.$i)->setMessages(
+                                array(
+                                    'Bank account must be different than bank account into which importing CSV file!'
+                                )
+                            );
+            
+                            $categoriesValid = false;
+                        }
+                    }
+                }
+                
+                // Insert POST data into the form
+                $form->setData($data);
+                
+                // Filters
+                $formFilters = new TransactionImportFormFilter($tr_count);
+                $form->setInputFilter($formFilters->getInputFilter());
+                
+                // Check the form
+                if ($form->isValid() && $categoriesValid) {
+                    
+                    // Add transactions to the database
+                    for ($i=0; $i<$tr_count; $i++) {
+                        
+                        // Check if we must ignore this transaction
+                        if ($form->get('ignore-'.$i)->getValue()==1) {
+                            // Jump to the next transaction
+                            continue;
+                        }
+                        
+                        // Check which transaction type we must add
+                        if ($data['t_type-'.$i] == 0 || $data['t_type-'.$i] == 1) {
+                            
+                            // Create transaction object
+                            $transaction = new Transaction();
+                            $transaction->aid = $import->aid;
+                            $transaction->uid = $uid;
+                            // Get category id
+                            if ($form->get('ccid-'.$i)->getValue() == -1 || $form->get('ccid-'.$i)->getValue() == 0) {
+                                $cid = $form->get('pcid-'.$i)->getValue();
+                            } else {
+                                $cid = $form->get('ccid-'.$i)->getValue();
+                            }
+                            $transaction->cid = (int)$cid;
+                            $transaction->t_type = (int)$form->get('t_type-'.$i)->getValue();
+                            $transaction->t_date = (string)$form->get('t_date-'.$i)->getValue();
+                            $transaction->t_content = (string)$form->get('t_content-'.$i)->getValue();
+                            $transaction->t_value = (double)$form->get('t_value-'.$i)->getValue();
+                            
+                            // Add transaction
+                            $this->get('Budget\TransactionMapper')->saveTransaction($transaction);
+                            
+                        } else { // Transfer
+                            
+                            // Get user transfer category id (hidden category for transfers)
+                            $tcid = $this->get('User\CategoryMapper')->getTransferCategoryId($uid);
+                            
+                            // Outgoing transfer
+                            $outTransaction = new Transaction();
+                            $outTransaction->aid = ($data['t_type-'.$i]==2)?($import->aid):($data['taid-'.$i]);
+                            $outTransaction->taid = ($data['t_type-'.$i]==2)?($data['taid-'.$i]):($import->aid);
+                            $outTransaction->uid = $uid;
+                            $outTransaction->t_type = 2;
+                            $outTransaction->cid = $tcid;
+                            $outTransaction->t_date = $data['t_date-'.$i];
+                            $outTransaction->t_content = $data['t_content-'.$i];
+                            $outTransaction->t_value = $data['t_value-'.$i];
+                            
+                            // Incoming transfer
+                            $inTransaction = new Transaction();
+                            $inTransaction->aid = ($data['t_type-'.$i]==2)?($data['taid-'.$i]):($import->aid);
+                            $inTransaction->taid = ($data['t_type-'.$i]==2)?($import->aid):($data['taid-'.$i]);
+                            $inTransaction->uid = $uid;
+                            $inTransaction->t_type = 3;
+                            $inTransaction->cid = $tcid;
+                            $inTransaction->t_date = $data['t_date-'.$i];
+                            $inTransaction->t_content = $data['t_content-'.$i];
+                            $inTransaction->t_value = $data['t_value-'.$i];
+                            
+                            // Save transfer
+                            $this->get('Budget\TransferMapper')->saveTransfer($outTransaction, $inTransaction);
+                            
+                        }
                         
                     }
                     
-                    // Zwiększenie licznika przeparsowanych transakcji
+                    // Increment parsing line count
                     $import->fpos = $import->nfpos;
                     $import->counted += $tr_count;
                     
-                    // Spr czy koniec importu
+                    // Check if is end importing
                     if ($import->counted == $import->count) {
                         
-                        // Usunięcie informacji o imporcie
+                        // Delete information about import
                         $this->get('Budget\ImportMapper')->delUserImport($uid);
-                        // Usunięcie pliku z wyciągiem
+                        // Delete CSV file
                         if (unlink($upload_config['upload_dir'].$import->fname) == true) {
                             
-                            // Ostatnia data z dodanej transakcji
+                            // Get last transaction date
                             if (isset($transaction)) {
                                 $t_dt = explode('-', $transaction->t_date);
-                            } else { // Nie importowano niczego (ignorowano)
+                            } else {
                                 $t_dt[0] = date('Y');
                                 $t_dt[1] = date('n');
                             }
-                            // Przekierowanie do listy transakcji do daty z dodawanej transakcji
+                            // redirect to the transaction list
                             return $this->redirect()->toRoute('transactions', array(
-                                                                                   'month' => $t_dt[1],
-                                                                                   'year' => $t_dt[0],
-                                                                                   'page' => 1,
+                                                                                    'aid' => $import->aid,
+                                                                                    'month' => $t_dt[1],
+                                                                                    'year' => $t_dt[0],
+                                                                                    'page' => 1,
                                                                                    ));
                             
                         } else {
-                            throw new \Exception("Nie można usunąć pliku z wyciągiem!");
+                            throw new \Exception('Can not delete CSV file!');
                         }
                         
-                    } else { // jeszcze nie koniec importu
+                    } else { // is not end importing
                         
-                        // Aktualizacja informacji o imporcie
+                        // Update import information
                         $this->get('Budget\ImportMapper')->setUserImport($import);
                         
-                        // Przekierowanie do kolejnego zatwierdzania
+                        // Redirect to the committing
                         return $this->redirect()->toRoute('import/commit');
                         
                     }
                     
+                } else { // Form is not valid!
+                    foreach ($form->getMessages() as $key => $value) {
+                        $form->get($key)->setAttribute('style', 'background: red;');
+                        $form->get($key)->setAttribute('title', current($value));
+                    }
                 }
                 
             } else { // There is no POST data
