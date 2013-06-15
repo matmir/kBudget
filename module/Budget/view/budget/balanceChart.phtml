@@ -1,0 +1,55 @@
+<script type="text/javascript">
+$(function () {
+        $(<?= "'#".$this->chartId."'"; ?>).highcharts({
+            chart: {
+                type: 'bar'
+            },
+            title: {
+                text: <?= "'".$this->chartTitle."'"; ?>
+            },
+            xAxis: {
+                categories: ['Suma'],
+                title: {
+                    text: null
+                }
+            },
+            yAxis: {
+                min: 0,
+                title: {
+                    text: <?= "'".$this->yTitle.' ('.$this->dataUnit.')'."'"; ?>,
+                    align: 'high'
+                },
+                labels: {
+                    overflow: 'justify'
+                }
+            },
+            tooltip: {
+                valueSuffix: <?= "'".$this->dataUnit."'"; ?>
+            },
+            plotOptions: {
+                bar: {
+                    dataLabels: {
+                        enabled: true
+                    }
+                }
+            },
+            legend: {
+                enabled: false
+            },
+            credits: {
+                enabled: false
+            },
+            series: [{
+                name: 'Przychody',
+                data: [<?= $this->chartData['profits']; ?>]
+            }, {
+                name: 'Wydatki',
+                data: [<?= $this->chartData['expenses']; ?>]
+            }]
+        });
+    });
+    
+
+</script>
+
+<div id="<?= $this->chartId; ?>" style="min-width: <?= $this->chartWidth; ?>px; height: <?= $this->chartHeight; ?>px; margin: 0 auto"></div>

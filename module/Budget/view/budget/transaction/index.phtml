@@ -24,6 +24,9 @@ $this->headLink()->prependStylesheet($this->basePath('/css/transaction-list.css'
             
     <a href="<?php echo $this->url('import');?>" class="btn btn-info">Importuj wyciąg</a>
 </div>
+
+<a href="<?php echo $this->url('analysis/time/month',
+            array('aid'=>$this->aid, 'month'=>$this->dt['month'], 'year'=>$this->dt['year']));?>" class="btn">Analiza czasowa miesiąca</a>
     
 </div>
 </div>

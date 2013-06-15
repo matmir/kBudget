@@ -1,9 +1,4 @@
 <?php
-/**
-    @author Mateusz Mirosławski
-    
-    Formularz do sortowania transakcji w analizie
-*/
 
 namespace Budget\Form;
 
@@ -15,6 +10,12 @@ use Zend\InputFilter\InputFilter;
 use Zend\InputFilter\InputFilterAwareInterface;
 use Zend\InputFilter\InputFilterInterface;
 
+/**
+ * Time select form for analysis charts
+ * 
+ * @author Mateusz Mirosławski
+ * 
+ */
 class TransactionTimeSelectForm extends Form
 {
     public function __construct($name = null)
@@ -23,7 +24,22 @@ class TransactionTimeSelectForm extends Form
         parent::__construct('transaction-time-select');
         $this->setAttribute('method', 'post');
         
-        // Typ filtracji
+        // Bank account identifier
+        $this->add(array(
+            'type'  => 'Zend\Form\Element\Select',
+            'name' => 'aid',
+            'options' => array(
+                'label' => 'Konto bankowe: ',
+                'value_options' => array(
+                    '0' => '...',
+                ),
+            ),
+            'attributes' => array(
+                'id' => 'aid',
+            ),
+        ));
+
+        // Filter type
         $this->add(array(
             'type'  => 'Zend\Form\Element\Select',
             'name' => 'filter_type',
@@ -40,7 +56,7 @@ class TransactionTimeSelectForm extends Form
             ),
         ));
         
-        // Miesiące
+        // Months
         $this->add(array(
             'type'  => 'Zend\Form\Element\Select',
             'name' => 'month',
@@ -61,9 +77,12 @@ class TransactionTimeSelectForm extends Form
                   '12' => 'Grudzień',
                 ),
             ),
+            'attributes' => array(
+                'id' => 'month',
+            ),
         ));
         
-        // Rok
+        // Year
         $this->add(array(
             'type'  => 'Zend\Form\Element\Text',
             'name' => 'year',
@@ -73,10 +92,11 @@ class TransactionTimeSelectForm extends Form
             'attributes' => array(
                 'maxlength' => 4,
                 'size' => 5,
+                'id' => 'year'
             ),
         ));
         
-        // Data od
+        // Date from
         $this->add(array(
             'type'  => 'Zend\Form\Element\Date',
             'name' => 'date_from',
@@ -85,10 +105,11 @@ class TransactionTimeSelectForm extends Form
             ),
             'attributes' => array(
                 'step' => '1',
+                'id' => 'date_from'
             ),
         ));
         
-        // Data do
+        // Date to
         $this->add(array(
             'type'  => 'Zend\Form\Element\Date',
             'name' => 'date_to',
@@ -97,6 +118,7 @@ class TransactionTimeSelectForm extends Form
             ),
             'attributes' => array(
                 'step' => '1',
+                'id' => 'date_to'
             ),
         ));
         
@@ -108,99 +130,5 @@ class TransactionTimeSelectForm extends Form
                 'id' => 'submitbutton',
             ),
         ));
-    }
-}
-
-/*
-    Filtry dla formularza
-*/
-class TransactionTimeSelectFormFilter implements InputFilterAwareInterface
-{
-    protected $inputFilter;
-    private $minYear; // minimalny rok
-    
-    public function __construct($mYear=1970)
-    {
-        $this->minYear = (int)$mYear;
-    }
-    
-    public function setInputFilter(InputFilterInterface $inputFilter)
-    {
-        throw new \Exception("Not used");
-    }
-
-    public function getInputFilter()
-    {
-        if (!$this->inputFilter) {
-            $inputFilter = new InputFilter();
-            $factory     = new InputFactory();
-
-            // typ filtracji
-            $inputFilter->add($factory->createInput(array(
-                'name'     => 'filter_type',
-                'required' => true,
-            )));
-
-            // miesiąc
-            $inputFilter->add($factory->createInput(array(
-                'name'     => 'month',
-                'required' => true,
-                'filters'  => array(
-                    array('name' => 'Int'),
-                ),
-            )));
-
-            // rok
-            $inputFilter->add($factory->createInput(array(
-                'name'     => 'year',
-                'required' => true,
-                'filters'  => array(
-                    array('name' => 'Int'),
-                ),
-                'validators'  => array(
-                    array(
-                          'name' => 'Between',
-                          'options' => array(
-                            'min' => $this->minYear,
-                            'max' => (int)date('Y'),
-                          ),
-                    ),
-                ),
-            )));
-            
-            // Data od
-            $inputFilter->add($factory->createInput(array(
-                'name'     => 'date_from',
-                'required' => true,
-                'validators'  => array(
-                    array(
-                          'name' => 'Between',
-                          'options' => array(
-                            'min' => '1970-01-01',
-                            'max' => date('Y-m-d'),
-                          ),
-                    ),
-                ),
-            )));
-            
-            // Data do
-            $inputFilter->add($factory->createInput(array(
-                'name'     => 'date_to',
-                'required' => true,
-                'validators'  => array(
-                    array(
-                          'name' => 'Between',
-                          'options' => array(
-                            'min' => '1970-01-01',
-                            'max' => date('Y-m-d'),
-                          ),
-                    ),
-                ),
-            )));
-            
-            $this->inputFilter = $inputFilter;
-        }
-
-        return $this->inputFilter;
     }
 }

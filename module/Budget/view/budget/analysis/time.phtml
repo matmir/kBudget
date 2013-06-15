@@ -3,7 +3,9 @@
 $title = 'kBudget - Analiza czasowa transakcji';
 $this->headTitle($title);
 
-$this->headScript()->prependFile($this->basePath('/js/analysis/sort.js'));
+$this->headScript()->prependFile($this->basePath('/js/app/analysis/filterForm.js'));
+$this->headScript()->prependFile($this->basePath('/js/highcharts/highcharts.js'));
+$this->headScript()->prependFile($this->basePath('/js/highcharts/modules/exporting.js'));
 
 ?>
 <h1><?php echo $this->escapeHtml($title); ?></h1>
@@ -16,7 +18,7 @@ $this->headScript()->prependFile($this->basePath('/js/analysis/sort.js'));
 
 <br />
 
-<!-- Filtracja -->
+<!-- Filtering -->
 <div class="row">
     <div class="span12">
         
@@ -33,14 +35,25 @@ $this->headScript()->prependFile($this->basePath('/js/analysis/sort.js'));
         
         <table>
         <tr>
+            <td><?php echo $form->get('aid')->getLabel(); ?></td>
+            <td><?php echo $this->formElement($form->get('aid')) ?></td>
+        </tr>
+        <?php
+            echo $this->formElementErrors()
+                ->setMessageOpenFormat('<tr><td colspan="2"><div class="alert alert-error">')
+                ->setMessageSeparatorString('</div></td></tr><tr><td colspan="2"><div class="alert alert-error">')
+                ->setMessageCloseString('</div></td></tr>')
+                ->render($form->get('aid'));
+        ?>
+        <tr>
             <td><?php echo $form->get('filter_type')->getLabel(); ?></td>
             <td><?php echo $this->formElement($form->get('filter_type')) ?></td>
         </tr>
         <?php
             echo $this->formElementErrors()
-                ->setMessageOpenFormat('<tr><td colspan="2">')
-                ->setMessageSeparatorString('</td></tr><tr><td colspan="2">')
-                ->setMessageCloseString('</tr>')
+                ->setMessageOpenFormat('<tr><td colspan="2"><div class="alert alert-error">')
+                ->setMessageSeparatorString('</div></td></tr><tr><td colspan="2"><div class="alert alert-error">')
+                ->setMessageCloseString('</div></td></tr>')
                 ->render($form->get('filter_type'));
         ?>
         <tr class="month_filter">
@@ -49,9 +62,9 @@ $this->headScript()->prependFile($this->basePath('/js/analysis/sort.js'));
         </tr>
         <?php
             echo $this->formElementErrors()
-                ->setMessageOpenFormat('<tr class="month_filter"><td colspan="2">')
-                ->setMessageSeparatorString('</td></tr><tr class="month_filter"><td colspan="2">')
-                ->setMessageCloseString('</tr>')
+                ->setMessageOpenFormat('<tr class="month_filter"><td colspan="2"><div class="alert alert-error">')
+                ->setMessageSeparatorString('</div></td></tr><tr class="month_filter"><td colspan="2"><div class="alert alert-error">')
+                ->setMessageCloseString('</div></td></tr>')
                 ->render($form->get('month'));
         ?>
         <tr class="month_filter">
@@ -60,9 +73,9 @@ $this->headScript()->prependFile($this->basePath('/js/analysis/sort.js'));
         </tr>
         <?php
             echo $this->formElementErrors()
-                ->setMessageOpenFormat('<tr class="month_filter"><td colspan="2">')
-                ->setMessageSeparatorString('</td></tr><tr class="month_filter"><td colspan="2">')
-                ->setMessageCloseString('</tr>')
+                ->setMessageOpenFormat('<tr class="month_filter"><td colspan="2"><div class="alert alert-error">')
+                ->setMessageSeparatorString('</div></td></tr><tr class="month_filter"><td colspan="2"><div class="alert alert-error">')
+                ->setMessageCloseString('</div></td></tr>')
                 ->render($form->get('year'));
         ?>
         <tr class="between_filter">
@@ -71,9 +84,9 @@ $this->headScript()->prependFile($this->basePath('/js/analysis/sort.js'));
         </tr>
         <?php
             echo $this->formElementErrors()
-                ->setMessageOpenFormat('<tr class="between_filter"><td colspan="2">')
-                ->setMessageSeparatorString('</td></tr><tr class="between_filter"><td colspan="2">')
-                ->setMessageCloseString('</tr>')
+                ->setMessageOpenFormat('<tr class="between_filter"><td colspan="2"><div class="alert alert-error">')
+                ->setMessageSeparatorString('</div></td></tr><tr class="between_filter"><td colspan="2"><div class="alert alert-error">')
+                ->setMessageCloseString('</div></td></tr>')
                 ->render($form->get('date_from'));
         ?>
         <tr class="between_filter">
@@ -82,9 +95,9 @@ $this->headScript()->prependFile($this->basePath('/js/analysis/sort.js'));
         </tr>
         <?php
             echo $this->formElementErrors()
-                ->setMessageOpenFormat('<tr class="between_filter"><td colspan="2">')
-                ->setMessageSeparatorString('</td></tr><tr class="between_filter"><td colspan="2">')
-                ->setMessageCloseString('</tr>')
+                ->setMessageOpenFormat('<tr class="between_filter"><td colspan="2"><div class="alert alert-error">')
+                ->setMessageSeparatorString('</div></td></tr><tr class="between_filter"><td colspan="2"><div class="alert alert-error">')
+                ->setMessageCloseString('</div></td></tr>')
                 ->render($form->get('date_to'));
         ?>
         <tr>
@@ -106,50 +119,36 @@ $this->headScript()->prependFile($this->basePath('/js/analysis/sort.js'));
 </div>
 
 <div class="row">
-<!-- Wykresy (lewa strona) -->
+<!-- Cherts (left side) -->
 <div class="span9">
-    
-    <img src="<?php echo $balance_chart; ?>" alt="Bilans" title="Bilans" />
-    
-    <p>
-        <?php if ($ONE_PROFIT): ?>
-        <?php for ($i=0; $i<$ONE_PROFIT; $i++): ?>
-            Przychody z dnia <?php echo $this->escapeHtml($dt_profit['labels'][$i]); ?>
-            o wartości: <?php echo $this->escapeHtml($dt_profit['data'][$i]); ?>zł
-            <br />
-        <?php endfor; ?>
-        <?php else: ?>
-        
-            <?php if ($time_profit_chart): ?>
-            <img src="<?php echo $time_profit_chart; ?>" alt="Wykres czasowy przychodów" title="Wykres czasowy przychodów" />
-            <?php else: ?>
-            Brak przychodów w wybranym miesiącu!
-            <?php endif; ?>
-            
-        <?php endif; ?>
-    </p>
-    
-    <p>
-        <?php if ($ONE_EXPENSE): ?>
-        <?php for ($i=0; $i<$ONE_EXPENSE; $i++): ?>
-            Wydatki z dnia <?php echo $this->escapeHtml($dt_expense['labels'][$i]); ?>
-            o wartości: <?php echo $this->escapeHtml($dt_expense['data'][$i]); ?>zł
-            <br />
-        <?php endfor; ?>
-        <?php else: ?>
-        
-            <?php if ($time_expense_chart): ?>
-            <img src="<?php echo $time_expense_chart; ?>" alt="Wykres czasowy wydatków" title="Wykres czasowy wydatków" />
-            <?php else: ?>
-            Brak wydatków w wybranym miesiącu!
-            <?php endif; ?>
-            
-        <?php endif; ?>
-    </p>
-    
+
+<div class="row">
+<?= $this->balanceChart('balances', 'Suma transakcji', 'Suma', 'zł', 400, 180, $this->balanceData); ?>
 </div>
 
-<!-- Bilans (prawa strona) -->
+<div class="row">
+<?php if (count($this->profitData['data'])): ?>
+<?= $this->xyChart('profits', 'Wykres czasowy przychodów', 'Przychody', 'zł', 400, 400, $this->profitData); ?>
+<?php else: ?>
+<div class="alert alert-error">
+Brak przychodów w wybranym okresie!
+</div>
+<?php endif; ?>
+</div>
+
+<div class="row">
+<?php if (count($this->expenseData['data'])): ?>
+<?= $this->xyChart('expenses', 'Wykres czasowy wydatków', 'Wydatki', 'zł', 400, 400, $this->expenseData); ?>
+<?php else: ?>
+<div class="alert alert-success">
+Brak wydatków w wybranym okresie!
+</div>
+<?php endif; ?>
+</div>
+
+</div>
+
+<!-- Balance (right side) -->
 <div class="span3">
     <table class="table table-striped">
         <tr>
@@ -157,15 +156,15 @@ $this->headScript()->prependFile($this->basePath('/js/analysis/sort.js'));
         </tr>
         <tr>
             <td><div class="profit">Przychód</div></td>
-            <td>+<?php echo $sum_profit; ?>zł</td>
+            <td>+<?= $this->balanceData['profits']; ?>zł</td>
         </tr>
         <tr>
             <td><div class="expense">Wydatki</div></td>
-            <td>-<?php echo $sum_expense; ?>zł</td>
+            <td>-<?= $this->balanceData['expenses']; ?>zł</td>
         </tr>
         <tr>
             <td><b>Oszczędności</b></td>
-            <td><?php echo $balance; ?>zł</td>
+            <td><?= $this->balanceData['balance']; ?>zł</td>
         </tr>
     </table>
 </div>

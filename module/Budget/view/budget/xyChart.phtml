@@ -1,0 +1,67 @@
+<script type="text/javascript">
+$(function () {
+        $(<?= "'#".$this->chartId."'"; ?>).highcharts({
+            chart: {
+                type: 'line',
+                
+            },
+            title: {
+                text: <?= "'".$this->chartTitle."'"; ?>,
+                x: -20 //center
+            },
+            xAxis: {
+                categories: [<?php 
+                    $firstData = true;
+                    foreach ($this->chartData['labels'] as $label) {
+
+                        if (!$firstData) {
+                            echo ',';
+                        } else {
+                            $firstData = false;
+                        }
+                        echo "'".$label."'";
+                    }
+                 ?>],
+                labels: {
+                    rotation: 45,
+                    y:40
+                }
+            },
+            yAxis: {
+                title: {
+                    text: <?= "'".$this->yTitle.' ('.$this->dataUnit.')'."'"; ?>
+                },
+                min: 0,
+                plotLines: [{
+                    value: 0,
+                    width: 1,
+                    color: '#808080'
+                }]
+            },
+            tooltip: {
+                valueSuffix: <?= "'".$this->dataUnit."'"; ?>
+            },
+            legend: {
+                enabled: false
+            },
+            series: [{
+                name: <?= "'".$this->yTitle."'"; ?>,
+                data: [<?php
+                    $firstData = true;
+                    foreach ($this->chartData['data'] as $point) {
+                        if (!$firstData) {
+                            echo ',';
+                        } else {
+                            $firstData = false;
+                        }
+                        echo $point;
+                    }
+                ?>]
+            }]
+        });
+    });
+    
+
+</script>
+
+<div id="<?= $this->chartId; ?>" style="min-width: <?= $this->chartWidth; ?>px; height: <?= $this->chartHeight; ?>px; margin: 0 auto"></div>

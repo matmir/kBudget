@@ -86,12 +86,21 @@ class TransactionController extends BaseController
         );
         
         // Get sum of expenses and profits
-        $sum_expense = $this->get('Budget\TransactionMapper')->getSumOfTransactions($uid, $aid, $date_param, 1);
-        $sum_profit = $this->get('Budget\TransactionMapper')->getSumOfTransactions($uid, $aid, $date_param, 0);
-        $monthBalance = $sum_profit - $sum_expense;
+        $balanceData = $this->get('Budget\AnalysisService')->makeTransactionsBalanceData(
+            $uid,
+            $aid,
+            $date_param
+        );
         
         // Get transactions
-        $transactions = $this->get('Budget\TransactionMapper')->getTransactions($uid, $aid, $date_param, -1, $page, true);
+        $transactions = $this->get('Budget\TransactionMapper')->getTransactions(
+            $uid,
+            $aid,
+            $date_param,
+            array(-1),
+            $page,
+            true
+        );
         
         // Get categories names (tid, main_category, sub_category)
         $transactionsCopy = clone $transactions;
@@ -119,10 +128,10 @@ class TransactionController extends BaseController
             'formRange' => $form,
             'dt' => array('month' => $m, 'year' => $Y),
             'aid' => $aid,
-            'sum_expense' => $sum_expense,
-            'sum_profit' => $sum_profit,
+            'sum_expense' => $balanceData['expenses'],
+            'sum_profit' => $balanceData['profits'],
             'accountBalance' => $account->balance,
-            'monthBalance' => $monthBalance,
+            'monthBalance' => $balanceData['balance'],
             'page' => $page,
         );
     }

@@ -1,19 +1,8 @@
 <?php
-/**
-    @author Mateusz Mirosławski
-    
-    Kontroler zajmujący się analizą transakcji.
-*/
 
 namespace Budget\Controller;
 
 use Base\Controller\BaseController;
-
-use Budget\Model\Transaction;
-use Budget\Model\TransactionMapper;
-
-use User\Model\Category;
-use User\Model\CategoryMapper;
 
 use Budget\Form\TransactionRangeSelectForm;
 use Budget\Form\TransactionRangeSelectFilter;
@@ -24,12 +13,17 @@ use Budget\Form\TransactionBetweenSelectFormFilter;
 use Budget\Form\TransactionTimeSelectForm;
 use Budget\Form\TransactionTimeSelectFormFilter;
 
-use Budget\Model\TransactionAnalyzer;
-use Budget\Model\ChartsPlotter;
-
+/**
+ * Analysis controller
+ * 
+ * @author Mateusz Mirosławski
+ * 
+ */
 class AnalysisController extends BaseController
 {
-    // Główna strona
+    /**
+     * Main action
+     */
     public function indexAction()
     {
     }
@@ -37,311 +31,162 @@ class AnalysisController extends BaseController
     // Podział na kategorie
     public function categoryAction()
     {
-        // Identyfikator zalogowanego usera
-        $uid = $this->get('userId');
         
-        // Ustawienia ścieżek
-        $cfg = $this->get('img_dirs');
-        // Ustawienia nazw obrazków
-        $img = $this->get('img_nm');
-        
-        // Formularz filtrujący
-        $form = new TransactionTimeSelectForm();
-        // Minimalny rok w transakcjach usera
-        $minYear = $this->get('Budget\TransactionMapper')->getMinYearOfTransaction($uid);
-        // Filtracja formularza
-        $formFilters = new TransactionTimeSelectFormFilter($minYear);
-        
-        $request = $this->getRequest();
-        if ($request->isPost()) {
-            $form->setInputFilter($formFilters->getInputFilter());
-            $form->setData($request->getPost());
+    }
 
-            if ($form->isValid()) {
-                
-                // Spr. typu filtracji
-                $ft = $Y = $form->get('filter_type')->getValue();
-                
-                // Filtracja po zakresie
-                if ($ft == 'between') {
-                    
-                    $date_from = $form->get('date_from')->getValue();
-                    $date_to = $form->get('date_to')->getValue();
-                    // Parametry daty
-                    $date_param = array(
-                        'type' => 'between',
-                        'dt_up' => $date_to,
-                        'dt_down' => $date_from,
-                    );
-                    
-                } elseif ($ft == 'all') { // Cały zakres
-                    
-                    // Parametry daty
-                    $date_param = array(
-                        'type' => 'all',
-                    );
-                    
-                } else { // Filtracja po miesiącu
-                    
-                    $Y = $form->get('year')->getValue();
-                    $m = $form->get('month')->getValue();
-                    $ms = ($m < 10) ? ((string)'0'.$m) : ((string)$m);
-                    $m = $ms;
-                    // Parametry daty
-                    $date_param = array(
-                        'type' => 'month',
-                        'dt_month' => $Y.'-'.$m,
-                    );
-                    
-                }
-                
-            } else { // Błąd formularze (ktoś coś kombinuje)
-                // Aktualna data
-                $Y = date('Y');
-                $m = date('m');
-                // Parametry daty
-                $date_param = array(
-                    'type' => 'month',
-                    'dt_month' => $Y.'-'.$m,
-                );
+    /**
+     * Prepare filter form. Return array ('form', 'dateParam', 'aid')
+     * 
+     * @param int $uid User identifier
+     * 
+     * @return array
+     */
+    private function prepareFilterForm($uid)
+    {
+        // Get user bank accounts to select object
+        $accounts = $this->get('User\AccountMapper')->getUserAccountsToSelect($uid);
+
+        // Filtering form
+        $form = new TransactionTimeSelectForm();
+
+        // Date params
+        $date_param = array();
+
+        // Get date type param
+        $dateType = $this->params()->fromRoute('dateType', 'month');
+
+        // Get account identifier
+        $aid = (int) $this->params()->fromRoute('aid', 0);
+
+        // Check if given bank account is correct
+        if ($aid == 0) {
+            // Load default account id
+            $aid = $this->get('User\UserMapper')->getUser($uid)->default_aid;
+        } else { // Is some account identifier
+            // Check if given account id is user accout
+            if (!$this->get('User\AccountMapper')->isUserAccount($aid, $uid)) {
+                // Load default account id
+                $aid = $this->get('User\UserMapper')->getUser($uid)->default_aid;
             }
-        } else { // Brak parametrów
-            // Aktualna data
-            $Y = date('Y');
-            $m = date('m');
-            // Parametry daty
-            $date_param = array(
-                'type' => 'month',
-                'dt_month' => $Y.'-'.$m,
-            );
-            // Ustawienie formularza
-            $form->get('filter_type')->setValue('month');
+        }
+
+        // Insert bank accounts into the form
+        $form->get('aid')->setValueOptions($accounts);
+        $form->get('aid')->setValue($aid);
+
+        $form->get('year')->setValue(date('Y'));
+        $form->get('month')->setValue(date('m'));
+        $form->get('date_to')->setValue(date('Y-m-d'));
+        $form->get('date_from')->setValue(date('Y-m-d'));
+
+        if ($dateType == 'month') {
+
+            // Get date params
+            $Y = (int) $this->params()->fromRoute('year', date('Y'));
+            $m = (int) $this->params()->fromRoute('month', date('m'));
+
+            // Insert into the form
+            $form->get('aid')->setValue($aid);
+            $form->get('filter_type')->setValue($dateType);
             $form->get('month')->setValue($m);
             $form->get('year')->setValue($Y);
-            $form->get('date_from')->setValue($Y.'-'.$m.'-01');
-            $form->get('date_to')->setValue(date('Y-m-d'));
+
+            // Prepare date params
+            $date_param = array(
+                'type' => 'month',
+                'dt_month' => (new \DateTime($Y.'-'.$m.'-01'))->format('Y-m'),
+            );
+        } else if ($dateType == 'between') {
+
+            // Actual date
+            $actualDate = new \DateTime();
+
+            // Get up date params
+            $YUP = (int) $this->params()->fromRoute('yearUp', date('Y'));
+            $mUp = (int) $this->params()->fromRoute('monthUp', date('m'));
+            $dUp = (int) $this->params()->fromRoute('dayUp', date('d'));
+            $dateUp = new \DateTime($YUP.'-'.$mUp.'-'.$dUp);
+            // Get down date params
+            $YDown = (int) $this->params()->fromRoute('yearDown', date('Y'));
+            $mDown = (int) $this->params()->fromRoute('monthDown', date('m'));
+            $dDown = (int) $this->params()->fromRoute('dayDown', date('d'));
+            $dateDown = new \DateTime($YDown.'-'.$mDown.'-'.$dDown);
+
+            // Check if given up date is correct
+            if ($dateUp > $actualDate) {
+                $dateUp = $actualDate;
+            }
+
+            // Insert into the form
+            $form->get('aid')->setValue($aid);
+            $form->get('filter_type')->setValue($dateType);
+            $form->get('date_from')->setValue($dateDown->format('Y-m-d'));
+            $form->get('date_to')->setValue($dateUp->format('Y-m-d'));
+
+            // Prepare date params
+            $date_param = array(
+                'type' => 'between',
+                'dt_up' => $dateUp->format('Y-m-d'),
+                'dt_down' => $dateDown->format('Y-m-d'),
+            );
+        } else { // All transactions
+
+            // Insert into the form
+            $form->get('aid')->setValue($aid);
+            $form->get('filter_type')->setValue($dateType);
+
+            // Prepare date params
+            $date_param = array(
+                'type' => 'all'
+            );
         }
-        
-        // Pobranie przychodów
-        $tr_profit = $this->get('Budget\TransactionMapper')->getTransactions($uid, $date_param, 0);
-        // Pobranie wydatków
-        $tr_expense = $this->get('Budget\TransactionMapper')->getTransactions($uid, $date_param, 1);
-        
-        // Pobranie kategorii z zyskami
-        $cat_profit = $this->get('User\CategoryMapper')->getCategories($uid, 0);
-        $cat_expense = $this->get('User\CategoryMapper')->getCategories($uid, 1);
-        
-        // Analizer
-        $analyzer = new TransactionAnalyzer();
-        // Generator wykresów
-        $plotter = new ChartsPlotter($cfg['Zend_dir'], $cfg['browser_dir']);
-        
-        if (count($tr_expense) > 0) {
-            // Przygotowanie analizy dla wydatków
-            $dt_epxense = $analyzer->categoryPie($tr_expense, $cat_expense);
-            // Nazwa obrazu
-            $fn_ex = md5($uid.$img['pie_expense']).$img['img_ex'];
-            // Generacja obrazu
-            $img_epxense = $plotter->genPie($dt_epxense,'Wydatki',$fn_ex);
-        }
-        
-        if (count($tr_profit)) {
-            // Przygotowanie analizy dla przychodów
-            $dt_profit = $analyzer->categoryPie($tr_profit, $cat_profit);
-            // Nazwa obrazu
-            $fn_pr = md5($uid.$img['pie_profit']).$img['img_ex'];
-            // Generacja obrazu
-            $img_profit = $plotter->genPie($dt_profit,'Przychody',$fn_pr);
-        }
-        
+
         return array(
-            'img_expense' => (isset($img_epxense))?($img_epxense):(0),
-            'img_profit' => (isset($img_profit))?($img_profit):(0),
-            'dt_expense' => (isset($dt_epxense))?($dt_epxense):(0),
-            'dt_profit' => (isset($dt_profit))?($dt_profit):(0),
             'form' => $form,
-            
+            'dateParam' => $date_param,
+            'aid' => $aid
         );
     }
     
-    // Podział czasowy
+    /**
+     * Generate time chart action
+     */
     public function timeAction()
     {
-        // Identyfikator zalogowanego usera
+        // Get user identifier
         $uid = $this->get('userId');
-        
-        // Ustawienia ścieżek
-        $cfg = $this->get('img_dirs');
-        // Ustawienia nazw obrazków
-        $img = $this->get('img_nm');
-        
-        // Formularz filtrujący
-        $form = new TransactionTimeSelectForm();
-        // Minimalny rok w transakcjach usera
-        $minYear = $this->get('Budget\TransactionMapper')->getMinYearOfTransaction($uid);
-        // Filtracja formularza
-        $formFilters = new TransactionTimeSelectFormFilter($minYear);
-        
-        $request = $this->getRequest();
-        if ($request->isPost()) {
-            $form->setInputFilter($formFilters->getInputFilter());
-            $form->setData($request->getPost());
 
-            if ($form->isValid()) {
-                
-                // Spr. typu filtracji
-                $ft = $Y = $form->get('filter_type')->getValue();
-                
-                // Filtracja po zakresie
-                if ($ft == 'between') {
-                    
-                    $date_from = $form->get('date_from')->getValue();
-                    $date_to = $form->get('date_to')->getValue();
-                    // Parametry daty
-                    $date_param = array(
-                        'type' => 'between',
-                        'dt_up' => $date_to,
-                        'dt_down' => $date_from,
-                    );
-                    
-                } elseif ($ft == 'all') { // Cały zakres
-                    
-                    // Parametry daty
-                    $date_param = array(
-                        'type' => 'all',
-                    );
-                    
-                } else { // Filtracja po miesiącu
-                    
-                    $Y = $form->get('year')->getValue();
-                    $m = $form->get('month')->getValue();
-                    $ms = ($m < 10) ? ((string)'0'.$m) : ((string)$m);
-                    $m = $ms;
-                    // Parametry daty
-                    $date_param = array(
-                        'type' => 'month',
-                        'dt_month' => $Y.'-'.$m,
-                    );
-                    
-                }
-                
-            } else { // Błąd formularze (ktoś coś kombinuje)
-                // Aktualna data
-                $Y = date('Y');
-                $m = date('m');
-                // Parametry daty
-                $date_param = array(
-                    'type' => 'month',
-                    'dt_month' => $Y.'-'.$m,
-                );
-            }
-        } else { // Brak parametrów
-            // Aktualna data
-            $Y = date('Y');
-            $m = date('m');
-            // Parametry daty
-            $date_param = array(
-                'type' => 'month',
-                'dt_month' => $Y.'-'.$m,
-            );
-            // Ustawienie formularza
-            $form->get('filter_type')->setValue('month');
-            $form->get('month')->setValue($m);
-            $form->get('year')->setValue($Y);
-            $form->get('date_from')->setValue($Y.'-'.$m.'-01');
-            $form->get('date_to')->setValue(date('Y-m-d'));
-        }
-        
-        /* ----------------------------- WYKRES SŁUPKOWY ----------------------------------- */
-        
-        // Pobranie sumy wydatków
-        $sum_expense = $this->get('Budget\TransactionMapper')->getSumOfTransactions($uid, $date_param, 1);
-        // Pobranie sumy przychodów
-        $sum_profit = $this->get('Budget\TransactionMapper')->getSumOfTransactions($uid, $date_param, 0);
-        
-        // Bilans
-        $balance = $sum_profit - $sum_expense;
-        
-        // Generator wykresów
-        $plotter = new ChartsPlotter($cfg['Zend_dir'], $cfg['browser_dir']);
-        
-        // Parametry dla wykresu
-        $chart_param = array(
-            'data' => array($sum_profit, $sum_expense),
-            'labels' => array('Przychód','Wydatki'),
+        // Get search params
+        $searchParams = $this->prepareFilterForm($uid);
+
+        // Get sum of expenses and profits
+        $balanceData = $this->get('Budget\AnalysisService')->makeTransactionsBalanceData(
+            $uid,
+            $searchParams['aid'],
+            $searchParams['dateParam']
+        );
+
+        // Prepare data for the time chart of expenses
+        $expenseData = $this->get('Budget\AnalysisService')->makeTransactionTimeData(
+            $uid,
+            $searchParams['aid'],
+            $searchParams['dateParam'],
+            array(1, 2) // Expenses and outgoing transfers
+        );
+
+        // Prepare data for the time chart of profits
+        $profitData = $this->get('Budget\AnalysisService')->makeTransactionTimeData(
+            $uid,
+            $searchParams['aid'],
+            $searchParams['dateParam'],
+            array(0, 3) // Profits and incoming transfers
         );
         
-        // Nazwa generowanego pliku
-        $fn_balance = md5($uid.$img['balacne']).$img['img_ex'];
-        // Generacja wykresu
-        $balance_chart = $plotter->genBar($chart_param, 'Bilans', $fn_balance);
-        
-        /* -------------------------- WYKRES CZASOWY ----------------------------------------- */
-        // Analizer
-        $analyzer = new TransactionAnalyzer();
-        
-        // Pobranie transakcji
-        $tr_profit = $this->get('Budget\TransactionMapper')->getTransactions($uid, $date_param, 0);
-        $tr_expense = $this->get('Budget\TransactionMapper')->getTransactions($uid, $date_param, 1);
-        
-        // Spr. czy są zyski
-        if (count($tr_profit)) {
-            
-            // Przygotowanie tablicy z danymi
-            $dt_profit = $analyzer->makeTimeArray($tr_profit);
-            
-            // Spr. czy jest więcej niż 2 dane
-            if (count($dt_profit['data'])<3) {
-                
-                // Flaga niewyświetlania wykresu (tylko jedna lub dwie porcje danych - bez sensu)
-                $ONE_PROFIT = count($dt_profit['data']);
-                
-            } else { // generacja wykresu
-                
-                // Nazwa generowanego pliku
-                $fn_time_pr = md5($uid.$img['time_profit']).$img['img_ex'];
-                // Generacja wykresu
-                $time_profit_chart = $plotter->genTime($dt_profit, 'Wykres czasowy przychodów', $fn_time_pr);
-                
-            }
-            
-        }
-        
-        // Spr. czy są wydatki
-        if (count($tr_expense)) {
-            
-            $dt_expense = $analyzer->makeTimeArray($tr_expense);
-            
-            // Spr. czy jest więcej niż 2 dane
-            if (count($dt_expense['data'])<3) {
-                
-                // Flaga niewyświetlania wykresu (tylko jedna lub dwie porcje danych - bez sensu)
-                $ONE_EXPENSE = count($dt_expense['data']);
-                
-            } else { // generacja wykresu
-                
-                // Nazwa generowanego pliku
-                $fn_time_ex = md5($uid.$img['time_expense']).$img['img_ex'];
-                // Generacja wykresu
-                $time_expense_chart = $plotter->genTime($dt_expense, 'Wykres czasowy wydatków', $fn_time_ex);
-                
-            }
-            
-        }
-        
         return array(
-            'sum_profit' => $sum_profit,
-            'sum_expense' => $sum_expense,
-            'balance' => $balance,
-            'balance_chart' => $balance_chart,
-            'ONE_EXPENSE' => (isset($ONE_EXPENSE))?($ONE_EXPENSE):(0),
-            'dt_expense' => (isset($dt_expense))?($dt_expense):(0),
-            'time_expense_chart' => (isset($time_expense_chart))?($time_expense_chart):(0),
-            'ONE_PROFIT' => (isset($ONE_PROFIT))?($ONE_PROFIT):(0),
-            'dt_profit' => (isset($dt_profit))?($dt_profit):(0),
-            'time_profit_chart' => (isset($time_profit_chart))?($time_profit_chart):(0),
-            'form' => $form,
-            
+            'form' => $searchParams['form'],
+            'expenseData' => $expenseData,
+            'profitData' => $profitData,
+            'balanceData' => $balanceData
         );
     }
 

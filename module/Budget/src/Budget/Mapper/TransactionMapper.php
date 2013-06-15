@@ -36,13 +36,14 @@ class TransactionMapper extends BaseMapper
      *                          'type' => 'month/between/all',
      *                          'dt_month' => 'yyyy-mm' form type 'month' or 'dt_up' and 'dt_down' for 'between'
      *                        }
-     * @param int $t_type ('-1' all transactions, '0' profits, '1' expense, '2' outgoing transfers, '3' incoming transfers
+     * @param array $t_type Array with transaction types
+     *                  ('-1' all transactions, '0' profits, '1' expense, '2' outgoing transfers, '3' incoming transfers)
      * @param int $pg Actual page number
      * @param bool $pagged Return paginator
      * @throws \Exception
      * @return \Zend\Paginator\Paginator|multitype:
      */
-    public function getTransactions($uid, $aid, $dt_param, $t_type=-1, $pg=1, $pagged=false)
+    public function getTransactions($uid, $aid, $dt_param, array $t_type=array(-1), $pg=1, $pagged=false)
     {
         // Check if the date param is correct
         if (!is_array($dt_param)) {
@@ -96,13 +97,13 @@ class TransactionMapper extends BaseMapper
         // If date type is different than above it choose all range
         
         // Transaction type
-        if ($t_type != -1) {
+        if (!in_array(-1, $t_type)) {
             
-            if (!($t_type==0 || $t_type==1 || $t_type==2 || $t_type==3)) {
+            if (!(in_array(0, $t_type) || in_array(1, $t_type) || in_array(2, $t_type) || in_array(3, $t_type))) {
                 throw new \Exception('Wrong transaction type parameter!');
             }
             
-            $select->where(array('t.t_type' => (int)$t_type));
+            $select->where(array('t.t_type' => $t_type));
             
         }
         
@@ -122,11 +123,8 @@ class TransactionMapper extends BaseMapper
             
             $retObj = array();
             
-            while (($tbl=$results->current())!=null)
-            {
-                $ob = new Transaction();
-                $ob->exchangeArray($tbl);
-                array_push($retObj, $ob);
+            while (($tbl=$results->current())!=null) {
+                array_push($retObj, new Transaction($tbl));
             }
             
             return $retObj;
@@ -266,11 +264,12 @@ class TransactionMapper extends BaseMapper
      *                     'type' => 'month/between/all',
      *                     'dt_month' => 'yyyy-mm' form type 'month' or 'dt_up' and 'dt_down' for 'between'
      *                   }
-     * @param int $t_type Transaction type (0 - income with incoming transfers, 1 - expense with outgoing transfers)
+     * @param array $t_type Array with transaction types
+     *                      ('-1' all transactions, '0' profits, '1' expense, '2' outgoing transfers, '3' incoming transfers)
      * @throws \Exception
      * @return float
      */
-    public function getSumOfTransactions($uid, $aid, $dt, $t_type)
+    public function getSumOfTransactions($uid, $aid, $dt, array $t_type=array(-1))
     {
         // Check if the date param is correct
         if (!is_array($dt)) {
@@ -284,17 +283,20 @@ class TransactionMapper extends BaseMapper
         $sql = new Sql($this->getDbAdapter());
         $select = $sql->select();
         
-        // Prepare type array
-        if ($t_type==0) {
-            $tp = array(0, 3);
-        } else {
-            $tp = array(1, 2);
+        // Transaction type
+        if (!in_array(-1, $t_type)) {
+            
+            if (!(in_array(0, $t_type) || in_array(1, $t_type) || in_array(2, $t_type) || in_array(3, $t_type))) {
+                throw new \Exception('Wrong transaction type parameter!');
+            }
+            
+            $select->where(array('t.t_type' => $t_type));
+            
         }
         
         $select->columns(array('sm' => new Expression('SUM(t.t_value)')));
         $select->from(array('t' => self::TABLE))
                 ->where(array('t.uid' => (int)$uid,
-                              't.t_type' => $tp,
                               't.aid' => (int)$aid,
                               ));
                 
