@@ -1,0 +1,84 @@
+<p>Filtracja:</p>
+        
+<?php
+
+$form = $this->form;
+$form->setAttribute('action', $this->url($this->formAction));
+$form->prepare();
+
+echo $this->form()->openTag($form);
+?>
+
+<table>
+<tr>
+    <td><?php echo $form->get('aid')->getLabel(); ?></td>
+    <td><?php echo $this->formElement($form->get('aid')) ?></td>
+</tr>
+<?php
+    echo $this->formElementErrors()
+        ->setMessageOpenFormat('<tr><td colspan="2"><div class="alert alert-error">')
+        ->setMessageSeparatorString('</div></td></tr><tr><td colspan="2"><div class="alert alert-error">')
+        ->setMessageCloseString('</div></td></tr>')
+        ->render($form->get('aid'));
+?>
+<tr>
+    <td><?php echo $form->get('filter_type')->getLabel(); ?></td>
+    <td><?php echo $this->formElement($form->get('filter_type')) ?></td>
+</tr>
+<?php
+    echo $this->formElementErrors()
+        ->setMessageOpenFormat('<tr><td colspan="2"><div class="alert alert-error">')
+        ->setMessageSeparatorString('</div></td></tr><tr><td colspan="2"><div class="alert alert-error">')
+        ->setMessageCloseString('</div></td></tr>')
+        ->render($form->get('filter_type'));
+?>
+<tr class="month_filter">
+    <td><?php echo $form->get('month')->getLabel(); ?></td>
+    <td><?php echo $this->formElement($form->get('month')) ?></td>
+</tr>
+<?php
+    echo $this->formElementErrors()
+        ->setMessageOpenFormat('<tr class="month_filter"><td colspan="2"><div class="alert alert-error">')
+        ->setMessageSeparatorString('</div></td></tr><tr class="month_filter"><td colspan="2"><div class="alert alert-error">')
+        ->setMessageCloseString('</div></td></tr>')
+        ->render($form->get('month'));
+?>
+<tr class="month_filter">
+    <td><?php echo $form->get('year')->getLabel(); ?></td>
+    <td><?php echo $this->formElement($form->get('year')) ?></td>
+</tr>
+<?php
+    echo $this->formElementErrors()
+        ->setMessageOpenFormat('<tr class="month_filter"><td colspan="2"><div class="alert alert-error">')
+        ->setMessageSeparatorString('</div></td></tr><tr class="month_filter"><td colspan="2"><div class="alert alert-error">')
+        ->setMessageCloseString('</div></td></tr>')
+        ->render($form->get('year'));
+?>
+<tr class="between_filter">
+    <td><?php echo $form->get('date_from')->getLabel(); ?></td>
+    <td><?php echo $this->formElement($form->get('date_from')) ?></td>
+</tr>
+<?php
+    echo $this->formElementErrors()
+        ->setMessageOpenFormat('<tr class="between_filter"><td colspan="2"><div class="alert alert-error">')
+        ->setMessageSeparatorString('</div></td></tr><tr class="between_filter"><td colspan="2"><div class="alert alert-error">')
+        ->setMessageCloseString('</div></td></tr>')
+        ->render($form->get('date_from'));
+?>
+<tr class="between_filter">
+    <td><?php echo $form->get('date_to')->getLabel(); ?></td>
+    <td><?php echo $this->formElement($form->get('date_to')) ?></td>
+</tr>
+<?php
+    echo $this->formElementErrors()
+        ->setMessageOpenFormat('<tr class="between_filter"><td colspan="2"><div class="alert alert-error">')
+        ->setMessageSeparatorString('</div></td></tr><tr class="between_filter"><td colspan="2"><div class="alert alert-error">')
+        ->setMessageCloseString('</div></td></tr>')
+        ->render($form->get('date_to'));
+?>
+<tr>
+    <td colspan="2"><?php echo $this->formSubmit($form->get('submit')); ?></td>
+</tr>
+</table>
+
+<?php echo $this->form()->closeTag(); ?>

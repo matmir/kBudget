@@ -3,7 +3,9 @@
 $title = 'kBudget - Analiza transakcji z podziałem na kategorie';
 $this->headTitle($title);
 
-$this->headScript()->prependFile($this->basePath('/js/analysis/sort.js'));
+$this->headScript()->prependFile($this->basePath('/js/app/analysis/filterForm.js'));
+$this->headScript()->prependFile($this->basePath('/js/highcharts/highcharts.js'));
+$this->headScript()->prependFile($this->basePath('/js/highcharts/modules/exporting.js'));
 
 ?>
 <h1><?php echo $this->escapeHtml($title); ?></h1>
@@ -16,83 +18,11 @@ $this->headScript()->prependFile($this->basePath('/js/analysis/sort.js'));
 
 <br />
 
-<!-- Filtracja -->
+<!-- Filtering -->
 <div class="row">
     <div class="span12">
         
-        <p>Filtracja:</p>
-        
-        <?php
-        
-        $form = $this->form;
-        $form->setAttribute('action', $this->url('analysis/category'));
-        $form->prepare();
-        
-        echo $this->form()->openTag($form);
-        ?>
-        
-        <table>
-        <tr>
-            <td><?php echo $form->get('filter_type')->getLabel(); ?></td>
-            <td><?php echo $this->formElement($form->get('filter_type')) ?></td>
-        </tr>
-        <?php
-            echo $this->formElementErrors()
-                ->setMessageOpenFormat('<tr><td colspan="2">')
-                ->setMessageSeparatorString('</td></tr><tr><td colspan="2">')
-                ->setMessageCloseString('</tr>')
-                ->render($form->get('filter_type'));
-        ?>
-        <tr class="month_filter">
-            <td><?php echo $form->get('month')->getLabel(); ?></td>
-            <td><?php echo $this->formElement($form->get('month')) ?></td>
-        </tr>
-        <?php
-            echo $this->formElementErrors()
-                ->setMessageOpenFormat('<tr class="month_filter"><td colspan="2">')
-                ->setMessageSeparatorString('</td></tr><tr class="month_filter"><td colspan="2">')
-                ->setMessageCloseString('</tr>')
-                ->render($form->get('month'));
-        ?>
-        <tr class="month_filter">
-            <td><?php echo $form->get('year')->getLabel(); ?></td>
-            <td><?php echo $this->formElement($form->get('year')) ?></td>
-        </tr>
-        <?php
-            echo $this->formElementErrors()
-                ->setMessageOpenFormat('<tr class="month_filter"><td colspan="2">')
-                ->setMessageSeparatorString('</td></tr><tr class="month_filter"><td colspan="2">')
-                ->setMessageCloseString('</tr>')
-                ->render($form->get('year'));
-        ?>
-        <tr class="between_filter">
-            <td><?php echo $form->get('date_from')->getLabel(); ?></td>
-            <td><?php echo $this->formElement($form->get('date_from')) ?></td>
-        </tr>
-        <?php
-            echo $this->formElementErrors()
-                ->setMessageOpenFormat('<tr class="between_filter"><td colspan="2">')
-                ->setMessageSeparatorString('</td></tr><tr class="between_filter"><td colspan="2">')
-                ->setMessageCloseString('</tr>')
-                ->render($form->get('date_from'));
-        ?>
-        <tr class="between_filter">
-            <td><?php echo $form->get('date_to')->getLabel(); ?></td>
-            <td><?php echo $this->formElement($form->get('date_to')) ?></td>
-        </tr>
-        <?php
-            echo $this->formElementErrors()
-                ->setMessageOpenFormat('<tr class="between_filter"><td colspan="2">')
-                ->setMessageSeparatorString('</td></tr><tr class="between_filter"><td colspan="2">')
-                ->setMessageCloseString('</tr>')
-                ->render($form->get('date_to'));
-        ?>
-        <tr>
-            <td colspan="2"><?php echo $this->formSubmit($form->get('submit')); ?></td>
-        </tr>
-    </table>
-    
-    <?php echo $this->form()->closeTag(); ?>
+        <?= $this->filterForm($this->form, 'analysis/category'); ?>
 
     </div>
 </div>
@@ -105,84 +35,17 @@ $this->headScript()->prependFile($this->basePath('/js/analysis/sort.js'));
     </div>
 </div>
 
-<!-- Wydatki -->
+<!-- Charts -->
 <div class="row">
 
-    <!-- Wykresy (lewa strona) -->
-    <div class="span8">
-        <div style="text-align: center;">
-            <?php if (!$img_expense): ?>
-                Brak wydatków w wybranym okresie!
-            <?php else: ?>
-                <img src="<?php echo $img_expense; ?>" alt="Wykres kołowy wydatków" title="Wykres kołowy wydatków" />
-            <?php endif; ?>
-        </div>
-    </div>
-    
-    <!-- Tabelka z kategoriami (prawa strona) -->
-    <div class="span3">
-        
-        <?php if (!$dt_expense): ?>
-            Brak wydatków w wybranym okresie!
-        <?php else: ?>
-            <table class="table table-striped">
-                <tr>
-                    <td colspan="2"><b>Wydatki</b></td>
-                </tr>
-                <tr>
-                    <td><b>Kategoria</b></td>
-                    <td><b>Kwota</b></td>
-                </tr>
-                <?php for ($i=0; $i<count($dt_expense['labels']); $i++): ?>
-                <tr>
-                    <td><?php echo $dt_expense['labels'][$i] ?></td>
-                    <td><?php echo $dt_expense['data'][$i] ?>zł</td>
-                </tr>
-                <?php endfor; ?>
-            </table>
-        <?php endif; ?>
-        
+    <!-- Expenses -->
+    <div class="span6">
+        <?= $this->pieChart('pieExpenses', 'Wykres kołowy wydatków', 'zł', 300, 400, $this->expenseData); ?>
     </div>
 
-</div>
-
-<!-- Przychody -->
-<div class="row">
-
-    <!-- Wykresy (lewa strona) -->
-    <div class="span8">
-        <div style="text-align: center;">
-            <?php if (!$img_profit): ?>
-                Brak przychodów w wybranym okresie!
-            <?php else: ?>
-                <img src="<?php echo $img_profit; ?>" alt="Wykres kołowy przychodów" title="Wykres kołowy przychodów" />
-            <?php endif; ?>
-        </div>
-    </div>
-    
-    <!-- Tabelka z kategoriami (prawa strona) -->
-    <div class="span3">
-        
-        <?php if (!$dt_profit): ?>
-            Brak przychodów w wybranym okresie!
-        <?php else: ?>
-            <table class="table table-striped">
-                <tr>
-                    <td colspan="2"><b>Przychody</b></td>
-                </tr>
-                <tr>
-                    <td><b>Kategoria</b></td>
-                    <td><b>Kwota</b></td>
-                </tr>
-                <?php for ($i=0; $i<count($dt_profit['labels']); $i++): ?>
-                <tr>
-                    <td><?php echo $dt_profit['labels'][$i] ?></td>
-                    <td><?php echo $dt_profit['data'][$i] ?>zł</td>
-                </tr>
-                <?php endfor; ?>
-            </table>
-        <?php endif; ?>
-        
+    <!-- Incomes -->
+    <div class="span6">
+        <?= $this->pieChart('pieProfits', 'Wykres kołowy przychodów', 'zł', 300, 400, $this->profitData); ?>
     </div>
 
 </div>

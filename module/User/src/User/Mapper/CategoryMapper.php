@@ -99,6 +99,38 @@ class CategoryMapper extends BaseMapper
         
         return $retObj;
     }
+
+    /**
+     * Get user categories with specified identifiers
+     * 
+     * @param int $uid User identifier
+     * @param array $cids Array with category identifiers
+     */
+    public function getCategoriesWithGivenIds($uid, array $cids)
+    {
+        $sql = new Sql($this->getDbAdapter());
+        $select = $sql->select();
+    
+        $select->from(array('c' => self::TABLE))
+                ->where(array(
+                        'c.uid' => (int)$uid,
+                        'c.cid' => $cids
+                        )
+                );
+
+        $statement = $sql->prepareStatementForSqlObject($select);
+        $results = $statement->execute();
+
+        $retObj = array();
+        
+        // Insert result into the category object
+        while (($tbl=$results->current())!=null)
+        {
+            array_push($retObj, new Category($tbl));
+        }
+        
+        return $retObj;
+    }
     
     /**
      * Get user categories of the same type.

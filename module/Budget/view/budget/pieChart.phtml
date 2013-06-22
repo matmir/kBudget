@@ -1,0 +1,95 @@
+<script type="text/javascript">
+$(function () {
+    
+  var colors = Highcharts.getOptions().colors,
+        categories = ['Jedzenie', 'Opłaty','Elektronika'],
+        data = [
+                <?php foreach ($this->chartData as $key=>$value): ?>
+                {
+                    name : <?= "'".$key."'"; ?>,
+                    y: <?= $value['value']; ?>,
+                    drilldown: {
+                        name: <?= "'".$key."'"; ?>,
+                        data: [
+                                <?php foreach ($value['drilldown'] as $skey=>$svalue): ?>
+                                [<?= "'".$skey."'"; ?>,<?= $svalue; ?>],
+                                <?php endforeach; ?>
+                            ]
+                    }
+                },
+                <?php endforeach; ?>
+                ];
+
+    function setChart(name, categories, data) {
+        chart.xAxis[0].setCategories(categories);
+        chart.series[0].remove();
+        chart.addSeries({
+            name: name,
+            data: data
+        });
+    }
+
+    chart = new Highcharts.Chart({
+        chart: {
+            renderTo: <?= "'".$this->chartId."'"; ?>,
+            type: 'pie'
+        },
+        title: {
+            text: <?= "'".$this->chartTitle."'"; ?>
+        },
+        xAxis: {
+            categories: categories
+        },
+        plotOptions: {
+            pie: {
+                cursor: 'pointer',
+                point: {
+                    events: {
+                        click: function() {
+                            var drilldown = this.drilldown;
+                            if (drilldown) { // drill down
+                                setChart(drilldown.name, drilldown.categories, drilldown.data);
+                            } else { // restore
+                                setChart(name, categories, data);
+                            }
+                        }
+                    }
+                },
+                dataLabels: {
+                    enabled: true,
+                    color: colors[0],
+                    style: {
+                        fontWeight: 'bold'
+                    },
+                    formatter: function() {
+                        return this.point.name +'<br>' + this.y + <?= "'".$this->dataUnit."'"; ?> + ' ('+this.percentage.toFixed(2)+' %)' ;
+                    }
+                }
+            }
+        },
+        tooltip: {
+            formatter: function() {
+                var point = this.point;
+                var s = '';
+                if (!point.drilldown) {
+                    s += 'Główna kategoria: <b>'+this.series.name+'</b>';
+                } else {
+                    s += '<b>'+ point.name +'</b>: '+this.y+<?= "'".$this->dataUnit."'"; ?>;
+                }
+                
+                return s;
+            }
+        },
+        series: [{
+            name: name,
+            data: data,
+            color: 'white'
+        }],
+        exporting: {
+            enabled: false
+        }
+    });
+});
+</script>
+
+<div id="<?= $this->chartId; ?>" style="min-width: <?= $this->chartWidth; ?>px; height: <?= $this->chartHeight; ?>px; margin: 0 auto"></div>

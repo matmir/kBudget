@@ -190,6 +190,68 @@ return array(
                             'defaults' => array(
                                 'controller' => 'Budget\Controller\Analysis',
                                 'action' => 'category',
+                                'dateType' => 'month',
+                                'aid' => 0,
+                                'month' => date('m'),
+                                'year' => date('Y')
+                            ),
+                        ),
+                        'may_terminate' => true,
+                        'child_routes' => array(
+                            'month' => array(
+                                'type' => 'segment',
+                                'description' => 'Route to time charts with only one month',
+                                'options' => array(
+                                    'route' => 'month/:aid/:month/:year',
+                                    'constraints' => array(
+                                        'month' => '\d+',
+                                        'year' => '\d+',
+                                        'aid' => '\d+',
+                                    ),
+                                    'defaults' => array(
+                                        'controller' => 'Budget\Controller\Analysis',
+                                        'action' => 'category',
+                                        'dateType' => 'month'
+                                    ),
+                                ),
+                            ),
+                            'between' => array(
+                                'type' => 'segment',
+                                'description' => 'Route to time charts with month range',
+                                'options' => array(
+                                    'route' => 'between/:aid/:dayUp/:monthUp/:yearUp/:dayDown/:monthDown/:yearDown',
+                                    'constraints' => array(
+                                        'aid' => '\d+',
+                                        'dayUp' => '\d+',
+                                        'monthUp' => '\d+',
+                                        'yearUp' => '\d+',
+                                        'dayDown' => '\d+',
+                                        'monthDown' => '\d+',
+                                        'yearDown' => '\d+',
+                                        
+                                    ),
+                                    'defaults' => array(
+                                        'controller' => 'Budget\Controller\Analysis',
+                                        'action' => 'category',
+                                        'dateType' => 'between'
+                                    ),
+                                ),
+                            ),
+                            'all' => array(
+                                'type' => 'segment',
+                                'description' => 'Route to time charts with all data',
+                                'options' => array(
+                                    'route' => 'all/:aid',
+                                    'constraints' => array(
+                                        'aid' => '\d+',
+                                        
+                                    ),
+                                    'defaults' => array(
+                                        'controller' => 'Budget\Controller\Analysis',
+                                        'action' => 'category',
+                                        'dateType' => 'all'
+                                    ),
+                                ),
                             ),
                         ),
                     ),
@@ -328,8 +390,10 @@ return array(
     // View helpers
     'view_helpers' => array(
         'invokables' => array(
+            'filterForm' => 'Budget\View\Helper\filterForm',
             'xyChart' => 'Budget\View\Helper\xyChart',
             'balanceChart' => 'Budget\View\Helper\balanceChart',
+            'pieChart' => 'Budget\View\Helper\pieChart',
         ),
     ),
     // Services

@@ -4,12 +4,6 @@ namespace Budget\Controller;
 
 use Base\Controller\BaseController;
 
-use Budget\Form\TransactionRangeSelectForm;
-use Budget\Form\TransactionRangeSelectFilter;
-
-use Budget\Form\TransactionBetweenSelectForm;
-use Budget\Form\TransactionBetweenSelectFormFilter;
-
 use Budget\Form\TransactionTimeSelectForm;
 use Budget\Form\TransactionTimeSelectFormFilter;
 
@@ -21,19 +15,6 @@ use Budget\Form\TransactionTimeSelectFormFilter;
  */
 class AnalysisController extends BaseController
 {
-    /**
-     * Main action
-     */
-    public function indexAction()
-    {
-    }
-    
-    // Podział na kategorie
-    public function categoryAction()
-    {
-        
-    }
-
     /**
      * Prepare filter form. Return array ('form', 'dateParam', 'aid')
      * 
@@ -147,7 +128,46 @@ class AnalysisController extends BaseController
             'aid' => $aid
         );
     }
+
+    /**
+     * Main action
+     */
+    public function indexAction()
+    {
+    }
     
+    // Podział na kategorie
+    public function categoryAction()
+    {
+        // Get user identifier
+        $uid = $this->get('userId');
+
+        // Get search params
+        $searchParams = $this->prepareFilterForm($uid);
+
+        // Prepare data for the expenses pie
+        $expenseData = $this->get('Budget\AnalysisService')->makeCategoryPieData(
+            $uid,
+            $searchParams['aid'],
+            $searchParams['dateParam'],
+            array(1, 2) // Expenses and outgoing transfers
+        );
+
+        // Prepare data for the profits pie
+        $profitData = $this->get('Budget\AnalysisService')->makeCategoryPieData(
+            $uid,
+            $searchParams['aid'],
+            $searchParams['dateParam'],
+            array(0, 3) // Profits and incoming transfers
+        );
+
+        return array(
+            'form' => $searchParams['form'],
+            'expenseData' => $expenseData,
+            'profitData' => $profitData
+        );
+    }
+
     /**
      * Generate time chart action
      */

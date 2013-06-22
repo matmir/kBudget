@@ -56,6 +56,38 @@ class AccountMapper extends BaseMapper
         
         return $retObj;
     }
+
+    /**
+     * Get user accounts with specified identifiers
+     * 
+     * @param int $uid User identifier
+     * @param array $aids Array with accounts identifiers
+     */
+    public function getAccountsWithGivenIds($uid, array $aids)
+    {
+        $sql = new Sql($this->getDbAdapter());
+        $select = $sql->select();
+    
+        $select->from(array('a' => self::TABLE))
+                ->where(array(
+                        'a.uid' => (int)$uid,
+                        'a.aid' => $aids
+                        )
+                );
+
+        $statement = $sql->prepareStatementForSqlObject($select);
+        $results = $statement->execute();
+
+        $retObj = array();
+        
+        // Insert result into the account object
+        while (($tbl=$results->current())!=null)
+        {
+            array_push($retObj, new Account($tbl));
+        }
+        
+        return $retObj;
+    }
     
     /**
      * Get user bank accounts for select element.

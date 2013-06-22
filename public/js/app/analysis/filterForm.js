@@ -49,6 +49,8 @@ $(function() {
             if ($('#transaction-time-select').length > 0) {
                 $('#transaction-time-select').submit(function() {
 
+                    // Action name
+                    var action = $('#transaction-time-select').attr('action').split('/')[2];
                     // Bank account identifier
                     var aid = $('#aid').val();
                     // Get Date type
@@ -66,7 +68,7 @@ $(function() {
                             dateMonth = new Date();
                         }
 
-                        window.location.href = '/analysis/time/month/'+aid+'/'+dateMonth.getMonth()+'/'+dateMonth.getFullYear();
+                        window.location.href = '/analysis/'+action+'/month/'+aid+'/'+dateMonth.getMonth()+'/'+dateMonth.getFullYear();
                     } else if (dateType == 'between') {
                         var dateDown = new Date($('#date_from').val());
                         var dateUp = new Date($('#date_to').val());
@@ -78,7 +80,7 @@ $(function() {
                             dateUp = new Date();
                         }
 
-                        var url = '/analysis/time/between/'+aid+'/';
+                        var url = '/analysis/'+action+'/between/'+aid+'/';
                         // Date Up
                         url += dateUp.getDate()+'/'+(dateUp.getMonth()+1)+'/'+dateUp.getFullYear()+'/';
                         // Date Down
@@ -86,7 +88,7 @@ $(function() {
 
                         window.location.href = url;
                     } else {
-                        window.location.href = '/analysis/time/all/'+aid;
+                        window.location.href = '/analysis/'+action+'/all/'+aid;
                     }
 
                     return false;
