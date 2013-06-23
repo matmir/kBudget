@@ -3,6 +3,7 @@
 $title = 'kBudget - Analiza czasowa transakcji';
 $this->headTitle($title);
 
+$this->headLink()->prependStylesheet($this->basePath('/css/analysis.css'));
 $this->headScript()->prependFile($this->basePath('/js/app/analysis/filterForm.js'));
 $this->headScript()->prependFile($this->basePath('/js/highcharts/highcharts.js'));
 $this->headScript()->prependFile($this->basePath('/js/highcharts/modules/exporting.js'));

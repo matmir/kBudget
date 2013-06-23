@@ -7,7 +7,20 @@ $(function() {
             filterForm.initFilterType();
             filterForm.filterTypeChange();
             filterForm.filterFormSubmit();
+            filterForm.filterClick();
 
+        },
+        // Show/hide filter form
+        filterClick: function() {
+            $('a#filterForm').click(function() {
+                if ($(this).text() == 'Filtracja +') {
+                    $(this).text('Filtracja -');
+                } else {
+                    $(this).text('Filtracja +');
+                }
+                $('#transaction-time-select').toggle();
+                return false;
+            });
         },
         // Default options for date filters
         initFilterType: function() {

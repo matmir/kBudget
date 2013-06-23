@@ -161,10 +161,22 @@ class AnalysisController extends BaseController
             array(0, 3) // Profits and incoming transfers
         );
 
+        // Prepare chart subtitle
+        $subtitle = '';
+        $dtP = $searchParams['dateParam'];
+        if ($dtP['type'] == 'month') {
+            $subtitle = 'Miesiąc: '.$dtP['dt_month'];
+        } else if ($dtP['type'] == 'between') {
+            $subtitle = 'Zakres od '.$dtP['dt_down'].' do '.$dtP['dt_up'];
+        } else if ($dtP['type'] == 'all') {
+            $subtitle = 'Wszystkie dane';
+        }
+
         return array(
             'form' => $searchParams['form'],
             'expenseData' => $expenseData,
-            'profitData' => $profitData
+            'profitData' => $profitData,
+            'subtitle' => $subtitle
         );
     }
 

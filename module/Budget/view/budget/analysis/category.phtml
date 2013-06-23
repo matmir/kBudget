@@ -3,6 +3,7 @@
 $title = 'kBudget - Analiza transakcji z podziałem na kategorie';
 $this->headTitle($title);
 
+$this->headLink()->prependStylesheet($this->basePath('/css/analysis.css'));
 $this->headScript()->prependFile($this->basePath('/js/app/analysis/filterForm.js'));
 $this->headScript()->prependFile($this->basePath('/js/highcharts/highcharts.js'));
 $this->headScript()->prependFile($this->basePath('/js/highcharts/modules/exporting.js'));
@@ -35,17 +36,28 @@ $this->headScript()->prependFile($this->basePath('/js/highcharts/modules/exporti
     </div>
 </div>
 
-<!-- Charts -->
+<!-- Expenses -->
 <div class="row">
 
-    <!-- Expenses -->
-    <div class="span6">
-        <?= $this->pieChart('pieExpenses', 'Wykres kołowy wydatków', 'zł', 300, 400, $this->expenseData); ?>
+    <div class="span12">
+        <?php if (!empty($this->expenseData)): ?>
+            <?= $this->pieChart('pieExpenses', 'Wykres kołowy wydatków', $this->subtitle, 'zł', 300, 400, $this->expenseData); ?>
+        <?php else: ?>
+            Brak wydatków w wybranym okresie!
+        <?php endif; ?>
     </div>
 
-    <!-- Incomes -->
-    <div class="span6">
-        <?= $this->pieChart('pieProfits', 'Wykres kołowy przychodów', 'zł', 300, 400, $this->profitData); ?>
+</div>
+
+<!-- Incomes -->
+<div class="row">
+
+    <div class="span12">
+        <?php if (!empty($this->profitData)): ?>
+            <?= $this->pieChart('pieProfits', 'Wykres kołowy przychodów', $this->subtitle, 'zł', 300, 400, $this->profitData); ?>
+        <?php else: ?>
+            Brak przychodów w wybranym okresie!
+        <?php endif; ?>
     </div>
 
 </div>

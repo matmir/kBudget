@@ -158,49 +158,59 @@ class AnalysisService extends BaseService
             
         }
 
-        // Get required categories
-        $categories = $this->getServiceLocator()->get('User\CategoryMapper')->getCategoriesWithGivenIds(
-            $uid,
-            $cids
-        );
+        // Check if there are categories to load
+        if (!empty($cids)) {
 
-        foreach ($categories as $category) {
+            // Get required categories
+            $categories = $this->getServiceLocator()->get('User\CategoryMapper')->getCategoriesWithGivenIds(
+                $uid,
+                $cids
+            );
 
-            // Main cateogry
-            if ($category->pcid === null) {
-                $returnData[$category->c_name] = array('value' => $cidData[$category->cid]);
-                $categoryNames[$category->cid] = $category->c_name;
-            } else {
-                // Get parent identifiers
-                if (!in_array($category->pcid, $cids)) {
-                    array_push($pcids, $category->pcid);
+            foreach ($categories as $category) {
+
+                // Main cateogry
+                if ($category->pcid === null) {
+                    $returnData[$category->c_name] = array('value' => $cidData[$category->cid]);
+                    $categoryNames[$category->cid] = $category->c_name;
+                } else {
+                    // Get parent identifiers
+                    if (!in_array($category->pcid, $cids)) {
+                        array_push($pcids, $category->pcid);
+                    }
                 }
             }
-        }
 
-        // Get main categories
-        $mainCategories = $this->getServiceLocator()->get('User\CategoryMapper')->getCategoriesWithGivenIds(
-            $uid,
-            $pcids
-        );
+            // Check if there are main categories
+            if (!empty($pcids)) {
 
-        foreach ($mainCategories as $category) {
+                // Get main categories
+                $mainCategories = $this->getServiceLocator()->get('User\CategoryMapper')->getCategoriesWithGivenIds(
+                    $uid,
+                    $pcids
+                );
 
-            $returnData[$category->c_name] = array('value' => 0);
-            $categoryNames[$category->cid] = $category->c_name;
+                foreach ($mainCategories as $category) {
 
-        }
+                    $returnData[$category->c_name] = array('value' => 0);
+                    $categoryNames[$category->cid] = $category->c_name;
 
-        foreach ($categories as $category) {
+                }
 
-            // Parse only children
-            if ($category->pcid !== null) {
-                $returnData[$categoryNames[$category->pcid]]['drilldown'][$category->c_name] = $cidData[$category->cid];
-                $returnData[$categoryNames[$category->pcid]]['value'] += $cidData[$category->cid];
+                foreach ($categories as $category) {
+
+                    // Parse only children
+                    if ($category->pcid !== null) {
+                        $returnData[$categoryNames[$category->pcid]]['drilldown'][$category->c_name] = $cidData[$category->cid];
+                        $returnData[$categoryNames[$category->pcid]]['value'] += $cidData[$category->cid];
+                    }
+
+                }
+
             }
 
         }
-
+        
         // Check transfers
         if (!empty($taids)) {
             $accounts = $this->getServiceLocator()->get('User\AccountMapper')->getAccountsWithGivenIds(

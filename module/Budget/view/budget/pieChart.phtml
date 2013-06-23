@@ -1,13 +1,17 @@
 <script type="text/javascript">
 $(function () {
     
-  var colors = Highcharts.getOptions().colors,
-        categories = ['Jedzenie', 'Opłaty','Elektronika'],
+    var categories = [
+                    <?php foreach ($this->chartData as $key=>$value): ?>
+                    <?= "'".$key."'"; ?>,
+                    <?php endforeach; ?>
+                    ],
         data = [
                 <?php foreach ($this->chartData as $key=>$value): ?>
                 {
                     name : <?= "'".$key."'"; ?>,
                     y: <?= $value['value']; ?>,
+                    <?php if (isset($value['drilldown'])): ?>
                     drilldown: {
                         name: <?= "'".$key."'"; ?>,
                         data: [
@@ -16,11 +20,12 @@ $(function () {
                                 <?php endforeach; ?>
                             ]
                     }
+                    <?php endif; ?>
                 },
                 <?php endforeach; ?>
                 ];
 
-    function setChart(name, categories, data) {
+    function setChart(chart, name, categories, data) {
         chart.xAxis[0].setCategories(categories);
         chart.series[0].remove();
         chart.addSeries({
@@ -29,13 +34,16 @@ $(function () {
         });
     }
 
-    chart = new Highcharts.Chart({
+    var chart = new Highcharts.Chart({
         chart: {
             renderTo: <?= "'".$this->chartId."'"; ?>,
             type: 'pie'
         },
         title: {
             text: <?= "'".$this->chartTitle."'"; ?>
+        },
+        subtitle: {
+            text: <?= "'".$this->chartSubtitle."'"; ?>
         },
         xAxis: {
             categories: categories
@@ -48,16 +56,21 @@ $(function () {
                         click: function() {
                             var drilldown = this.drilldown;
                             if (drilldown) { // drill down
-                                setChart(drilldown.name, drilldown.categories, drilldown.data);
+                                chart.setTitle({text: chart.title.text},
+                                    {text: <?= "'".$this->chartSubtitle."'"; ?> + '<br />Główna kategoria: '+drilldown.name}
+                                );
+                                setChart(chart, drilldown.name, drilldown.categories, drilldown.data);
                             } else { // restore
-                                setChart(name, categories, data);
+                                chart.setTitle({text: chart.title.text},
+                                    {text: <?= "'".$this->chartSubtitle."'"; ?>}
+                                );
+                                setChart(chart, name, categories, data);
                             }
                         }
                     }
                 },
                 dataLabels: {
                     enabled: true,
-                    color: colors[0],
                     style: {
                         fontWeight: 'bold'
                     },
@@ -70,12 +83,7 @@ $(function () {
         tooltip: {
             formatter: function() {
                 var point = this.point;
-                var s = '';
-                if (!point.drilldown) {
-                    s += 'Główna kategoria: <b>'+this.series.name+'</b>';
-                } else {
-                    s += '<b>'+ point.name +'</b>: '+this.y+<?= "'".$this->dataUnit."'"; ?>;
-                }
+                var s = '<b>'+ point.name +'</b>: '+this.y+<?= "'".$this->dataUnit."'"; ?>;
                 
                 return s;
             }
