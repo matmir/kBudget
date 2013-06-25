@@ -1,18 +1,21 @@
 <?php
-/**
-    @author Mateusz Mirosławski
-    
-    Kontroler głównej strony
-*/
 
 namespace Budget\Controller;
 
 use Zend\Mvc\Controller\AbstractActionController;
 use Zend\View\Model\ViewModel;
 
+/**
+ * Main controller
+ * 
+ * @author Mateusz Mirosławski
+ *
+ */
 class MainController extends AbstractActionController
 {
-    // Główna strona
+    /**
+     * Main site
+     */
     public function indexAction()
     {
     }

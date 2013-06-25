@@ -3,12 +3,17 @@
 namespace Auth\Service;
 
 use Base\Service\BaseService;
-
 use Zend\Mvc\MvcEvent;
 use Zend\Permissions\Acl\Acl;
 use Zend\Permissions\Acl\Role\GenericRole as Role;
 use Zend\Permissions\Acl\Resource\GenericResource as Resource;
 
+/**
+ * User authorization service
+ * 
+ * @author Mateusz Mirosławski
+ *
+ */
 class Authorization extends BaseService
 {
     /**

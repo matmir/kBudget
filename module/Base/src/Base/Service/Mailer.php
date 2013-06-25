@@ -35,7 +35,7 @@ class Mailer extends BaseService
     private function initSMTP()
     {
         // Get e-mail server configuration
-        $this->emailConfig = $this->getServiceLocator()->get('email_cfg');
+        $this->emailConfig = $this->getServiceLocator()->get('emailConfig');
         
         // Init SMTP object
         $this->smtpTransport = new SmtpTransport();

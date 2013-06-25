@@ -4,7 +4,7 @@
  * Upload (bank statement) configuration
  */
 return array(
-    'upload_banking' => array(
+    'uploadBanking' => array(
         'upload_dir' => 'import/',
         'maxFileSize' => '20kB',
         'fileExtension' => 'csv',

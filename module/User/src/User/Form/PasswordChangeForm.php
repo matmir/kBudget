@@ -1,9 +1,4 @@
 <?php
-/**
-    @author Mateusz Mirosławski
-    
-    Formularz zmiany hasła usera.
-*/
 
 namespace User\Form;
 
@@ -16,14 +11,30 @@ use Zend\InputFilter\InputFilter;
 use Zend\InputFilter\InputFilterAwareInterface;
 use Zend\InputFilter\InputFilterInterface;
 
+/**
+ * Password change form
+ * 
+ * @author Mateusz Mirosławski
+ *
+ */
 class PasswordChangeForm extends Form
 {
-    public function __construct($cfg, $name = null)
+    /**
+     * Constructor
+     * 
+     * @param array $cfg Array with user login/password configuration
+     */
+    public function __construct(array $cfg)
     {
         // we want to ignore the name passed
         parent::__construct('password');
         $this->setAttribute('method', 'post');
         
+        // Check fileds with the password
+        if (!((isset($cfg['minPassLength']))&&(isset($cfg['maxPassLength'])))) {
+            throw new \Exception('Missing configuration with user password!');
+        }
+
         // Pass
         $this->add(array(
             'type'  => 'Zend\Form\Element\Password',
@@ -60,7 +71,6 @@ class PasswordChangeForm extends Form
             ),
         ));
         
-        // Knefel
         $this->add(array(
             'type'  => 'Zend\Form\Element\Submit',
             'name' => 'submit',
@@ -72,27 +82,27 @@ class PasswordChangeForm extends Form
     }
 }
 
-/*
-    Filtry dla formularza
-*/
+/**
+ * Password change form filters
+ * 
+ * @author Mateusz Mirosławski
+ *
+ */
 class PasswordChangeFormFilter implements InputFilterAwareInterface
 {
     protected $inputFilter;
-    protected $login_cfg; // konfiguracja długości loginu/hasła
+    protected $login_cfg;
     
     /**
-        Konstruktor
-        @param array() Tablica z konfiguracją długości loginu/hasła
-    */
-    public function __construct($cfg)
+     * Constructor
+     * 
+     * @param array $cfg Array with user login/password configuration
+     */
+    public function __construct(array $cfg)
     {
-        // spr.czy parametr jest tablicą
-        if (!is_array($cfg)) {
-            throw new \Exception("Parametr z ustawieniami musi być tablicą!");
-        }
-        // Spr. pól z hasłem
+        // Check fileds with the password
         if (!((isset($cfg['minPassLength']))&&(isset($cfg['maxPassLength'])))) {
-            throw new \Exception("Brak ustawień dla pól z hasłem!");
+            throw new \Exception('Missing configuration with user password!');
         }
         
         $this->login_cfg = $cfg;
@@ -109,7 +119,7 @@ class PasswordChangeFormFilter implements InputFilterAwareInterface
             $inputFilter = new InputFilter();
             $factory     = new InputFactory();
 
-            // Hasło
+            // Old password
             $inputFilter->add($factory->createInput(array(
                 'name'     => 'pass',
                 'required' => true,
@@ -125,7 +135,7 @@ class PasswordChangeFormFilter implements InputFilterAwareInterface
                 ),
             )));
             
-            // Hasło 1
+            // New pass 1
             $inputFilter->add($factory->createInput(array(
                 'name'     => 'pass1',
                 'required' => true,
@@ -141,7 +151,7 @@ class PasswordChangeFormFilter implements InputFilterAwareInterface
                 ),
             )));
             
-            // Hasło 2
+            // New pass 2
             $inputFilter->add($factory->createInput(array(
                 'name'     => 'pass2',
                 'required' => true,

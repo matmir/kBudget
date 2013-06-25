@@ -53,7 +53,7 @@ class UserController extends BaseController
     public function loginAction()
     {
         // Get the user login/pass length
-        $cfg = $this->get('user_login_cfg');
+        $cfg = $this->get('userLoginConfig');
         
         $form = new LoginForm($cfg);
         $formFilters = new LoginFormFilter($cfg);
@@ -104,7 +104,7 @@ class UserController extends BaseController
     public function registerAction()
     {
         // Get the user login/pass length
-        $cfg = $this->get('user_login_cfg');
+        $cfg = $this->get('userLoginConfig');
         
         // Logout logged in user
         $this->get('Auth\UserAuthentication')->clearIdentity();
@@ -324,7 +324,7 @@ class UserController extends BaseController
     public function passwordAction()
     {
         // Get configuration of login/password lenght
-        $cfg = $this->get('user_login_cfg');
+        $cfg = $this->get('userLoginConfig');
     
         // User id
         $uid = $this->get('userId');

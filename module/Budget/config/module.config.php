@@ -1,7 +1,6 @@
 <?php
 
 return array(
-    // Routrs
     'router' => array(
         'routes' => array(
             // Main

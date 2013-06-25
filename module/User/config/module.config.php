@@ -1,7 +1,6 @@
 <?php
 
 return array(
-    // Routing
     'router' => array(
         'routes' => array(
             'user' => array(
@@ -211,7 +210,6 @@ return array(
             ),
         ),
     ),
-    // Kontrolery w module
     'controllers' => array(
         'invokables' => array(
             'User\Controller\Config' => 'User\Controller\ConfigController',

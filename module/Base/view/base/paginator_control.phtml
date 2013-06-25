@@ -7,10 +7,10 @@
   <?php else: ?>
   <a href="<?php echo $this->url($this->route, array('page' => $this->previous)); ?>">
   <?php endif; ?>
-    < Poprzednia
+    &lt; Poprzednia
   </a> |
 <?php else: ?>
-  <span class="disabled">< Poprzednia</span> |
+  <span class="disabled">&lt; Poprzednia</span> |
 <?php endif; ?>
 
 <!-- Numbered page links -->
@@ -35,10 +35,10 @@
   <?php else: ?>
   <a href="<?php echo $this->url($this->route, array('page' => $this->next)); ?>">
   <?php endif; ?>
-    Następna >
+    Następna &gt;
   </a>
 <?php else: ?>
-  <span class="disabled">Następna ></span>
+  <span class="disabled">Następna &gt;</span>
 <?php endif; ?>
 </div>
 <?php endif; ?>

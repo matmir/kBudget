@@ -1,9 +1,4 @@
 <?php
-/**
-    @author Mateusz Mirosławski
-    
-    Formularz edycji e-maila.
-*/
 
 namespace User\Form;
 
@@ -15,6 +10,12 @@ use Zend\InputFilter\InputFilter;
 use Zend\InputFilter\InputFilterAwareInterface;
 use Zend\InputFilter\InputFilterInterface;
 
+/**
+ * E-mail edit form
+ * 
+ * @author Mateusz Mirosławski
+ *
+ */
 class EmailForm extends Form
 {
     public function __construct($name = null)
@@ -46,9 +47,12 @@ class EmailForm extends Form
     }
 }
 
-/*
-    Filtry dla formularza
-*/
+/**
+ * E-mail edit form filter
+ * 
+ * @author Mateusz Mirosławski
+ *
+ */
 class EmailFormFilter implements InputFilterAwareInterface
 {
     protected $inputFilter;

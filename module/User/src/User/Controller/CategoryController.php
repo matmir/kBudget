@@ -116,7 +116,7 @@ class CategoryController extends BaseController
             
         } else { // Missing POST data
             
-            $view->setVariable("status","noPostData");
+            $view->setVariable('status','noPostData');
             
         }
         

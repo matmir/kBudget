@@ -74,7 +74,7 @@ class UsersController extends BaseController
     public function passwordAction()
     {
         // login/pass configuration
-        $cfg = $this->get('user_login_cfg');
+        $cfg = $this->get('userLoginConfig');
         
         // Get user identifier which we want change password
         $uid = (int) $this->params()->fromRoute('uid', 0);

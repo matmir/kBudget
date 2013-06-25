@@ -47,7 +47,7 @@ class ImportController extends BaseController
         if ($import == null) {
             
             // Upload configuration
-            $upload_config = $this->get('upload_cfg');
+            $upload_config = $this->get('uploadConfig');
             
             // Get user bank accounts
             $accounts = $this->get('User\AccountMapper')->getUserAccountsToSelect($uid);
@@ -177,7 +177,7 @@ class ImportController extends BaseController
         if ($import) {
             
             // Upload configuration
-            $upload_config = $this->get('upload_cfg');
+            $upload_config = $this->get('uploadConfig');
             
             // Number of not imported transactions
             $not_imported_count = $import->count - $import->counted;
@@ -461,7 +461,7 @@ class ImportController extends BaseController
         $import = $this->get('Budget\ImportMapper')->getUserImport($uid);
         
         // Get upload configuration
-        $upload_config = $this->get('upload_cfg');
+        $upload_config = $this->get('uploadConfig');
         
         // Check if there are informations about import
         if ($import) {

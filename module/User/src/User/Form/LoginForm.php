@@ -1,9 +1,4 @@
 <?php
-/**
-    @author Mateusz Mirosławski
-    
-    Formularz logowania.
-*/
 
 namespace User\Form;
 
@@ -15,25 +10,32 @@ use Zend\InputFilter\InputFilter;
 use Zend\InputFilter\InputFilterAwareInterface;
 use Zend\InputFilter\InputFilterInterface;
 
+/**
+ * Login form
+ * 
+ * @author Mateusz Mirosławski
+ *
+ */
 class LoginForm extends Form
 {
-    public function __construct($cfg, $name = null)
+    /**
+     * Constructor
+     * 
+     * @param array $cfg Array with user login/password configuration
+     */
+    public function __construct(array $cfg)
     {
         // we want to ignore the name passed
         parent::__construct('login');
         $this->setAttribute('method', 'post');
-        
-        // spr.czy parametr jest tablicą
-        if (!is_array($cfg)) {
-            throw new \Exception("Parametr z ustawieniami musi być tablicą!");
-        }
-        // Spr. pól z loginem
+
+        // Check fields with login
         if (!((isset($cfg['minLoginLength']))&&(isset($cfg['maxLoginLength'])))) {
-            throw new \Exception("Brak ustawień dla pól z logowaniem!");
+            throw new \Exception('Missing configuration with user login!');
         }
-        // Spr. pól z hasłem
+        // Check fileds with the password
         if (!((isset($cfg['minPassLength']))&&(isset($cfg['maxPassLength'])))) {
-            throw new \Exception("Brak ustawień dla pól z hasłem!");
+            throw new \Exception('Missing configuration with user password!');
         }
         
         // Login
@@ -69,7 +71,6 @@ class LoginForm extends Form
             ),
         ));
         
-        // Knefel
         $this->add(array(
             'type'  => 'Zend\Form\Element\Submit',
             'name' => 'submit',
@@ -81,31 +82,31 @@ class LoginForm extends Form
     }
 }
 
-/*
-    Filtry dla formularza
-*/
+/**
+ * Login form filters
+ * 
+ * @author Mateusz Mirosławski
+ *
+ */
 class LoginFormFilter implements InputFilterAwareInterface
 {
     protected $inputFilter;
-    protected $login_cfg; // konfiguracja długości loginu/hasła
+    protected $login_cfg;
     
     /**
-        Konstruktor
-        @param array() Tablica z konfiguracją długości loginu/hasła
-    */
-    public function __construct($cfg)
+     * Constructor
+     * 
+     * @param array $cfg Array with user login/password configuration
+     */
+    public function __construct(array $cfg)
     {
-        // spr.czy parametr jest tablicą
-        if (!is_array($cfg)) {
-            throw new \Exception("Parametr z ustawieniami musi być tablicą!");
-        }
-        // Spr. pól z loginem
+        // Check fields with login
         if (!((isset($cfg['minLoginLength']))&&(isset($cfg['maxLoginLength'])))) {
-            throw new \Exception("Brak ustawień dla pól z logowaniem!");
+            throw new \Exception('Missing configuration with user login!');
         }
-        // Spr. pól z hasłem
+        // Check fileds with the password
         if (!((isset($cfg['minPassLength']))&&(isset($cfg['maxPassLength'])))) {
-            throw new \Exception("Brak ustawień dla pól z hasłem!");
+            throw new \Exception('Missing configuration with user password!');
         }
         
         $this->login_cfg = $cfg;
@@ -142,7 +143,7 @@ class LoginFormFilter implements InputFilterAwareInterface
                 ),
             )));
             
-            // Hasło
+            // Password
             $inputFilter->add($factory->createInput(array(
                 'name'     => 'pass',
                 'required' => true,

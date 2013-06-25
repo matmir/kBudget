@@ -1,9 +1,4 @@
 <?php
-/**
-    @author Mateusz Mirosławski
-    
-    Kontroler konfiguracji ustawień usera (kategorie/zmiana hasła/maila)
-*/
 
 namespace User\Controller;
 
@@ -13,9 +8,17 @@ use Zend\View\Model\ViewModel;
 use Zend\Authentication\Adapter\DbTable as AuthAdapter;
 use Zend\Authentication\AuthenticationService;
 
+/**
+ * Configuration controller
+ * 
+ * @author Mateusz Mirosławski
+ *
+ */
 class ConfigController extends AbstractActionController
 {
-    // Główna strona
+    /**
+     * Main configuration site
+     */
     public function indexAction()
     {
     }

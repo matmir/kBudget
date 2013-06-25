@@ -5,7 +5,7 @@
  */
 return array(
     // Login length
-    'user_login' => array(
+    'userLogin' => array(
         'minLoginLength' => 4,
         'maxLoginLength' => 30,
         'minPassLength' => 6,

@@ -26,4 +26,30 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
     {
         return include __DIR__ . '/config/module.config.php';
     }
+
+    public function getServiceConfig()
+    {
+        return array(
+            'factories' => array(
+                
+                // Configuration of the user login/password
+                'userLoginConfig' =>  function($sm) {
+                    $cfg = $sm->get('Configuration');
+                    return $cfg['userLogin'];
+                },
+                
+                // Configuration of the system e-mail
+                'emailConfig' =>  function($sm) {
+                    $cfg = $sm->get('Configuration');
+                    return $cfg['email'];
+                },
+        
+                // Configuration of the uploading files to the server
+                'uploadConfig' =>  function($sm) {
+                    $cfg = $sm->get('Configuration');
+                    return $cfg['uploadBanking'];
+                },
+            ),
+        );
+    }
 }

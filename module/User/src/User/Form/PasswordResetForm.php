@@ -1,9 +1,4 @@
 <?php
-/**
-    @author Mateusz Mirosławski
-    
-    Formularz resetu hasła usera.
-*/
 
 namespace User\Form;
 
@@ -15,9 +10,15 @@ use Zend\InputFilter\InputFilter;
 use Zend\InputFilter\InputFilterAwareInterface;
 use Zend\InputFilter\InputFilterInterface;
 
+/**
+ * Password reset form
+ * 
+ * @author Mateusz Mirosławski
+ *
+ */
 class PasswordResetForm extends Form
 {
-    public function __construct($name = null)
+    public function __construct()
     {
         // we want to ignore the name passed
         parent::__construct('login');
@@ -44,7 +45,6 @@ class PasswordResetForm extends Form
             ),
         ));
         
-        // Knefel
         $this->add(array(
             'type'  => 'Zend\Form\Element\Submit',
             'name' => 'submit',
@@ -56,9 +56,12 @@ class PasswordResetForm extends Form
     }
 }
 
-/*
-    Filtry dla formularza
-*/
+/**
+ * Password reset form filters
+ * 
+ * @author Mateusz Mirosławski
+ *
+ */
 class PasswordResetFormFilter implements InputFilterAwareInterface
 {
     protected $inputFilter;

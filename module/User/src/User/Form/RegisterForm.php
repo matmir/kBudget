@@ -19,21 +19,24 @@ use Zend\InputFilter\InputFilterInterface;
  */
 class RegisterForm extends Form
 {
-    public function __construct($cfg, $name = null)
+    /**
+     * Constructor
+     * 
+     * @param array $cfg Array with user login/password configuration
+     */
+    public function __construct(array $cfg)
     {
         // we want to ignore the name passed
         parent::__construct('register');
         $this->setAttribute('method', 'post');
         
-        // Check config parameter
-        if (!is_array($cfg)) {
-            throw new \Exception('Config parameter must be an array!');
-        }
+        // Check fields with login
         if (!((isset($cfg['minLoginLength']))&&(isset($cfg['maxLoginLength'])))) {
-            throw new \Exception('Missing fields with login!');
+            throw new \Exception('Missing configuration with user login!');
         }
+        // Check fileds with the password
         if (!((isset($cfg['minPassLength']))&&(isset($cfg['maxPassLength'])))) {
-            throw new \Exception('Missing fields with password!');
+            throw new \Exception('Missing configuration with user password!');
         }
         
         // Login
@@ -149,17 +152,15 @@ class RegisterFormFilter implements InputFilterAwareInterface
      * @param array $cfg Array with login/pass length configuration
      * @throws \Exception
      */
-    public function __construct($cfg)
+    public function __construct(array $cfg)
     {
-        // Check config parameter
-        if (!is_array($cfg)) {
-            throw new \Exception('Config parameter must be an array!');
-        }
+        // Check fields with login
         if (!((isset($cfg['minLoginLength']))&&(isset($cfg['maxLoginLength'])))) {
-            throw new \Exception('Missing fields with login!');
+            throw new \Exception('Missing configuration with user login!');
         }
+        // Check fileds with the password
         if (!((isset($cfg['minPassLength']))&&(isset($cfg['maxPassLength'])))) {
-            throw new \Exception('Missing fields with password!');
+            throw new \Exception('Missing configuration with user password!');
         }
         
         $this->login_cfg = $cfg;
