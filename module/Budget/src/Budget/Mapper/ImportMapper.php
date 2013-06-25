@@ -33,7 +33,7 @@ class ImportMapper extends BaseMapper
         $select = $sql->select();
         
         $select->from(array('i' => self::TABLE))
-                ->where(array('i.uid' => (int)$uid));
+                ->where(array('i.userId' => (int)$uid));
         
         $statement = $sql->prepareStatementForSqlObject($select);
         $row = $statement->execute();
@@ -50,21 +50,21 @@ class ImportMapper extends BaseMapper
     public function setUserImport($import)
     {
         $data = array(
-            'aid' => (int)$import->aid,
-            'fname' => (string)$import->fname,
-            'bank' => (string)$import->bank,
-            'fpos' => (int)$import->fpos,
-            'nfpos' => (int)$import->nfpos,
-            'count' => (int)$import->count,
-            'counted' => (int)$import->counted,
+            'accountId' => (int)$import->getAccountId(),
+            'fileName' => (string)$import->getFileName(),
+            'bankName' => (string)$import->getBankName(),
+            'positionInFile' => (int)$import->getPositionInFile(),
+            'newPositionInFile' => (int)$import->getNewPositionInFile(),
+            'count' => (int)$import->getCount(),
+            'counted' => (int)$import->getCounted(),
         );
         
         $sql = new Sql($this->getDbAdapter());
 
         // Add new entry?
-        if ($this->getUserImport($import->uid) == null) {
+        if ($this->getUserImport($import->getUserId()) == null) {
             
-            $data['uid'] = (int)$import->uid;
+            $data['uid'] = (int)$import->getUserId();
             
             $insert = $sql->insert();
             $insert->into(self::TABLE);
@@ -79,7 +79,7 @@ class ImportMapper extends BaseMapper
             
             $update->table(self::TABLE);
             $update->set($data);
-            $update->where(array('uid' => (int)$import->uid));
+            $update->where(array('userId' => (int)$import->getUserId()));
             
             $statement = $sql->prepareStatementForSqlObject($update);
             $statement->execute();
@@ -97,7 +97,7 @@ class ImportMapper extends BaseMapper
     
         $delete = $sql->delete();
         $delete->from(self::TABLE);
-        $delete->where(array('uid' => (int)$uid));
+        $delete->where(array('userId' => (int)$uid));
         
         $statement = $sql->prepareStatementForSqlObject($delete);
         $row = $statement->execute();

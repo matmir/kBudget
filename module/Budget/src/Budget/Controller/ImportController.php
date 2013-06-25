@@ -8,7 +8,6 @@ use Budget\Model\Banking\Exception\EndBankFile;
 use Budget\Model\Banking\Exception\ParseBankFileError;
 
 use Budget\Model\Import;
-use Budget\Model\ImportMapper;
 
 use Budget\Form\LoadBankFileForm;
 use Budget\Form\LoadBankFileFormFilter;
@@ -104,24 +103,24 @@ class ImportController extends BaseController
                             
                             // Information about upload
                             $new_import = new Import();
-                            $new_import->uid = $uid;
-                            $new_import->aid = $form->get('aid')->getValue();
-                            $new_import->fname = $FILE_NAME;
-                            $new_import->bank = $form->get('bank')->getValue();
-                            $new_import->fpos = 0;
-                            $new_import->nfpos = 0;
-                            $new_import->counted = 0;
+                            $new_import->setUserId($uid);
+                            $new_import->setAccountId($form->get('aid')->getValue());
+                            $new_import->setFileName($FILE_NAME);
+                            $new_import->setBankName($form->get('bank')->getValue());
+                            $new_import->setPositionInFile(0);
+                            $new_import->setNewPositionInFile(0);
+                            $new_import->setCounted(0);
                             
                             // Get bank instance
                             $bank = $this->get('Budget\BankService')->getBankInstance(
-                                $new_import->bank,
+                                $new_import->getBankName(),
                                 $destination,
                                 0,
                                 $upload_config['maxParseLines']
                             );
                             
                             // Number of the transactions
-                            $new_import->count = $bank->count();
+                            $new_import->setCount($bank->count());
                             
                             // Save import information
                             $this->get('Budget\ImportMapper')->setUserImport($new_import);
@@ -180,7 +179,7 @@ class ImportController extends BaseController
             $upload_config = $this->get('uploadConfig');
             
             // Number of not imported transactions
-            $not_imported_count = $import->count - $import->counted;
+            $not_imported_count = $import->getCount() - $import->getCounted();
             
             // Get number of importing transaction (for this cycle)
             $tr_count = ($not_imported_count>$upload_config['maxParseLines'])?($upload_config['maxParseLines']):($not_imported_count);
@@ -236,7 +235,7 @@ class ImportController extends BaseController
                         $form->get('ccid-'.$i)->setValueOptions($subCategories);
                     } else { // Check transfer data
                         // Check transfer account id
-                        if ($data['taid-'.$i] == $import->aid) {
+                        if ($data['taid-'.$i] == $import->getAccountId()) {
                             $form->get('taid-'.$i)->setMessages(
                                 array(
                                     'Bank account must be different than bank account into which importing CSV file!'
@@ -272,7 +271,7 @@ class ImportController extends BaseController
                             
                             // Create transaction object
                             $transaction = new Transaction();
-                            $transaction->aid = $import->aid;
+                            $transaction->aid = $import->getAccountId();
                             $transaction->uid = $uid;
                             // Get category id
                             if ($form->get('ccid-'.$i)->getValue() == -1 || $form->get('ccid-'.$i)->getValue() == 0) {
@@ -296,8 +295,8 @@ class ImportController extends BaseController
                             
                             // Outgoing transfer
                             $outTransaction = new Transaction();
-                            $outTransaction->aid = ($data['t_type-'.$i]==2)?($import->aid):($data['taid-'.$i]);
-                            $outTransaction->taid = ($data['t_type-'.$i]==2)?($data['taid-'.$i]):($import->aid);
+                            $outTransaction->aid = ($data['t_type-'.$i]==2)?($import->getAccountId()):($data['taid-'.$i]);
+                            $outTransaction->taid = ($data['t_type-'.$i]==2)?($data['taid-'.$i]):($import->getAccountId());
                             $outTransaction->uid = $uid;
                             $outTransaction->t_type = 2;
                             $outTransaction->cid = $tcid;
@@ -307,8 +306,8 @@ class ImportController extends BaseController
                             
                             // Incoming transfer
                             $inTransaction = new Transaction();
-                            $inTransaction->aid = ($data['t_type-'.$i]==2)?($data['taid-'.$i]):($import->aid);
-                            $inTransaction->taid = ($data['t_type-'.$i]==2)?($import->aid):($data['taid-'.$i]);
+                            $inTransaction->aid = ($data['t_type-'.$i]==2)?($data['taid-'.$i]):($import->getAccountId());
+                            $inTransaction->taid = ($data['t_type-'.$i]==2)?($import->getAccountId()):($data['taid-'.$i]);
                             $inTransaction->uid = $uid;
                             $inTransaction->t_type = 3;
                             $inTransaction->cid = $tcid;
@@ -324,16 +323,16 @@ class ImportController extends BaseController
                     }
                     
                     // Increment parsing line count
-                    $import->fpos = $import->nfpos;
-                    $import->counted += $tr_count;
+                    $import->setPositionInFile($import->getNewPositionInFile());
+                    $import->setCounted($import->getCounted() + $tr_count);
                     
                     // Check if is end importing
-                    if ($import->counted == $import->count) {
+                    if ($import->getCounted() == $import->getCount()) {
                         
                         // Delete information about import
                         $this->get('Budget\ImportMapper')->delUserImport($uid);
                         // Delete CSV file
-                        if (unlink($upload_config['upload_dir'].$import->fname) == true) {
+                        if (unlink($upload_config['upload_dir'].$import->getFileName()) == true) {
                             
                             // Get last transaction date
                             if (isset($transaction)) {
@@ -344,7 +343,7 @@ class ImportController extends BaseController
                             }
                             // redirect to the transaction list
                             return $this->redirect()->toRoute('transactions', array(
-                                                                                    'aid' => $import->aid,
+                                                                                    'aid' => $import->getAccountId(),
                                                                                     'month' => $t_dt[1],
                                                                                     'year' => $t_dt[0],
                                                                                     'page' => 1,
@@ -374,13 +373,13 @@ class ImportController extends BaseController
             } else { // There is no POST data
                 
                 // CSV file name
-                $FILE_NAME = $upload_config['upload_dir'].$import->fname;
+                $FILE_NAME = $upload_config['upload_dir'].$import->getFileName();
                 
                 // Get bank instance
                 $bank = $this->get('Budget\BankService')->getBankInstance(
-                    $import->bank,
+                    $import->getBankName(),
                     $FILE_NAME,
-                    $import->fpos,
+                    $import->getPositionInFile(),
                     $upload_config['maxParseLines']
                 );
                 
@@ -410,7 +409,7 @@ class ImportController extends BaseController
                     }
                     
                     // New position in CSV file
-                    $import->nfpos = $bank->getPos();
+                    $import->setNewPositionInFile($bank->getPos());
                     
                     // Update import information
                     $this->get('Budget\ImportMapper')->setUserImport($import);
@@ -423,7 +422,7 @@ class ImportController extends BaseController
                     // Delete information about import
                     $this->get('Budget\ImportMapper')->delUserImport($uid);
                     // Delete CSV file from the server
-                    if (unlink($upload_config['upload_dir'].$import->fname) == false) {
+                    if (unlink($upload_config['upload_dir'].$import->getFileName()) == false) {
                     
                         throw new \Exception('Can not delete CSV file!');
                     
@@ -436,8 +435,8 @@ class ImportController extends BaseController
                 'form' => ($ERR==0)?($form):(null),
                 'ERR' => $ERR,
                 'TR_COUNT' => $tr_count,
-                'TR_COUNTED' => $import->counted,
-                'ALL_TR_COUNT' => $import->count,
+                'TR_COUNTED' => $import->getCounted(),
+                'ALL_TR_COUNT' => $import->getCount(),
             );
             
         } else { // There is no data to import
@@ -469,7 +468,7 @@ class ImportController extends BaseController
             // Delete import information
             $this->get('Budget\ImportMapper')->delUserImport($uid);
             // Delete CSV file from the server
-            if (unlink($upload_config['upload_dir'].$import->fname) == false) {
+            if (unlink($upload_config['upload_dir'].$import->getFileName()) == false) {
                 
                 throw new \Exception('Can not delete CSV file!');
                 
