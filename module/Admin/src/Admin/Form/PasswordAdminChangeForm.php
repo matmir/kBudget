@@ -1,21 +1,20 @@
 <?php
-/**
-    @author Mateusz Mirosławski
-    
-    Formularz zmiany hasła przez admina dla wybranego usera.
-*/
 
 namespace Admin\Form;
 
 use Zend\Form\Form;
 use Zend\Form\Element;
-use Zend\Captcha;
-
 use Zend\InputFilter\Factory as InputFactory;
 use Zend\InputFilter\InputFilter;
 use Zend\InputFilter\InputFilterAwareInterface;
 use Zend\InputFilter\InputFilterInterface;
 
+/**
+ * Password change form
+ * 
+ * @author Mateusz Mirosławski
+ * 
+ */
 class PasswordAdminChangeForm extends Form
 {
     public function __construct($cfg, $name = null)
@@ -48,7 +47,7 @@ class PasswordAdminChangeForm extends Form
             ),
         ));
         
-        // Knefel
+        // Submit
         $this->add(array(
             'type'  => 'Zend\Form\Element\Submit',
             'name' => 'submit',
@@ -60,27 +59,27 @@ class PasswordAdminChangeForm extends Form
     }
 }
 
-/*
-    Filtry dla formularza
-*/
+/**
+ * Pasword change form filters
+ * 
+ * @author Mateusz Mirosławski
+ * 
+ */
 class PasswordAdminChangeFormFilter implements InputFilterAwareInterface
 {
     protected $inputFilter;
-    protected $login_cfg; // konfiguracja długości loginu/hasła
+    protected $login_cfg;
     
     /**
-        Konstruktor
-        @param array() Tablica z konfiguracją długości loginu/hasła
-    */
-    public function __construct($cfg)
+     * Constructor
+     * 
+     * @param array $cfg Array with login/password configuration
+     */
+    public function __construct(array $cfg)
     {
-        // spr.czy parametr jest tablicą
-        if (!is_array($cfg)) {
-            throw new \Exception("Parametr z ustawieniami musi być tablicą!");
-        }
-        // Spr. pól z hasłem
+        // Check array fields
         if (!((isset($cfg['minPassLength']))&&(isset($cfg['maxPassLength'])))) {
-            throw new \Exception("Brak ustawień dla pól z hasłem!");
+            throw new \Exception('Missing fields with password configuration!');
         }
         
         $this->login_cfg = $cfg;
@@ -97,7 +96,7 @@ class PasswordAdminChangeFormFilter implements InputFilterAwareInterface
             $inputFilter = new InputFilter();
             $factory     = new InputFactory();
             
-            // Hasło 1
+            // Password 1
             $inputFilter->add($factory->createInput(array(
                 'name'     => 'pass1',
                 'required' => true,
@@ -113,7 +112,7 @@ class PasswordAdminChangeFormFilter implements InputFilterAwareInterface
                 ),
             )));
             
-            // Hasło 2
+            // Password 2
             $inputFilter->add($factory->createInput(array(
                 'name'     => 'pass2',
                 'required' => true,

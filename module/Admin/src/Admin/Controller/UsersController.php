@@ -1,38 +1,40 @@
 <?php
-/**
-    @author Mateusz Mirosławski
-    
-    User management
-*/
 
 namespace Admin\Controller;
 
 use Base\Controller\BaseController;
 
 use User\Model\User;
-use User\Model\UserMapper;
-
 use Admin\Form\PasswordAdminChangeForm;
 use Admin\Form\PasswordAdminChangeFormFilter;
-
 use Zend\Crypt\Password\Bcrypt;
 
+/**
+ * Admin user controller
+ * 
+ * @author Mateusz Mirosławski
+ * 
+ */
 class UsersController extends BaseController
 {
-    // Main page
+    /**
+     * Main page
+     */
     public function indexAction()
     {
-        // Przekierowanie do listy userów
+        // Redirect to the users list
         return $this->redirect()->toRoute('admin/users/list');
     }
     
-    // Users list
+    /**
+     * User list
+     */
     public function listAction()
     {
-        // Pobranie numeru strony
+        // Get number of the page
         $page = (int) $this->params()->fromRoute('page', 1);
         
-        // Pobranie userów
+        // Get users
         $users = $this->get('User\UserMapper')->getUsers($page);
         
         return array(
@@ -41,47 +43,50 @@ class UsersController extends BaseController
         );
     }
     
-    // Activate/deactivate user
+    /**
+     * Activate or deactivate selected user
+     */
     public function activateAction()
     {
-        // Pobranie identyfikatora usera, któremu zmieniam stan
+        // Get user identifier which we want change status
         $uid = (int) $this->params()->fromRoute('uid', 0);
         
-        // Nowy stan
+        // New active state
         $active = (int) $this->params()->fromRoute('active', 0);
         
-        // Pobranie numeru strony z której przychodzimy
+        // Get number of page from we comming
         $page = (int) $this->params()->fromRoute('page', 1);
         
-        // Zmiana stanu
+        // Change state
         if ($uid > 0) {
             $this->get('User\UserMapper')->setUserActive($uid, $active);
         }
         
-        // Przekierowanie do listy userów
+        // Redirect to the user list
         return $this->redirect()->toRoute('admin/users/list', array(
                                                                 'page' => $page,
                                                                 ));
     }
     
-    // Change user password
+    /**
+     * Change user password
+     */
     public function passwordAction()
     {
-        // Ustawienia długości loginu/hasła
+        // login/pass configuration
         $cfg = $this->get('user_login_cfg');
         
-        // Pobranie identyfikatora usera, któremu zmieniam stan
+        // Get user identifier which we want change password
         $uid = (int) $this->params()->fromRoute('uid', 0);
         
-        // Pobranie numeru strony z której przychodzimy
+        // Get number of page from we comming
         $page = (int) $this->params()->fromRoute('page', 1);
         
-        // Formularz
+        // Password change form
         $form = new PasswordAdminChangeForm($cfg);
-        // Filtry
         $formFilters = new PasswordAdminChangeFormFilter($cfg);
         
-        // Flaga błędu (2 - nowe hasła się nie zgadzają, 3 - hasło zmieniono)
+        // Error flag (2 - new password are different, 3 - password changed)
         $ERR = 0;
         
         $request = $this->getRequest();
@@ -92,7 +97,7 @@ class UsersController extends BaseController
             
             if ($form->isValid()) {
                     
-                // Spr. poprawności wprowadzonych nowych haseł
+                // Check passwords
                 $p1 = (string)$form->get('pass1')->getValue();
                 $p2 = (string)$form->get('pass2')->getValue();
                 if ($p1 == $p2) {
@@ -100,13 +105,13 @@ class UsersController extends BaseController
                     $bcrypt = new Bcrypt();
                     $bcrypt->setCost(\Auth\Service\UserAuthentication::bCOST);
                     
-                    // Zmiana hasła w bazie
+                    // Change user password
                     $this->get('User\UserMapper')->changeUserPass($uid, $bcrypt->create($p1));
                     
-                    // Hasło zmieniono
+                    // Set flag to the OK
                     $ERR = 3;
                     
-                } else { // Wprowadzono błędne nowe hasła
+                } else {
                     $ERR = 2;
                 }
                 

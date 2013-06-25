@@ -1,7 +1,6 @@
 <?php
 
 return array(
-    // Routing
     'router' => array(
         'routes' => array(
             'admin' => array(
@@ -80,7 +79,7 @@ return array(
             ),
         ),
     ),
-    // Kontrolery w module
+    // Controllers in module
     'controllers' => array(
         'invokables' => array(
             'Admin\Controller\Index' => 'Admin\Controller\IndexController',
