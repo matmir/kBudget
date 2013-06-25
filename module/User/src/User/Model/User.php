@@ -2,7 +2,7 @@
 
 namespace User\Model;
 
-use Base\Model\BaseModel;
+use Base\Model\BaseModelTemp;
 
 /**
  * User model.
@@ -10,7 +10,7 @@ use Base\Model\BaseModel;
  * @author Mateusz Mirosławski
  *
  */
-class User extends BaseModel
+class User extends BaseModelTemp
 {
     /**
      * User identifier

@@ -2,7 +2,7 @@
 
 namespace Budget\Model;
 
-use Base\Model\BaseModel;
+use Base\Model\BaseModelTemp;
 
 /**
  * Class with the information about importing of the transactions from CSV file
@@ -10,7 +10,7 @@ use Base\Model\BaseModel;
  * @author Mateusz Mirosławski
  *
  */
-class Import extends BaseModel
+class Import extends BaseModelTemp
 {
     /**
      * User identifier

@@ -2,7 +2,7 @@
 
 namespace Budget\Model;
 
-use Base\Model\BaseModel;
+use Base\Model\BaseModelTemp;
 
 /**
  * Transaction model
@@ -10,7 +10,7 @@ use Base\Model\BaseModel;
  * @author Mateusz Mirosławski
  *
  */
-class Transaction extends BaseModel
+class Transaction extends BaseModelTemp
 {
     /**
      * Transaction identifier

@@ -8,7 +8,7 @@ namespace Base\Model;
  * @author Mateusz Mirosławski
  *
  */
-abstract class BaseModel
+abstract class BaseModelTemp
 {
     /**
      * Initialize the object.
@@ -27,8 +27,18 @@ abstract class BaseModel
      */
     public function exchangeArray(array $params = array())
     {
-        foreach ($properties as $name => $value) {
-            $this->{'set'.ucwords($name)}($value);
+        if (!empty($params)) {
+        
+            foreach ($params as $field => $value) {
+        
+                if (property_exists($this, $field)) {
+                    
+                    $this->$field = $value;
+                    
+                }
+        
+            }
+        
         }
     }
     

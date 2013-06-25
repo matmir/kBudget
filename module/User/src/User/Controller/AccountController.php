@@ -128,7 +128,6 @@ class AccountController extends BaseController
                 
                 // Create account model
                 $account->exchangeArray($form->getData());
-                //$account->uid = $uid;
                 
                 // Save
                 $this->get('User\AccountMapper')->saveAccount($account);

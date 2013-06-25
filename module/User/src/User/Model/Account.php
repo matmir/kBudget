@@ -2,7 +2,7 @@
 
 namespace User\Model;
 
-use Base\Model\BaseModel;
+use Base\Model\BaseModelTemp;
 
 /**
  * Bank account model
@@ -10,7 +10,7 @@ use Base\Model\BaseModel;
  * @author Mateusz Mirosławski
  *
  */
-class Account extends BaseModel
+class Account extends BaseModelTemp
 {
     /**
      * Account identifier

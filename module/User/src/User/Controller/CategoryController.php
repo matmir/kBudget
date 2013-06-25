@@ -147,10 +147,8 @@ class CategoryController extends BaseController
             
             if ($form->isValid()) {
                 
-                $category = new Category();
-                
                 // Insert data from POST into the category model
-                $category->exchangeArray($form->getData());
+                $category = new Category($form->getData());
                 
                 $category->uid = $uid;
                 

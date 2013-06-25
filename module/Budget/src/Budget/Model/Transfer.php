@@ -2,7 +2,7 @@
 
 namespace Budget\Model;
 
-use Base\Model\BaseModel;
+use Base\Model\BaseModelTemp;
 
 /**
  * Transfer model
@@ -10,7 +10,7 @@ use Base\Model\BaseModel;
  * @author Mateusz Mirosławski
  *
  */
-class Transfer extends BaseModel
+class Transfer extends BaseModelTemp
 {
     /**
      * Transfer identifier
