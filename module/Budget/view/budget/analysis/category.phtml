@@ -43,7 +43,9 @@ $this->headScript()->prependFile($this->basePath('/js/highcharts/modules/exporti
         <?php if (!empty($this->expenseData)): ?>
             <?= $this->pieChart('pieExpenses', 'Wykres kołowy wydatków', $this->subtitle, 'zł', 300, 400, $this->expenseData); ?>
         <?php else: ?>
-            Brak wydatków w wybranym okresie!
+            <div class="alert alert-success">
+                Brak wydatków w wybranym okresie!
+            </div>
         <?php endif; ?>
     </div>
 
@@ -56,7 +58,9 @@ $this->headScript()->prependFile($this->basePath('/js/highcharts/modules/exporti
         <?php if (!empty($this->profitData)): ?>
             <?= $this->pieChart('pieProfits', 'Wykres kołowy przychodów', $this->subtitle, 'zł', 300, 400, $this->profitData); ?>
         <?php else: ?>
-            Brak przychodów w wybranym okresie!
+            <div class="alert alert-error">
+                Brak przychodów w wybranym okresie!
+            </div>
         <?php endif; ?>
     </div>
 
