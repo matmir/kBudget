@@ -64,7 +64,7 @@ class ImportMapper extends BaseMapper
         // Add new entry?
         if ($this->getUserImport($import->getUserId()) == null) {
             
-            $data['uid'] = (int)$import->getUserId();
+            $data['userId'] = (int)$import->getUserId();
             
             $insert = $sql->insert();
             $insert->into(self::TABLE);

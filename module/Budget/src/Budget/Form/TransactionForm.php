@@ -26,19 +26,19 @@ class TransactionForm extends Form
         // Transaction id (for editing)
         $this->add(array(
             'type'  => 'Zend\Form\Element\Hidden',
-            'name' => 'tid',
+            'name' => 'transactionId',
         ));
         
         // Bank account id
         $this->add(array(
             'type'  => 'Zend\Form\Element\Hidden',
-            'name' => 'aid',
+            'name' => 'accountId',
         ));
         
         // Transaction type
         $this->add(array(
             'type'  => 'Zend\Form\Element\Hidden',
-            'name' => 't_type',
+            'name' => 'transactionType',
             'attributes' => array(
                 'id' => 'transactionType',
             ),
@@ -106,7 +106,7 @@ class TransactionForm extends Form
         // Date
         $this->add(array(
             'type'  => 'Zend\Form\Element\Date',
-            'name' => 't_date',
+            'name' => 'date',
             'options' => array(
                 'label' => 'Data: ',
             ),
@@ -119,7 +119,7 @@ class TransactionForm extends Form
         // Description
         $this->add(array(
             'type'  => 'Zend\Form\Element\Text',
-            'name' => 't_content',
+            'name' => 'content',
             'options' => array(
                 'label' => 'Opis: ',
             ),
@@ -132,7 +132,7 @@ class TransactionForm extends Form
         // Value
         $this->add(array(
             'type'  => 'Zend\Form\Element\Text',
-            'name' => 't_value',
+            'name' => 'value',
             'options' => array(
                 'label' => 'Wartość: ',
             ),
@@ -177,7 +177,7 @@ class TransactionFilter implements InputFilterAwareInterface
 
             // Transaction id
             $inputFilter->add($factory->createInput(array(
-                'name'     => 'tid',
+                'name'     => 'transactionId',
                 'required' => true,
                 'filters'  => array(
                     array('name' => 'Int'),
@@ -186,7 +186,7 @@ class TransactionFilter implements InputFilterAwareInterface
             
             // Bank account id
             $inputFilter->add($factory->createInput(array(
-                'name'     => 'aid',
+                'name'     => 'accountId',
                 'required' => true,
                 'filters'  => array(
                     array('name' => 'Int'),
@@ -195,7 +195,7 @@ class TransactionFilter implements InputFilterAwareInterface
 
             // Transaction type
             $inputFilter->add($factory->createInput(array(
-                'name'     => 't_type',
+                'name'     => 'transactionType',
                 'required' => true,
                 'filters'  => array(
                     array('name' => 'Int'),
@@ -262,7 +262,7 @@ class TransactionFilter implements InputFilterAwareInterface
             
             // Date
             $inputFilter->add($factory->createInput(array(
-                'name'     => 't_date',
+                'name'     => 'date',
                 'required' => true,
                 'validators'  => array(
                     array(
@@ -277,7 +277,7 @@ class TransactionFilter implements InputFilterAwareInterface
             
             // Description
             $inputFilter->add($factory->createInput(array(
-                'name'     => 't_content',
+                'name'     => 'content',
                 'required' => true,
                 'filters'  => array(
                     array('name' => 'StripTags'),
@@ -297,7 +297,7 @@ class TransactionFilter implements InputFilterAwareInterface
             
             // Value
             $inputFilter->add($factory->createInput(array(
-                'name'     => 't_value',
+                'name'     => 'value',
                 'required' => true,
                 'filters'  => array(
                     array(

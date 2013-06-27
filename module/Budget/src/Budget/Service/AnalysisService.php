@@ -43,17 +43,17 @@ class AnalysisService extends BaseService
         foreach ($transactions as $transaction) {
             
             // Check if the previous date is different than actual
-            if ($prev_label == $transaction->t_date) {
+            if ($prev_label == $transaction->getDate()->format('Y-m-d')) {
                 
                 // The same date - sum of the transactions!
-                $data['data'][$i] += $transaction->t_value;
+                $data['data'][$i] += $transaction->getValue();
                 
             } else { // Date is different
                 
                 // Insert into the array
-                array_push($data['data'], $transaction->t_value);
-                array_push($data['labels'], $transaction->t_date);
-                $prev_label = $transaction->t_date;
+                array_push($data['data'], $transaction->getValue());
+                array_push($data['labels'], $transaction->getDate()->format('Y-m-d'));
+                $prev_label = $transaction->getDate()->format('Y-m-d');
                 
                 $i++;
             }
@@ -83,14 +83,14 @@ class AnalysisService extends BaseService
             $uid,
             $aid,
             $dateParams,
-            array(1, 2) // Expenses and outgoing transfers
+            array(Transaction::EXPENSE, Transaction::OUTGOING_TRANSFER) // Expenses and outgoing transfers
         );
         // Get sum of profits
         $profits = $this->getServiceLocator()->get('Budget\TransactionMapper')->getSumOfTransactions(
             $uid,
             $aid,
             $dateParams,
-            array(0, 3) // Profits and incoming transfers
+            array(Transaction::PROFIT, Transaction::INCOMING_TRANSFER) // Profits and incoming transfers
         );
         // Balance
         $balance = $profits - $expenses;
@@ -137,22 +137,22 @@ class AnalysisService extends BaseService
         foreach ($transactions as $transaction) {
 
             // Sum values of the transactions
-            if (isset($cidData[$transaction->cid])) {
-                $cidData[$transaction->cid] += (float) $transaction->t_value;
+            if (isset($cidData[$transaction->getCategoryId()])) {
+                $cidData[$transaction->getCategoryId()] += (float) $transaction->getValue();
             } else {
-                $cidData[$transaction->cid] = (float) $transaction->t_value;
+                $cidData[$transaction->getCategoryId()] = (float) $transaction->getValue();
                 // Insert category identifier into the array
-                array_push($cids, $transaction->cid);
+                array_push($cids, $transaction->getCategoryId());
             }
 
             // Sum values of the transfers
-            if ($transaction->taid !== null) {
-                if (isset($taidData[$transaction->taid])) {
-                    $taidData[$transaction->taid] += (float) $transaction->t_value;
+            if ($transaction->getTransferAccountId() !== null) {
+                if (isset($taidData[$transaction->getTransferAccountId()])) {
+                    $taidData[$transaction->getTransferAccountId()] += (float) $transaction->getValue();
                 } else {
-                    $taidData[$transaction->taid] = (float) $transaction->t_value;
+                    $taidData[$transaction->getTransferAccountId()] = (float) $transaction->getValue();
                     // Insert account identifier into the array
-                    array_push($taids, $transaction->taid);
+                    array_push($taids, $transaction->getTransferAccountId());
                 }
             }
             
@@ -170,13 +170,13 @@ class AnalysisService extends BaseService
             foreach ($categories as $category) {
 
                 // Main cateogry
-                if ($category->pcid === null) {
-                    $returnData[$category->c_name] = array('value' => $cidData[$category->cid]);
-                    $categoryNames[$category->cid] = $category->c_name;
+                if ($category->getParentCategoryId() === null) {
+                    $returnData[$category->getCategoryName()] = array('value' => $cidData[$category->getCategoryId()]);
+                    $categoryNames[$category->getCategoryId()] = $category->getCategoryName();
                 } else {
                     // Get parent identifiers
-                    if (!in_array($category->pcid, $cids)) {
-                        array_push($pcids, $category->pcid);
+                    if (!in_array($category->getParentCategoryId(), $cids)) {
+                        array_push($pcids, $category->getParentCategoryId());
                     }
                 }
             }
@@ -192,17 +192,17 @@ class AnalysisService extends BaseService
 
                 foreach ($mainCategories as $category) {
 
-                    $returnData[$category->c_name] = array('value' => 0);
-                    $categoryNames[$category->cid] = $category->c_name;
+                    $returnData[$category->getCategoryName()] = array('value' => 0);
+                    $categoryNames[$category->getCategoryId()] = $category->getCategoryName();
 
                 }
 
                 foreach ($categories as $category) {
 
                     // Parse only children
-                    if ($category->pcid !== null) {
-                        $returnData[$categoryNames[$category->pcid]]['drilldown'][$category->c_name] = $cidData[$category->cid];
-                        $returnData[$categoryNames[$category->pcid]]['value'] += $cidData[$category->cid];
+                    if ($category->getParentCategoryId() !== null) {
+                        $returnData[$categoryNames[$category->getParentCategoryId()]]['drilldown'][$category->getCategoryName()] = $cidData[$category->getCategoryId()];
+                        $returnData[$categoryNames[$category->getParentCategoryId()]]['value'] += $cidData[$category->getCategoryId()];
                     }
 
                 }
@@ -219,7 +219,7 @@ class AnalysisService extends BaseService
             );
 
             foreach ($accounts as $account) {
-                $returnData[$categoryNames[$transferCategoryId]]['drilldown'][$account->a_name] = $taidData[$account->aid];
+                $returnData[$categoryNames[$transferCategoryId]]['drilldown'][$account->getAccountName()] = $taidData[$account->getAccountId()];
             }
         }
 

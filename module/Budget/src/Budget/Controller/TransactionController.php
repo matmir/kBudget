@@ -39,7 +39,7 @@ class TransactionController extends BaseController
         if (!$aid) {
             
             // Load default account id
-            $aid = $this->get('User\UserMapper')->getUser($uid)->default_aid;
+            $aid = $this->get('User\UserMapper')->getUser($uid)->getDefaultAccountId();
             
         } else {
             
@@ -47,7 +47,7 @@ class TransactionController extends BaseController
             if (!$this->get('User\AccountMapper')->isUserAccount($aid, $uid)) {
                 
                 // Load default account id
-                $aid = $this->get('User\UserMapper')->getUser($uid)->default_aid;
+                $aid = $this->get('User\UserMapper')->getUser($uid)->getDefaultAccountId();
                 
             }
             
@@ -92,7 +92,7 @@ class TransactionController extends BaseController
             $date_param
         );
         
-        // Get transactions
+        // Get transactions joned with category
         $transactions = $this->get('Budget\TransactionMapper')->getTransactions(
             $uid,
             $aid,
@@ -109,14 +109,14 @@ class TransactionController extends BaseController
         foreach ($transactionsCopy as $transaction) {
             
             // Check if category has parent
-            if ($transaction->pcid === null) {
+            if ($transaction->parentCategoryId === null) {
                 // Main category
-                $categories[$transaction->tid] = array($transaction->c_name, null);
+                $categories[$transaction->transactionId] = array($transaction->categoryName, null);
             } else {
                 // Subcategory
-                $parent = $this->get('User\CategoryMapper')->getCategory($transaction->pcid, $uid);
+                $parent = $this->get('User\CategoryMapper')->getCategory($transaction->parentCategoryId, $uid);
                 
-                $categories[$transaction->tid] = array($parent->c_name, $transaction->c_name);
+                $categories[$transaction->transactionId] = array($parent->getCategoryName(), $transaction->categoryName);
             }
             
         }
@@ -186,9 +186,9 @@ class TransactionController extends BaseController
         $uid = $this->get('userId');
         
         // Get type of transaction
-        $t_type= (int) $this->params()->fromRoute('type', 1);
+        $t_type= (int) $this->params()->fromRoute('type', Transaction::EXPENSE);
         // Check type
-        if (!($t_type == 0 || $t_type==1)) {
+        if (!($t_type==Transaction::PROFIT || $t_type==Transaction::EXPENSE)) {
             
             return $this->redirect()->toRoute('main');
             
@@ -206,7 +206,7 @@ class TransactionController extends BaseController
         $form = new TransactionForm();
         
         // Set account id
-        $form->get('aid')->setValue($aid);
+        $form->get('accountId')->setValue($aid);
         
         // Get user main categories
         $userMainCat = $this->get('User\CategoryMapper')->getUserCategoriesToSelect($uid, $t_type);
@@ -215,7 +215,7 @@ class TransactionController extends BaseController
         // Set the submit value
         $form->get('submit')->setValue('Dodaj');
         // Set the transaction type in form
-        $form->get('t_type')->setValue($t_type);
+        $form->get('transactionType')->setValue($t_type);
 
         $request = $this->getRequest();
         if ($request->isPost()) {
@@ -278,16 +278,16 @@ class TransactionController extends BaseController
                 // Read category id
                 if ($data['ccid'] == -1) { // no subcategory
                     
-                    $data['cid'] = (int)$data['pcid'];
+                    $data['categoryId'] = (int)$data['pcid'];
                     
                 } else { // there is subcategory
                     
-                    $data['cid'] = (int)$data['ccid'];
+                    $data['categoryId'] = (int)$data['ccid'];
                     
                 }
                 
                 // Check if there is correct cid
-                if (isset($data['cid'])) {
+                if (isset($data['categoryId'])) {
                     
                     // Remove unused fields
                     unset($data['pcid']);
@@ -297,17 +297,14 @@ class TransactionController extends BaseController
                     $transaction = new Transaction($data);
                     
                     // uid
-                    $transaction->uid = $uid;
+                    $transaction->setUserId($uid);
                     // Save
                     $this->get('Budget\TransactionMapper')->saveTransaction($transaction);
                     
-                    // Transaction date
-                    $t_dt = explode('-', $transaction->t_date);
-                    
                     return $this->redirect()->toRoute('transactions', array(
                                                                            'aid' => $aid,
-                                                                           'month' => $t_dt[1],
-                                                                           'year' => $t_dt[0],
+                                                                           'month' => $transaction->getDate()->format('m'),
+                                                                           'year' => $transaction->getDate()->format('Y'),
                                                                            'page' => 1,
                                                                            ));
                     
@@ -346,31 +343,40 @@ class TransactionController extends BaseController
         // Get transaction data
         $transaction = $this->get('Budget\TransactionMapper')->getTransaction($tid, $uid);
         $data = $transaction->getArrayCopy();
+        $data['date'] = $transaction->getDate()->format('Y-m-d');
         
         $form  = new TransactionForm();
         
         // User main categories
-        $userMainCat = $this->get('User\CategoryMapper')->getUserCategoriesToSelect($uid, $transaction->t_type);
+        $userMainCat = $this->get('User\CategoryMapper')->getUserCategoriesToSelect($uid, $transaction->getTransactionType());
         $form->get('pcid')->setValueOptions($userMainCat);
         
         // Check if the transaction category has subcategories
-        $category = $this->get('User\CategoryMapper')->getCategory($transaction->cid, $uid);
+        $category = $this->get('User\CategoryMapper')->getCategory($transaction->getCategoryId(), $uid);
         
-        if ($category->pcid == null) { // this is main category
+        if ($category->getParentCatgoryId() == null) { // this is main category
             
-            $data['pcid'] = $category->cid;
+            $data['pcid'] = $category->getCategoryId();
             $data['ccid'] = null;
             
             // User subcategories
-            $userSubCat = $this->get('User\CategoryMapper')->getUserCategoriesToSelect($uid, $transaction->t_type, $category->cid);
+            $userSubCat = $this->get('User\CategoryMapper')->getUserCategoriesToSelect(
+                $uid,
+                $transaction->getTransactionType(),
+                $category->getCategoryId()
+            );
             
         } else { // this is subcategory
             
-            $data['pcid'] = $category->pcid;
-            $data['ccid'] = $category->cid;
+            $data['pcid'] = $category->getParentCategoryId();
+            $data['ccid'] = $category->getCategoryId();
             
             // User subcategories
-            $userSubCat = $this->get('User\CategoryMapper')->getUserCategoriesToSelect($uid, $transaction->t_type, $category->pcid);
+            $userSubCat = $this->get('User\CategoryMapper')->getUserCategoriesToSelect(
+                $uid,
+                $transaction->getTransactionType(),
+                $category->getParentCategoryId()
+            );
             
         }
         
@@ -412,7 +418,11 @@ class TransactionController extends BaseController
                 
             } else {
                 
-                $ccid = $this->get('User\CategoryMapper')->getUserCategoriesToSelect($uid, $transaction->t_type, $postData['pcid']);
+                $ccid = $this->get('User\CategoryMapper')->getUserCategoriesToSelect(
+                    $uid,
+                    $transaction->getTransactionType(),
+                    $postData['pcid']
+                );
                 $form->get('ccid')->setValueOptions($ccid);
                 
             }
@@ -443,16 +453,16 @@ class TransactionController extends BaseController
                 // Read category id
                 if ($data['ccid'] == -1) { // no subcategory
                     
-                    $data['cid'] = (int)$data['pcid'];
+                    $data['categoryId'] = (int)$data['pcid'];
                     
                 } else { // there is subcategory
                     
-                    $data['cid'] = (int)$data['ccid'];
+                    $data['categoryId'] = (int)$data['ccid'];
                     
                 }
                 
                 // Check if there is correct cid
-                if (isset($data['cid'])) {
+                if (isset($data['categoryId'])) {
                     
                     // Remove unused fields
                     unset($data['pcid']);
@@ -462,17 +472,14 @@ class TransactionController extends BaseController
                     $transaction = new Transaction($data);
                     
                     // uid
-                    $transaction->uid = $uid;
+                    $transaction->setUserId($uid);
                     // Save
                     $this->get('Budget\TransactionMapper')->saveTransaction($transaction);
                     
-                    // Transaction date
-                    $t_dt = explode('-', $transaction->t_date);
-                    
                     return $this->redirect()->toRoute('transactions', array(
-                                                                           'aid' => $transaction->aid,
-                                                                           'month' => $t_dt[1],
-                                                                           'year' => $t_dt[0],
+                                                                           'aid' => $transaction->getAccountId(),
+                                                                           'month' => $transaction->getDate()->format('m'),
+                                                                           'year' => $transaction->getDate()->format('Y'),
                                                                            'page' => $page,
                                                                            ));
                     
@@ -485,22 +492,23 @@ class TransactionController extends BaseController
             'tid' => $tid,
             'form' => $form,
             'dt' => array('month' => $m, 'year' => $Y),
-            't_type' => $transaction->t_type,
-            'aid' => $transaction->aid,
+            't_type' => $transaction->getTransactionType(),
+            'aid' => $transaction->getAccountId(),
             'page' => $page,
         );
     }
 
-    // Usunięcie transakcji
+    /**
+     * Delete transaction
+     */
     public function deleteAction()
     {
-        // Identyfikator zalogowanego usera
+        // User identifier
         $uid = $this->get('userId');
         
-        // Pobranie numeru strony
         $page = (int) $this->params()->fromRoute('page', 1);
         
-        // Identyfikator transakcji
+        // Transaction identifier
         $tid = (int) $this->params()->fromRoute('tid', 0);
         if (!$tid) {
             return $this->redirect()->toRoute('transaction');
@@ -508,9 +516,8 @@ class TransactionController extends BaseController
         
         $transaction = $this->get('Budget\TransactionMapper')->getTransaction($tid, $uid);
         
-        // Pobranie miesiąca z adresu
+        // Get date params from route
         $m = (int) $this->params()->fromRoute('month', date('m'));
-        // Pobranie roku z adresu
         $Y = (int) $this->params()->fromRoute('year', date('Y'));
 
         $request = $this->getRequest();
@@ -522,9 +529,9 @@ class TransactionController extends BaseController
                 $this->get('Budget\TransactionMapper')->deleteTransaction($tid, $uid);
             }
 
-            // Przekierowanie do listy transakcji
+            // Redirect to the transaction list
             return $this->redirect()->toRoute('transactions', array(
-                                                                   'aid' => $transaction->aid,
+                                                                   'aid' => $transaction->getAccountId(),
                                                                    'month' => (int)$m,
                                                                    'year' => (int)$Y,
                                                                    'page' => $page,
@@ -570,11 +577,11 @@ class TransactionController extends BaseController
             $accounts = $this->get('User\AccountMapper')->getUserAccountsToSelect($uid);
             
             // Init transfer form
-            $form->get('aid')->setValueOptions($accounts);
-            $form->get('taid')->setValueOptions($accounts);
+            $form->get('accountId')->setValueOptions($accounts);
+            $form->get('transferAccountId')->setValueOptions($accounts);
             
             // Set bank account id from which we transfer money (default)
-            $form->get('aid')->setValue($aid);
+            $form->get('accountId')->setValue($aid);
             
             // Set the submit value
             $form->get('submit')->setValue('Dodaj');
@@ -587,9 +594,9 @@ class TransactionController extends BaseController
                 $accountsValid = true;
             
                 // Check bank accounts
-                if ($postData['aid'] == $postData['taid']) {
+                if ($postData['accountId'] == $postData['transferAccountId']) {
             
-                    $form->get('taid')->setMessages(
+                    $form->get('transferAccountId')->setMessages(
                         array(
                             'Bank account must be different than above bank account!'
                         )
@@ -615,36 +622,33 @@ class TransactionController extends BaseController
                     
                     // Outgoing transfer
                     $outTransaction = new Transaction();
-                    $outTransaction->aid = $data['aid'];
-                    $outTransaction->taid = $data['taid'];
-                    $outTransaction->uid = $uid;
-                    $outTransaction->t_type = 2;
-                    $outTransaction->cid = $tcid;
-                    $outTransaction->t_date = $data['t_date'];
-                    $outTransaction->t_content = $data['t_content'];
-                    $outTransaction->t_value = $data['t_value'];
+                    $outTransaction->setAccountId($data['accountId']);
+                    $outTransaction->setTransferAccountId($data['transferAccountId']);
+                    $outTransaction->setUserId($uid);
+                    $outTransaction->setTransactionType(Transaction::OUTGOING_TRANSFER);
+                    $outTransaction->setCategoryId($tcid);
+                    $outTransaction->setDate(new \DateTime($data['date']));
+                    $outTransaction->setContent($data['content']);
+                    $outTransaction->setValue($data['value']);
                     
                     // Incoming transfer
                     $inTransaction = new Transaction();
-                    $inTransaction->aid = $data['taid'];
-                    $inTransaction->taid = $data['aid'];
-                    $inTransaction->uid = $uid;
-                    $inTransaction->t_type = 3;
-                    $inTransaction->cid = $tcid;
-                    $inTransaction->t_date = $data['t_date'];
-                    $inTransaction->t_content = $data['t_content'];
-                    $inTransaction->t_value = $data['t_value'];
+                    $inTransaction->setAccountId($data['transferAccountId']);
+                    $inTransaction->setTransferAccountId($data['accountId']);
+                    $inTransaction->setUserId($uid);
+                    $inTransaction->setTransactionType(Transaction::INCOMING_TRANSFER);
+                    $inTransaction->setCategoryId($tcid);
+                    $inTransaction->setDate($data['date']);
+                    $inTransaction->setContent($data['content']);
+                    $inTransaction->setValue($data['value']);
             
                     // Save transfer
                     $this->get('Budget\TransferMapper')->saveTransfer($outTransaction, $inTransaction);
                     
-                    // Transaction date
-                    $t_dt = explode('-', $outTransaction->t_date);
-                    
                     return $this->redirect()->toRoute('transactions', array(
                             'aid' => $aid,
-                            'month' => $t_dt[1],
-                            'year' => $t_dt[0],
+                            'month' => $outTransaction->getDate()->format('m'),
+                            'year' => $outTransaction->getDate()->format('Y'),
                             'page' => 1,
                     ));
             
@@ -705,7 +709,7 @@ class TransactionController extends BaseController
         }
         
         // Check if the given transaction is transfer
-        if (!($transaction->t_type==2 || $transaction->t_type==3)) {
+        if (!($transaction->getTransactionType()==Transaction::OUTGOING_TRANSFER || $transaction->getTransactionType()==Transaction::INCOMING_TRANSFER)) {
             return $this->redirect()->toRoute('transactions');
         }
         
@@ -723,8 +727,8 @@ class TransactionController extends BaseController
             $accounts = $this->get('User\AccountMapper')->getUserAccountsToSelect($uid);
         
             // Init transfer form
-            $form->get('aid')->setValueOptions($accounts);
-            $form->get('taid')->setValueOptions($accounts);
+            $form->get('accountId')->setValueOptions($accounts);
+            $form->get('transferAccountId')->setValueOptions($accounts);
         
             // Insert data into the form
             $form->setData($transaction->getArrayCopy());
@@ -732,8 +736,8 @@ class TransactionController extends BaseController
             // Revert bank accounts
             if ($transaction->t_type==3) {
                 
-                $form->get('aid')->setValue($transaction->taid);
-                $form->get('taid')->setValue($transaction->aid);
+                $form->get('accountId')->setValue($transaction->getTransferAccountId());
+                $form->get('transferAccountId')->setValue($transaction->getAccountId());
                 
             }
             
@@ -748,9 +752,9 @@ class TransactionController extends BaseController
                 $accountsValid = true;
         
                 // Check bank accounts
-                if ($postData['aid'] == $postData['taid']) {
+                if ($postData['accountId'] == $postData['transferAccountId']) {
         
-                    $form->get('taid')->setMessages(
+                    $form->get('transferAccountId')->setMessages(
                         array(
                             'Bank account must be different than above bank account!'
                         )
@@ -772,53 +776,50 @@ class TransactionController extends BaseController
                     $data = $form->getData();
         
                     // Get user transfer category id (hidden category for transfers)
-                    $tcid = $transaction->cid;
+                    $tcid = $transaction->getCategoryId();
                     
                     // Get transaction identifiers
-                    if ($transaction->t_type==2) {
-                        $outId = $transaction->tid;
-                        $tr = $this->get('Budget\TransferMapper')->getTransaction($tid, $uid, 3);
-                        $inId = $tr['transaction']->tid;
+                    if ($transaction->getTransactionType()==Transaction::OUTGOING_TRANSFER) {
+                        $outId = $transaction->getTransactionId();
+                        $tr = $this->get('Budget\TransferMapper')->getTransaction($tid, $uid, Transaction::INCOMING_TRANSFER);
+                        $inId = $tr['transaction']->getTransactionId();
                     } else {
-                        $tr = $this->get('Budget\TransferMapper')->getTransaction($tid, $uid, 2);
-                        $outId = $tr['transaction']->tid;
-                        $inId = $transaction->tid;
+                        $tr = $this->get('Budget\TransferMapper')->getTransaction($tid, $uid, Transaction::OUTGOING_TRANSFER);
+                        $outId = $tr['transaction']->getTransactionId();
+                        $inId = $transaction->getTransactionId();
                     }
         
                     // Outgoing transfer
                     $outTransaction = new Transaction();
-                    $outTransaction->tid = $outId;
-                    $outTransaction->aid = $data['aid'];
-                    $outTransaction->taid = $data['taid'];
-                    $outTransaction->uid = $uid;
-                    $outTransaction->t_type = 2;
-                    $outTransaction->cid = $tcid;
-                    $outTransaction->t_date = $data['t_date'];
-                    $outTransaction->t_content = $data['t_content'];
-                    $outTransaction->t_value = $data['t_value'];
+                    $outTransaction->setTransactionId($outId);
+                    $outTransaction->setAccountId($data['accountId']);
+                    $outTransaction->setTransferAccountId($data['transferAccountId']);
+                    $outTransaction->setUserId($uid);
+                    $outTransaction->setTransactionType(Transaction::OUTGOING_TRANSFER);
+                    $outTransaction->setCategoryId($tcid);
+                    $outTransaction->setDate(new \DateTime($data['date']));
+                    $outTransaction->setContent($data['content']);
+                    $outTransaction->setValue($data['value']);
         
                     // Incoming transfer
                     $inTransaction = new Transaction();
-                    $inTransaction->tid = $inId;
-                    $inTransaction->aid = $data['taid'];
-                    $inTransaction->taid = $data['aid'];
-                    $inTransaction->uid = $uid;
-                    $inTransaction->t_type = 3;
-                    $inTransaction->cid = $tcid;
-                    $inTransaction->t_date = $data['t_date'];
-                    $inTransaction->t_content = $data['t_content'];
-                    $inTransaction->t_value = $data['t_value'];
+                    $inTransaction->setTransactionId($inId);
+                    $inTransaction->setAccountId($data['transferAccountId']);
+                    $inTransaction->setTransferAccountId($data['accountId']);
+                    $inTransaction->setUserId($uid);
+                    $inTransaction->setTransactionType(Transaction::INCOMING_TRANSFER);
+                    $inTransaction->setCategoryId($tcid);
+                    $inTransaction->setDate(new \DateTime($data['date']));
+                    $inTransaction->setContent($data['content']);
+                    $inTransaction->setValue($data['value']);
         
                     // Save transactions
                     $this->get('Budget\TransferMapper')->saveTransfer($outTransaction, $inTransaction);
         
-                    // Transaction date
-                    $t_dt = explode('-', $outTransaction->t_date);
-        
                     return $this->redirect()->toRoute('transactions', array(
                             'aid' => $aid,
-                            'month' => $t_dt[1],
-                            'year' => $t_dt[0],
+                            'month' => $outTransaction->getDate()->format('m'),
+                            'year' => $outTransaction->getDate()->format('Y'),
                             'page' => $page,
                     ));
         
@@ -833,7 +834,7 @@ class TransactionController extends BaseController
         
         return array(
             'form' => $form,
-            'tid' => $transaction->tid,
+            'tid' => $transaction->getTransactionId(),
             'aid' => $aid,
             'ERR' => $ERR,
             'dt' => array('month' => $m, 'year' => $Y),
@@ -864,7 +865,7 @@ class TransactionController extends BaseController
         }
         
         // Check if the given transaction is transfer
-        if (!($transaction->t_type==2 || $transaction->t_type==3)) {
+        if (!($transaction->getTransactionType()==Transaction::OUTGOING_TRANSFER || $transaction->getTransactionType()==Transaction::INCOMING_TRANSFER)) {
             return $this->redirect()->toRoute('transactions');
         }
         
@@ -884,7 +885,7 @@ class TransactionController extends BaseController
         
             // Redirect to the transaction list
             return $this->redirect()->toRoute('transactions', array(
-                    'aid' => $transaction->aid,
+                    'aid' => $transaction->getAccountId(),
                     'month' => (int)$m,
                     'year' => (int)$Y,
                     'page' => $page,

@@ -9,8 +9,8 @@ $this->headTitle($title);
 <div class="row">
     <div class="span12"> 
             <p>Czy na pewno usunąć transfer
-                '<?php echo $this->escapeHtml($transaction->t_content); ?>' o wartości
-                <?php echo $this->escapeHtml($transaction->t_value); ?>zł ?
+                '<?php echo $this->escapeHtml($transaction->getContent()); ?>' o wartości
+                <?php echo $this->escapeHtml($transaction->getValue()); ?>zł ?
             </p>
             <?php
             $url = $this->url('transaction/transfer-delete', array(
@@ -22,7 +22,7 @@ $this->headTitle($title);
             ?>
             <form action="<?php echo $url; ?>" method="post">
             <div>
-                <input type="hidden" name="tid" value="<?php echo (int) $transaction->tid; ?>" />
+                <input type="hidden" name="tid" value="<?php echo (int) $transaction->getTransactionId(); ?>" />
                 <input type="submit" name="del" value="Yes" />
                 <input type="submit" name="del" value="No" />
             </div>

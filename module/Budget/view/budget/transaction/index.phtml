@@ -140,20 +140,20 @@ $this->headLink()->prependStylesheet($this->basePath('/css/transaction-list.css'
     </tr>
     <?php foreach ($this->transactions as $transaction) : ?>
     <tr>
-        <?php if ($transaction->t_type==0): ?>
+        <?php if ($transaction->transactionType==0): ?>
         <td><div class="label label-success">Przychód</div></td>
-        <?php elseif ($transaction->t_type==1): ?>
+        <?php elseif ($transaction->transactionType==1): ?>
         <td><div class="label label-important">Wydatek</div></td>
         <?php else: ?>
         <td><div class="label label-warning">Transfer</div></td>
         <?php endif; ?>
-        <td><?php echo $this->escapeHtml($transaction->t_date);?></td>
-        <td><?php echo (($transaction->t_type==0||$transaction->t_type==3)?('+'):('-')).$this->escapeHtml($transaction->t_value);?>zł</td>
-        <td><?php echo $this->escapeHtml($transaction->t_content);?></td>
+        <td><?php echo $this->escapeHtml($transaction->date);?></td>
+        <td><?php echo (($transaction->transactionType==0||$transaction->transactionType==3)?('+'):('-')).$this->escapeHtml($transaction->value);?>zł</td>
+        <td><?php echo $this->escapeHtml($transaction->content);?></td>
         <td>
         <?php 
-        if ($transaction->t_type==0 || $transaction->t_type==1) {
-            $cat = $this->categories[$transaction->tid];
+        if ($transaction->transactionType==0 || $transaction->transactionType==1) {
+            $cat = $this->categories[$transaction->transactionId];
 
             if ($cat[1] === null) { // Main category
             
@@ -164,13 +164,13 @@ $this->headLink()->prependStylesheet($this->basePath('/css/transaction-list.css'
                 echo $this->escapeHtml($cat[0].' -> '.$cat[1]);
             
             }
-        } else if ($transaction->t_type==2) { // Outgoing transfer
+        } else if ($transaction->transactionType==2) { // Outgoing transfer
 
-            echo 'Transfer do: '.$this->accountsNames[$transaction->taid];
+            echo 'Transfer do: '.$this->accountsNames[$transaction->transferAccountId];
 
-        } else if ($transaction->t_type==3) { // Incoming transfer
+        } else if ($transaction->transactionType==3) { // Incoming transfer
 
-            echo 'Transfer z: '.$this->accountsNames[$transaction->taid];
+            echo 'Transfer z: '.$this->accountsNames[$transaction->transferAccountId];
 
         }
         
@@ -178,19 +178,19 @@ $this->headLink()->prependStylesheet($this->basePath('/css/transaction-list.css'
         ?>
         </td>
         <td>
-            <?php if ($transaction->t_type==0 || $transaction->t_type==1): ?>
+            <?php if ($transaction->transactionType==0 || $transaction->transactionType==1): ?>
                 <a href="<?php echo $this->url('transaction/edit',
                     array(
                         'month'=>$dt['month'],
                         'year'=>$dt['year'],
-                        'tid' => $transaction->tid,
+                        'tid' => $transaction->transactionId,
                         'page' => $this->page,
                         ));?>">Edit</a>
                 <a href="<?php echo $this->url('transaction/delete',
                     array(
                         'month'=>$dt['month'],
                         'year'=>$dt['year'],
-                        'tid' => $transaction->tid,
+                        'tid' => $transaction->transactionId,
                         'page' => $this->page,
                         ));?>">Usuń</a>
             <?php else: ?>
@@ -198,7 +198,7 @@ $this->headLink()->prependStylesheet($this->basePath('/css/transaction-list.css'
                     array(
                         'month'=>$dt['month'],
                         'year'=>$dt['year'],
-                        'tid' => $transaction->tid,
+                        'tid' => $transaction->transactionId,
                         'aid' => $this->aid,
                         'page' => $this->page,
                         ));?>">Edit</a>
@@ -206,7 +206,7 @@ $this->headLink()->prependStylesheet($this->basePath('/css/transaction-list.css'
                     array(
                         'month'=>$dt['month'],
                         'year'=>$dt['year'],
-                        'tid' => $transaction->tid,
+                        'tid' => $transaction->transactionId,
                         'page' => $this->page,
                         ));?>">Usuń</a>
             <?php endif;?>

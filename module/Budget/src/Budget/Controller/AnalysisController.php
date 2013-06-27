@@ -3,7 +3,7 @@
 namespace Budget\Controller;
 
 use Base\Controller\BaseController;
-
+use Budget\Model\Transaction;
 use Budget\Form\TransactionTimeSelectForm;
 use Budget\Form\TransactionTimeSelectFormFilter;
 
@@ -150,7 +150,7 @@ class AnalysisController extends BaseController
             $uid,
             $searchParams['aid'],
             $searchParams['dateParam'],
-            array(1, 2) // Expenses and outgoing transfers
+            array(Transaction::EXPENSE, Transaction::OUTGOING_TRANSFER) // Expenses and outgoing transfers
         );
 
         // Prepare data for the profits pie
@@ -158,7 +158,7 @@ class AnalysisController extends BaseController
             $uid,
             $searchParams['aid'],
             $searchParams['dateParam'],
-            array(0, 3) // Profits and incoming transfers
+            array(Transaction::PROFIT, Transaction::INCOMING_TRANSFER) // Profits and incoming transfers
         );
 
         // Prepare chart subtitle
@@ -203,7 +203,7 @@ class AnalysisController extends BaseController
             $uid,
             $searchParams['aid'],
             $searchParams['dateParam'],
-            array(1, 2) // Expenses and outgoing transfers
+            array(Transaction::EXPENSE, Transaction::OUTGOING_TRANSFER) // Expenses and outgoing transfers
         );
 
         // Prepare data for the time chart of profits
@@ -211,7 +211,7 @@ class AnalysisController extends BaseController
             $uid,
             $searchParams['aid'],
             $searchParams['dateParam'],
-            array(0, 3) // Profits and incoming transfers
+            array(Transaction::PROFIT, Transaction::INCOMING_TRANSFER) // Profits and incoming transfers
         );
         
         return array(

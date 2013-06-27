@@ -2,7 +2,7 @@
 
 namespace User\Model;
 
-use Base\Model\BaseModelTemp;
+use Base\Model\BaseModel;
 
 /**
  * Category model
@@ -10,42 +10,42 @@ use Base\Model\BaseModelTemp;
  * @author Mateusz Mirosławski
  *
  */
-class Category extends BaseModelTemp
+class Category extends BaseModel
 {
     /**
      * Category identifier
      * 
      * @var int
      */
-    public $cid;
+    protected $categoryId;
     
     /**
      * Parent category identifier
      * 
      * @var int
      */
-    public $pcid;
+    protected $parentCategoryId;
     
     /**
      * User identifier
      * 
      * @var int
      */
-    public $uid;
+    protected $userId;
     
     /**
      * Category type (0 - income, 1 - expense)
      * 
      * @var int
      */
-    public $c_type;
+    protected $categoryType;
     
     /**
      * Category name
      * 
      * @var string
      */
-    public $c_name;
+    protected $categoryName;
     
     /**
      * Construct the category object
@@ -54,12 +54,132 @@ class Category extends BaseModelTemp
      */
     public function __construct(array $params = array())
     {
-        $this->cid = 0;
-        $this->pcid = null;
-        $this->uid = 0;
-        $this->c_type = -1;
-        $this->c_name = '';
+        $this->categoryId = 0;
+        $this->parentCategoryId = null;
+        $this->userId = 0;
+        $this->categoryType = -1;
+        $this->categoryName = '';
         
         parent::__construct($params);
+    }
+
+    /**
+     * Gets the Category identifier.
+     *
+     * @return int
+     */
+    public function getCategoryId()
+    {
+        return $this->categoryId;
+    }
+
+    /**
+     * Sets the Category identifier.
+     *
+     * @param int $categoryId the categoryId
+     *
+     * @return self
+     */
+    public function setCategoryId($categoryId)
+    {
+        $this->categoryId = $categoryId;
+
+        return $this;
+    }
+
+    /**
+     * Gets the Parent category identifier.
+     *
+     * @return int
+     */
+    public function getParentCategoryId()
+    {
+        return $this->parentCategoryId;
+    }
+
+    /**
+     * Sets the Parent category identifier.
+     *
+     * @param int $parentCategoryId the parentCategoryId
+     *
+     * @return self
+     */
+    public function setParentCategoryId($parentCategoryId)
+    {
+        $this->parentCategoryId = $parentCategoryId;
+
+        return $this;
+    }
+
+    /**
+     * Gets the User identifier.
+     *
+     * @return int
+     */
+    public function getUserId()
+    {
+        return $this->userId;
+    }
+
+    /**
+     * Sets the User identifier.
+     *
+     * @param int $userId the userId
+     *
+     * @return self
+     */
+    public function setUserId($userId)
+    {
+        $this->userId = $userId;
+
+        return $this;
+    }
+
+    /**
+     * Gets the Category type (0 - income, 1 - expense).
+     *
+     * @return int
+     */
+    public function getCategoryType()
+    {
+        return $this->categoryType;
+    }
+
+    /**
+     * Sets the Category type (0 - income, 1 - expense).
+     *
+     * @param int $categoryType the categoryType
+     *
+     * @return self
+     */
+    public function setCategoryType($categoryType)
+    {
+        $this->categoryType = $categoryType;
+
+        return $this;
+    }
+
+    /**
+     * Gets the Category name.
+     *
+     * @return string
+     */
+    public function getCategoryName()
+    {
+        return $this->categoryName;
+    }
+
+    /**
+     * Sets the Category name.
+     *
+     * @param string $categoryName the categoryName
+     *
+     * @return self
+     */
+    public function setCategoryName($categoryName)
+    {
+        $this->categoryName = $categoryName;
+
+        return $this;
     }
 }

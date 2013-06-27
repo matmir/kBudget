@@ -25,62 +25,59 @@ $this->headTitle($title);
         
         <table class="TableClear">
             <tr>
-                <td colspan="2"><?php echo $this->formHidden($form->get('tid')); ?></td>
-            </tr>
-            <tr>
-                <td><?php echo $form->get('aid')->getLabel(); ?></td>
-                <td><?php echo $this->formElement($form->get('aid')) ?></td>
+                <td><?php echo $form->get('accountId')->getLabel(); ?></td>
+                <td><?php echo $this->formElement($form->get('accountId')) ?></td>
             </tr>
             <?php
                 echo $this->formElementErrors()
                     ->setMessageOpenFormat('<tr><td colspan="2">')
                     ->setMessageSeparatorString('</td></tr><tr><td colspan="2">')
                     ->setMessageCloseString('</td></tr>')
-                    ->render($form->get('aid'));
+                    ->render($form->get('accountId'));
             ?>
             <tr>
-                <td><?php echo $form->get('taid')->getLabel(); ?></td>
-                <td><?php echo $this->formElement($form->get('taid')) ?></td>
+                <td><?php echo $form->get('transferAccountId')->getLabel(); ?></td>
+                <td><?php echo $this->formElement($form->get('transferAccountId')) ?></td>
             </tr>
             <?php
                 echo $this->formElementErrors()
                     ->setMessageOpenFormat('<tr><td colspan="2">')
                     ->setMessageSeparatorString('</td></tr><tr><td colspan="2">')
                     ->setMessageCloseString('</td></tr>')
-                    ->render($form->get('taid'));
+                    ->render($form->get('transferAccountId'));
             ?>
             <tr>
-                <td><?php echo $form->get('t_date')->getLabel(); ?></td>
-                <td><?php echo $this->formElement($form->get('t_date')) ?></td>
+                <td><?php echo $form->get('date')->getLabel(); ?></td>
+                <td><?php echo $this->formElement($form->get('date')) ?></td>
             </tr>
             <?php
                 echo $this->formElementErrors()
                     ->setMessageOpenFormat('<tr><td colspan="2">')
                     ->setMessageSeparatorString('</td></tr><tr><td colspan="2">')
                     ->setMessageCloseString('</td></tr>')
-                    ->render($form->get('t_date'));
+                    ->render($form->get('date'));
             ?>
             <tr>
-                <td><?php echo $form->get('t_content')->getLabel(); ?></td>
-                <td><?php echo $this->formElement($form->get('t_content')) ?></td>
+                <td><?php echo $form->get('content')->getLabel(); ?></td>
+                <td><?php echo $this->formElement($form->get('content')) ?></td>
             </tr>
             <?php
                 echo $this->formElementErrors()
                     ->setMessageOpenFormat('<tr><td colspan="2">')
                     ->setMessageSeparatorString('</td></tr><tr><td colspan="2">')
                     ->setMessageCloseString('</td></tr>')
-                    ->render($form->get('t_content'));
+                    ->render($form->get('content'));
             ?>
             <tr>
-                <td><?php echo $form->get('t_value')->getLabel(); ?></td>
-                <td><?php echo $this->formElement($form->get('t_value')) ?></td>
+                <td><?php echo $form->get('value')->getLabel(); ?></td>
+                <td><?php echo $this->formElement($form->get('value')) ?></td>
             </tr>
             <?php
                 echo $this->formElementErrors()
                     ->setMessageOpenFormat('<tr><td colspan="2">')
                     ->setMessageSeparatorString('</td></tr><tr><td colspan="2">')
                     ->setMessageCloseString('</td></tr>')
-                    ->render($form->get('t_value'));
+                    ->render($form->get('value'));
             ?>
             <tr>
                 <td colspan="2"><?php echo $this->formSubmit($form->get('submit')); ?></td>

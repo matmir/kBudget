@@ -185,9 +185,9 @@ class ImportController extends BaseController
             $tr_count = ($not_imported_count>$upload_config['maxParseLines'])?($upload_config['maxParseLines']):($not_imported_count);
             
             // Get categories for the expense
-            $user_cat_expense = $this->get('User\CategoryMapper')->getUserCategoriesToSelect($uid, 1);
+            $user_cat_expense = $this->get('User\CategoryMapper')->getUserCategoriesToSelect($uid, Transaction::EXPENSE);
             // Get categories for the profit
-            $user_cat_profit = $this->get('User\CategoryMapper')->getUserCategoriesToSelect($uid, 0);
+            $user_cat_profit = $this->get('User\CategoryMapper')->getUserCategoriesToSelect($uid, Transaction::PROFIT);
             // Get user bank accounts
             $accounts = $this->get('User\AccountMapper')->getUserAccountsToSelect($uid);
             
@@ -206,7 +206,7 @@ class ImportController extends BaseController
                     $form->get('taid-'.$i)->setValueOptions($accounts);
                     
                     // Check if the givent transaction is not transfer
-                    if ($data['t_type-'.$i] == 0 || $data['t_type-'.$i] == 1) {
+                    if ($data['t_type-'.$i] == Transaction::PROFIT || $data['t_type-'.$i] == Transaction::EXPENSE) {
                         
                         // Check if we must ignore this transaction
                         if ($data['ignore-'.$i]==1) {
@@ -267,23 +267,23 @@ class ImportController extends BaseController
                         }
                         
                         // Check which transaction type we must add
-                        if ($data['t_type-'.$i] == 0 || $data['t_type-'.$i] == 1) {
+                        if ($data['t_type-'.$i] == Transaction::PROFIT || $data['t_type-'.$i] == Transaction::EXPENSE) {
                             
                             // Create transaction object
                             $transaction = new Transaction();
-                            $transaction->aid = $import->getAccountId();
-                            $transaction->uid = $uid;
+                            $transaction->setAccountId($import->getAccountId());
+                            $transaction->setUserId($uid);
                             // Get category id
                             if ($form->get('ccid-'.$i)->getValue() == -1 || $form->get('ccid-'.$i)->getValue() == 0) {
                                 $cid = $form->get('pcid-'.$i)->getValue();
                             } else {
                                 $cid = $form->get('ccid-'.$i)->getValue();
                             }
-                            $transaction->cid = (int)$cid;
-                            $transaction->t_type = (int)$form->get('t_type-'.$i)->getValue();
-                            $transaction->t_date = (string)$form->get('t_date-'.$i)->getValue();
-                            $transaction->t_content = (string)$form->get('t_content-'.$i)->getValue();
-                            $transaction->t_value = (double)$form->get('t_value-'.$i)->getValue();
+                            $transaction->setCategoryId((int)$cid);
+                            $transaction->setTransactionType((int)$form->get('t_type-'.$i)->getValue());
+                            $transaction->setDate(new \DateTime($form->get('t_date-'.$i)->getValue()));
+                            $transaction->setContent((string)$form->get('t_content-'.$i)->getValue());
+                            $transaction->setValue((double)$form->get('t_value-'.$i)->getValue());
                             
                             // Add transaction
                             $this->get('Budget\TransactionMapper')->saveTransaction($transaction);
@@ -295,25 +295,25 @@ class ImportController extends BaseController
                             
                             // Outgoing transfer
                             $outTransaction = new Transaction();
-                            $outTransaction->aid = ($data['t_type-'.$i]==2)?($import->getAccountId()):($data['taid-'.$i]);
-                            $outTransaction->taid = ($data['t_type-'.$i]==2)?($data['taid-'.$i]):($import->getAccountId());
-                            $outTransaction->uid = $uid;
-                            $outTransaction->t_type = 2;
-                            $outTransaction->cid = $tcid;
-                            $outTransaction->t_date = $data['t_date-'.$i];
-                            $outTransaction->t_content = $data['t_content-'.$i];
-                            $outTransaction->t_value = $data['t_value-'.$i];
+                            $outTransaction->setAccountId(($data['t_type-'.$i]==2)?($import->getAccountId()):($data['taid-'.$i]));
+                            $outTransaction->setTransferAccountId(($data['t_type-'.$i]==2)?($data['taid-'.$i]):($import->getAccountId()));
+                            $outTransaction->setUserId($uid);
+                            $outTransaction->setTransactionType(Transaction::OUTGOING_TRANSFER);
+                            $outTransaction->setCategoryId($tcid);
+                            $outTransaction->setDate(new \DateTime($data['t_date-'.$i]));
+                            $outTransaction->setContent($data['t_content-'.$i]);
+                            $outTransaction->setValue($data['t_value-'.$i]);
                             
                             // Incoming transfer
                             $inTransaction = new Transaction();
-                            $inTransaction->aid = ($data['t_type-'.$i]==2)?($data['taid-'.$i]):($import->getAccountId());
-                            $inTransaction->taid = ($data['t_type-'.$i]==2)?($import->getAccountId()):($data['taid-'.$i]);
-                            $inTransaction->uid = $uid;
-                            $inTransaction->t_type = 3;
-                            $inTransaction->cid = $tcid;
-                            $inTransaction->t_date = $data['t_date-'.$i];
-                            $inTransaction->t_content = $data['t_content-'.$i];
-                            $inTransaction->t_value = $data['t_value-'.$i];
+                            $inTransaction->setAccountId(($data['t_type-'.$i]==2)?($data['taid-'.$i]):($import->getAccountId()));
+                            $inTransaction->setTransferAccountId(($data['t_type-'.$i]==2)?($import->getAccountId()):($data['taid-'.$i]));
+                            $inTransaction->setUserId($uid);
+                            $inTransaction->setTransactionType(Transaction::INCOMING_TRANSFER);
+                            $inTransaction->setCategoryId($tcid);
+                            $inTransaction->setDate(new \DateTime($data['t_date-'.$i]));
+                            $inTransaction->setContent($data['t_content-'.$i]);
+                            $inTransaction->setValue($data['t_value-'.$i]);
                             
                             // Save transfer
                             $this->get('Budget\TransferMapper')->saveTransfer($outTransaction, $inTransaction);
@@ -336,16 +336,15 @@ class ImportController extends BaseController
                             
                             // Get last transaction date
                             if (isset($transaction)) {
-                                $t_dt = explode('-', $transaction->t_date);
+                                $lastDate = $transaction->getDate();
                             } else {
-                                $t_dt[0] = date('Y');
-                                $t_dt[1] = date('n');
+                                $lastDate = new \DateTime();
                             }
                             // redirect to the transaction list
                             return $this->redirect()->toRoute('transactions', array(
                                                                                     'aid' => $import->getAccountId(),
-                                                                                    'month' => $t_dt[1],
-                                                                                    'year' => $t_dt[0],
+                                                                                    'month' => $lastDate->format('m'),
+                                                                                    'year' => $lastDate->format('Y'),
                                                                                     'page' => 1,
                                                                                    ));
                             
@@ -395,17 +394,17 @@ class ImportController extends BaseController
                     for ($i=0; $i<$tr_count; $i++) {
                     
                         // Transaction type
-                        $form->get('t_type-'.$i)->setValue($tr[$i]->t_type);
+                        $form->get('t_type-'.$i)->setValue($tr[$i]->getTransactionType());
                         // Main category list
-                        $form->get('pcid-'.$i)->setValueOptions(($tr[$i]->t_type==0)?($user_cat_profit):($user_cat_expense));
+                        $form->get('pcid-'.$i)->setValueOptions(($tr[$i]->getTransactionType()==Transaction::PROFIT)?($user_cat_profit):($user_cat_expense));
                         // Bank account list
                         $form->get('taid-'.$i)->setValueOptions($accounts);
                         // Transaction date
-                        $form->get('t_date-'.$i)->setValue($tr[$i]->t_date);
+                        $form->get('t_date-'.$i)->setValue($tr[$i]->getDate()->format('Y-m-d'));
                         // Description
-                        $form->get('t_content-'.$i)->setValue($tr[$i]->t_content);
+                        $form->get('t_content-'.$i)->setValue($tr[$i]->getContent());
                         // Value
-                        $form->get('t_value-'.$i)->setValue($tr[$i]->t_value);
+                        $form->get('t_value-'.$i)->setValue($tr[$i]->getValue());
                     }
                     
                     // New position in CSV file

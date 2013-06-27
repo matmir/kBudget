@@ -2,7 +2,7 @@
 
 namespace User\Model;
 
-use Base\Model\BaseModelTemp;
+use Base\Model\BaseModel;
 
 /**
  * Bank account model
@@ -10,35 +10,35 @@ use Base\Model\BaseModelTemp;
  * @author Mateusz Mirosławski
  *
  */
-class Account extends BaseModelTemp
+class Account extends BaseModel
 {
     /**
      * Account identifier
      * 
      * @var int
      */
-    public $aid;
+    protected $accountId;
     
     /**
      * User identifier
      * 
      * @var int
      */
-    public $uid;
+    protected $userId;
     
     /**
      * Account name
      * 
      * @var string
      */
-    public $a_name;
+    protected $accountName;
     
     /**
      * Account balance
      * 
      * @var float
      */
-    public $balance;
+    protected $balance;
     
     /**
      * Construct the account object
@@ -50,5 +50,101 @@ class Account extends BaseModelTemp
         $this->balance = 0;
         
         parent::__construct($params);
+    }
+
+    /**
+     * Gets the Account identifier.
+     *
+     * @return int
+     */
+    public function getAccountId()
+    {
+        return $this->accountId;
+    }
+
+    /**
+     * Sets the Account identifier.
+     *
+     * @param int $accountId the accountId
+     *
+     * @return self
+     */
+    public function setAccountId($accountId)
+    {
+        $this->accountId = $accountId;
+
+        return $this;
+    }
+
+    /**
+     * Gets the User identifier.
+     *
+     * @return int
+     */
+    public function getUserId()
+    {
+        return $this->userId;
+    }
+
+    /**
+     * Sets the User identifier.
+     *
+     * @param int $userId the userId
+     *
+     * @return self
+     */
+    public function setUserId($userId)
+    {
+        $this->userId = $userId;
+
+        return $this;
+    }
+
+    /**
+     * Gets the Account name.
+     *
+     * @return string
+     */
+    public function getAccountName()
+    {
+        return $this->accountName;
+    }
+
+    /**
+     * Sets the Account name.
+     *
+     * @param string $accountName the accountName
+     *
+     * @return self
+     */
+    public function setAccountName($accountName)
+    {
+        $this->accountName = $accountName;
+
+        return $this;
+    }
+
+    /**
+     * Gets the Account balance.
+     *
+     * @return float
+     */
+    public function getBalance()
+    {
+        return $this->balance;
+    }
+
+    /**
+     * Sets the Account balance.
+     *
+     * @param float $balance the balance
+     *
+     * @return self
+     */
+    public function setBalance($balance)
+    {
+        $this->balance = $balance;
+
+        return $this;
     }
 }

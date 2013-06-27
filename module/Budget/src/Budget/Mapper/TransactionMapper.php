@@ -62,14 +62,14 @@ class TransactionMapper extends BaseMapper
         $select = $sql->select();
         
         $select->from(array('t' => self::TABLE))
-                ->join(array('c' => \User\Mapper\CategoryMapper::TABLE),'t.cid = c.cid')
+                ->join(array('c' => \User\Mapper\CategoryMapper::TABLE),'t.categoryId = c.categoryId')
                 ->where(array(
-                        't.uid' => (int)$uid,
-                        't.aid' => (int)$aid,
+                        't.userId' => (int)$uid,
+                        't.accountId' => (int)$aid,
                 ))
                 ->order(array(
-                              't.t_date DESC',
-                              't.tid DESC',
+                              't.date DESC',
+                              't.transactionId DESC',
                               ));
            
         if ($dt_param['type'] == 'month') {
@@ -79,7 +79,7 @@ class TransactionMapper extends BaseMapper
             }
             
             $select->where(array(
-                              't.t_date LIKE ?' => (string)$dt_param['dt_month'].'-%',
+                              't.date LIKE ?' => (string)$dt_param['dt_month'].'-%',
                               ));
             
         } elseif ($dt_param['type'] == 'between') {
@@ -89,8 +89,8 @@ class TransactionMapper extends BaseMapper
             }
             
             $select->where(array(
-                              't.t_date >= ?' => $dt_param['dt_down'],
-                              't.t_date <= ?' => $dt_param['dt_up'],
+                              't.date >= ?' => $dt_param['dt_down'],
+                              't.date <= ?' => $dt_param['dt_up'],
                               ));
             
         }
@@ -99,11 +99,12 @@ class TransactionMapper extends BaseMapper
         // Transaction type
         if (!in_array(-1, $t_type)) {
             
-            if (!(in_array(0, $t_type) || in_array(1, $t_type) || in_array(2, $t_type) || in_array(3, $t_type))) {
+            if (!(in_array(Transaction::PROFIT, $t_type) || in_array(Transaction::EXPENSE, $t_type) || 
+                    in_array(Transaction::OUTGOING_TRANSFER, $t_type) || in_array(Transaction::INCOMING_TRANSFER, $t_type))) {
                 throw new \Exception('Wrong transaction type parameter!');
             }
             
-            $select->where(array('t.t_type' => $t_type));
+            $select->where(array('t.transactionType' => $t_type));
             
         }
         
@@ -143,16 +144,16 @@ class TransactionMapper extends BaseMapper
         $sql = new Sql($this->getDbAdapter());
         $select = $sql->select();
         
-        $select->from(array('t' => self::TABLE),'MIN(t_date)')
-                ->where(array('t.uid' => (int)$uid));
+        $select->from(array('t' => self::TABLE),'MIN(date)')
+                ->where(array('t.userId' => (int)$uid));
         
         $statement = $sql->prepareStatementForSqlObject($select);
         $row = $statement->execute();
         
         $dane = $row->current();
-        $dt = explode('-',$dane['t_date']);
+        $dt = new \DateTime($dane['date']);
         
-        return (int)$dt[0];
+        return (int)$dt->format('Y');
     }
     
     /**
@@ -165,21 +166,13 @@ class TransactionMapper extends BaseMapper
      */
     public function saveTransaction(Transaction $transaction)
     {
-        $data = array(
-            'uid' => $transaction->uid,
-            'aid' => $transaction->aid,
-            'taid' => $transaction->taid,
-            'cid'  => $transaction->cid,
-            't_type'  => $transaction->t_type,
-            't_date'  => $transaction->t_date,
-            't_content'  => $transaction->t_content,
-            't_value'  => $transaction->t_value,
-        );
+        $data = $transaction->getArrayCopy();
+        unset($data['transactionId']);
         
         $sql = new Sql($this->getDbAdapter());
 
-        $tid = (int)$transaction->tid;
-        if ($tid == 0) { // dodanie nowego wpisu
+        $tid = (int)$transaction->getTransactionId();
+        if ($tid == 0) { // Add new entry
             $insert = $sql->insert();
             $insert->into(self::TABLE);
             $insert->values($data);
@@ -188,22 +181,22 @@ class TransactionMapper extends BaseMapper
             $val = $statement->execute()->getGeneratedValue();
             
             return $val;
-        } else { // edycja
-            // Spr. czy istnieje
-            if ($this->getTransaction($tid, $data['uid'])) {
+        } else { // edit
+            // check if given transaction exists in database
+            if ($this->getTransaction($tid, $data['userId'])) {
                 
                 $update = $sql->update();
                 
                 $update->table(self::TABLE);
                 $update->set($data);
-                $update->where(array('tid' => $tid));
+                $update->where(array('transactionId' => $tid));
                 
                 $statement = $sql->prepareStatementForSqlObject($update);
                 $statement->execute();
                 
                 return 0;
             } else {
-                throw new \Exception('Wybrana transakcja nie istnieje!');
+                throw new \Exception('Transaction not exist!');
             }
         }
     }
@@ -222,9 +215,9 @@ class TransactionMapper extends BaseMapper
         $select = $sql->select();
         
         $select->from(array('t' => self::TABLE))
-                ->join(array('c' => \User\Mapper\CategoryMapper::TABLE),'t.cid = c.cid')
-                ->where(array('t.tid' => (int)$tid,
-                              't.uid' => (int)$uid));
+                ->join(array('c' => \User\Mapper\CategoryMapper::TABLE),'t.categoryId = c.categoryId')
+                ->where(array('t.transactionId' => (int)$tid,
+                              't.userId' => (int)$uid));
         
         $statement = $sql->prepareStatementForSqlObject($select);
         $row = $statement->execute();
@@ -248,8 +241,8 @@ class TransactionMapper extends BaseMapper
         
         $delete = $sql->delete();
         $delete->from(self::TABLE);
-        $delete->where(array('tid' => (int)$tid,
-                             'uid' => (int)$uid));
+        $delete->where(array('transactionId' => (int)$tid,
+                             'userId' => (int)$uid));
         
         $statement = $sql->prepareStatementForSqlObject($delete);
         $statement->execute();
@@ -286,18 +279,19 @@ class TransactionMapper extends BaseMapper
         // Transaction type
         if (!in_array(-1, $t_type)) {
             
-            if (!(in_array(0, $t_type) || in_array(1, $t_type) || in_array(2, $t_type) || in_array(3, $t_type))) {
+            if (!(in_array(Transaction::PROFIT, $t_type) || in_array(Transaction::EXPENSE, $t_type) || 
+                    in_array(Transaction::OUTGOING_TRANSFER, $t_type) || in_array(Transaction::INCOMING_TRANSFER, $t_type))) {
                 throw new \Exception('Wrong transaction type parameter!');
             }
             
-            $select->where(array('t.t_type' => $t_type));
+            $select->where(array('t.transactionType' => $t_type));
             
         }
         
-        $select->columns(array('sm' => new Expression('SUM(t.t_value)')));
+        $select->columns(array('sm' => new Expression('SUM(t.value)')));
         $select->from(array('t' => self::TABLE))
-                ->where(array('t.uid' => (int)$uid,
-                              't.aid' => (int)$aid,
+                ->where(array('t.userId' => (int)$uid,
+                              't.accountId' => (int)$aid,
                               ));
                 
         if ($dt['type'] == 'month') {
@@ -307,18 +301,18 @@ class TransactionMapper extends BaseMapper
             }
             
             $select->where(array(
-                              't.t_date LIKE ?' => (string)$dt['dt_month'].'-%',
+                              't.date LIKE ?' => (string)$dt['dt_month'].'-%',
                               ));
             
         } elseif ($dt['type'] == 'between') {
             
             if (!(isset($dt['dt_up'])&&isset($dt['dt_down']))) {
-                throw new \Exception("Brak parametru z zakresem dat!");
+                throw new \Exception('No parameter with the range!');
             }
             
             $select->where(array(
-                              't.t_date >= ?' => $dt['dt_down'],
-                              't.t_date <= ?' => $dt['dt_up'],
+                              't.date >= ?' => $dt['dt_down'],
+                              't.date <= ?' => $dt['dt_up'],
                               ));
             
         }

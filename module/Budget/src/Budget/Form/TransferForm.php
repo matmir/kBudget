@@ -23,16 +23,10 @@ class TransferForm extends Form
         parent::__construct('transfer');
         $this->setAttribute('method', 'post');
         
-        // Transaction id (for editing)
-        $this->add(array(
-            'type'  => 'Zend\Form\Element\Hidden',
-            'name' => 'tid',
-        ));
-        
         // Bank account id from which we transfer money
         $this->add(array(
             'type'  => 'Zend\Form\Element\Select',
-            'name' => 'aid',
+            'name' => 'accountId',
             'options' => array(
                 'label' => 'Z konta : ',
                 'value_options' => array(
@@ -44,7 +38,7 @@ class TransferForm extends Form
         // Bank account id to which we transfer money
         $this->add(array(
             'type'  => 'Zend\Form\Element\Select',
-            'name' => 'taid',
+            'name' => 'transferAccountId',
             'options' => array(
                 'label' => 'Na konto: ',
                 'value_options' => array(
@@ -56,7 +50,7 @@ class TransferForm extends Form
         // Date
         $this->add(array(
             'type'  => 'Zend\Form\Element\Date',
-            'name' => 't_date',
+            'name' => 'date',
             'options' => array(
                 'label' => 'Data: ',
             ),
@@ -69,7 +63,7 @@ class TransferForm extends Form
         // Description
         $this->add(array(
             'type'  => 'Zend\Form\Element\Text',
-            'name' => 't_content',
+            'name' => 'content',
             'options' => array(
                 'label' => 'Opis: ',
             ),
@@ -82,7 +76,7 @@ class TransferForm extends Form
         // Value
         $this->add(array(
             'type'  => 'Zend\Form\Element\Text',
-            'name' => 't_value',
+            'name' => 'value',
             'options' => array(
                 'label' => 'Wartość: ',
             ),
@@ -124,19 +118,10 @@ class TransferFilter implements InputFilterAwareInterface
         if (!$this->inputFilter) {
             $inputFilter = new InputFilter();
             $factory     = new InputFactory();
-
-            // Transaction id
-            $inputFilter->add($factory->createInput(array(
-                'name'     => 'tid',
-                'required' => true,
-                'filters'  => array(
-                    array('name' => 'Int'),
-                ),
-            )));
             
             // Bank account id from which we transfer money
             $inputFilter->add($factory->createInput(array(
-                'name'     => 'aid',
+                'name'     => 'accountId',
                 'required' => true,
                 'filters'  => array(
                     array('name' => 'Int'),
@@ -145,7 +130,7 @@ class TransferFilter implements InputFilterAwareInterface
             
             // Bank account id to which we transfer money
             $inputFilter->add($factory->createInput(array(
-                'name'     => 'taid',
+                'name'     => 'transferAccountId',
                 'required' => true,
                 'filters'  => array(
                     array('name' => 'Int'),
@@ -154,7 +139,7 @@ class TransferFilter implements InputFilterAwareInterface
             
             // Date
             $inputFilter->add($factory->createInput(array(
-                'name'     => 't_date',
+                'name'     => 'date',
                 'required' => true,
                 'validators'  => array(
                     array(
@@ -169,7 +154,7 @@ class TransferFilter implements InputFilterAwareInterface
             
             // Description
             $inputFilter->add($factory->createInput(array(
-                'name'     => 't_content',
+                'name'     => 'content',
                 'required' => true,
                 'filters'  => array(
                     array('name' => 'StripTags'),
@@ -189,7 +174,7 @@ class TransferFilter implements InputFilterAwareInterface
             
             // Value
             $inputFilter->add($factory->createInput(array(
-                'name'     => 't_value',
+                'name'     => 'value',
                 'required' => true,
                 'filters'  => array(
                     array(

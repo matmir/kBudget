@@ -43,8 +43,8 @@ class TransferMapper extends BaseMapper
         $select = $sql->select();
     
         $select->from(array('t' => self::TABLE))
-                ->where(array('t.trid' => (int)$trid,
-                        't.uid' => (int)$uid));
+                ->where(array('t.transferId' => (int)$trid,
+                        't.userId' => (int)$uid));
     
         $statement = $sql->prepareStatementForSqlObject($select);
         $row = $statement->execute();
@@ -58,9 +58,9 @@ class TransferMapper extends BaseMapper
         $transactionMapper = $this->getServiceLocator()->get('Budget\TransactionMapper');
         
         // Get outgoing transaction
-        $out = $transactionMapper->getTransaction($transfer->tid_out, $uid);
+        $out = $transactionMapper->getTransaction($transfer->getOutTransactionId(), $uid);
         // Get incoming transaction
-        $in = $transactionMapper->getTransaction($transfer->tid_in, $uid);
+        $in = $transactionMapper->getTransaction($transfer->getInTransactionId(), $uid);
         
         return array(
             'outgoing' => $out,
@@ -87,15 +87,15 @@ class TransferMapper extends BaseMapper
         $select = $sql->select();
         
         $select->from(array('t' => self::TABLE))
-                ->where(array('t.uid' => (int)$uid));
+                ->where(array('t.userId' => (int)$uid));
         
-        if ($t_type==2) { // Get outgoing
+        if ($t_type==Transaction::OUTGOING_TRANSFER) { // Get outgoing
             
-            $select->where(array('t.tid_in' => (int)$tid));
+            $select->where(array('t.inTransactionId' => (int)$tid));
             
         } else { // Get incoming
             
-            $select->where(array('t.tid_out' => (int)$tid));
+            $select->where(array('t.outTransactionId' => (int)$tid));
             
         }
         
@@ -110,20 +110,20 @@ class TransferMapper extends BaseMapper
         
         $transactionMapper = $this->getServiceLocator()->get('Budget\TransactionMapper');
         
-        if ($t_type==2) {
+        if ($t_type==Transaction::OUTGOING_TRANSFER) {
         
             // Get outgoing transaction
-            $transaction = $transactionMapper->getTransaction($transfer->tid_out, $uid);
+            $transaction = $transactionMapper->getTransaction($transfer->getOutTransactionId(), $uid);
         
         } else {
         
             // Get incoming transaction
-            $transaction = $transactionMapper->getTransaction($transfer->tid_in, $uid);
+            $transaction = $transactionMapper->getTransaction($transfer->getInTransactionId(), $uid);
         
         }
         
         return array(
-            'trid' => $transfer->trid,
+            'trid' => $transfer->getTransferId(),
             'transaction' => $transaction,
         );
     }
@@ -143,11 +143,11 @@ class TransferMapper extends BaseMapper
         $outId = $transactionMapper->saveTransaction($outgoing);
         $inId = $transactionMapper->saveTransaction($incoming);
         
-        if ($outgoing->tid===null) { // new entry
+        if ($outgoing->getTransactionId()===null) { // new entry
             $data = array(
-                'uid' => (int)$incoming->uid,
-                'tid_out' => (int)$outId,
-                'tid_in' => (int)$inId,
+                'userId' => (int)$incoming->getUserId(),
+                'outTransactionId' => (int)$outId,
+                'inTransactionId' => (int)$inId,
             );
             
             $sql = new Sql($this->getDbAdapter());
@@ -167,23 +167,23 @@ class TransferMapper extends BaseMapper
      */
     public function deleteTransfer(Transaction $transaction)
     {
-        $uid = $transaction->uid;
+        $uid = $transaction->getUserId();
         
         // Get transaction and transfer id-s
-        if ($transaction->t_type==2) {
-            $outId = $transaction->tid;
+        if ($transaction->getTransactionType()==Transaction::OUTGOING_TRANSFER) {
+            $outId = $transaction->getTransactionId();
             // Get incoming transaction id
-            $data = $this->getTransaction($transaction->tid, $uid, 3);
-            $inId = $data['transaction']->tid;
+            $data = $this->getTransaction($transaction->getTransactionId(), $uid, Transaction::INCOMING_TRANSFER);
+            $inId = $data['transaction']->getTransactionId();
         } else {
-            $inId = $transaction->tid;
+            $inId = $transaction->getTransactionId();
             // Get outgoing transaction id
-            $data = $this->getTransaction($transaction->tid, $uid, 2);
-            $outId = $data['transaction']->tid;
+            $data = $this->getTransaction($transaction->getTransactionId(), $uid, Transfer::OUTGOING_TRANSFER);
+            $outId = $data['transaction']->getTransactionId();
         }
         
         // Transfer identifier
-        $trId = $data['trid'];
+        $trId = $data['transferId'];
         
         // Delete transactions
         $sql = new Sql($this->getDbAdapter());
@@ -192,8 +192,8 @@ class TransferMapper extends BaseMapper
         $delete->from(\Budget\Mapper\TransactionMapper::TABLE);
         $delete->where(
                 array(
-                    'tid' => array((int)$outId, (int)$inId),
-                    'uid' => (int)$uid,
+                    'transactionId' => array((int)$outId, (int)$inId),
+                    'userId' => (int)$uid,
                 )
         );
         
@@ -209,8 +209,8 @@ class TransferMapper extends BaseMapper
         
         $delete = $sql->delete();
         $delete->from(self::TABLE);
-        $delete->where(array('trid' => (int)$trId,
-                'uid' => (int)$uid));
+        $delete->where(array('transferId' => (int)$trId,
+                'userId' => (int)$uid));
         
         $statement = $sql->prepareStatementForSqlObject($delete);
         $row = $statement->execute()->count();

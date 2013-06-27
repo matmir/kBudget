@@ -79,12 +79,11 @@ class mBank extends Bank
             
             // Insert data into the Transaction object
             $tr = new Transaction();
-            $date = new \DateTime($data[0]);
-            $tr->t_date = $date->format('Y-m-d');
+            $tr->setDate(new \DateTime($data[0]));
             $value = str_replace(array(',',' '),array('.',''),$data[6]);
-            $tr->t_type = ($value<0)?(1):(0);
-            $tr->t_value = abs($value);
-            $tr->t_content = str_replace('"', '', $data[3]);
+            $tr->setTransactionType(($value<0)?(Transaction::EXPENSE):(Transaction::PROFIT));
+            $tr->setValue($value);
+            $tr->setContent(str_replace('"', '', $data[3]));
             
             // Insert into the return array
             array_push($returnArray, $tr);
