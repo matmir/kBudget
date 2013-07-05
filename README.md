@@ -3,4 +3,6 @@ kBudget
 
 Simple online finance manager
 
-URL: http://kbudget.dorothy.vot.pl
+URL: http://www.k-budget.net
+
+

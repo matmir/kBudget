@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Czas wygenerowania: 05 Lip 2013, 09:59
+-- Czas wygenerowania: 05 Lip 2013, 10:54
 -- Wersja serwera: 5.5.27
 -- Wersja PHP: 5.4.7
 
@@ -34,7 +34,15 @@ CREATE TABLE IF NOT EXISTS `accounts` (
   `balance` decimal(10,2) NOT NULL COMMENT 'Account balance',
   PRIMARY KEY (`accountId`),
   KEY `userId` (`userId`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin2;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin2 AUTO_INCREMENT=3 ;
+
+--
+-- Zrzut danych tabeli `accounts`
+--
+
+INSERT INTO `accounts` (`accountId`, `userId`, `accountName`, `balance`) VALUES
+(1, 1, 'DemoBank', 0.00),
+(2, 2, 'Konto', 0.00);
 
 -- --------------------------------------------------------
 
@@ -52,7 +60,15 @@ CREATE TABLE IF NOT EXISTS `categories` (
   PRIMARY KEY (`categoryId`),
   KEY `parentCategoryId` (`parentCategoryId`),
   KEY `userId` (`userId`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin2;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin2 AUTO_INCREMENT=3 ;
+
+--
+-- Zrzut danych tabeli `categories`
+--
+
+INSERT INTO `categories` (`categoryId`, `parentCategoryId`, `userId`, `categoryType`, `categoryName`) VALUES
+(1, NULL, 1, 2, 'Transfer'),
+(2, NULL, 2, 2, 'Transfer');
 
 -- --------------------------------------------------------
 
@@ -96,7 +112,7 @@ CREATE TABLE IF NOT EXISTS `transactions` (
   KEY `userId` (`userId`),
   KEY `categoryId` (`categoryId`),
   KEY `transferAccountId` (`transferAccountId`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin2;
+) ENGINE=InnoDB DEFAULT CHARSET=latin2 AUTO_INCREMENT=1 ;
 
 --
 -- Wyzwalacze `transactions`
@@ -158,7 +174,7 @@ CREATE TABLE IF NOT EXISTS `transfers` (
   KEY `userId` (`userId`),
   KEY `outTransactionId` (`outTransactionId`),
   KEY `inTransactionId` (`inTransactionId`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin2;
+) ENGINE=InnoDB DEFAULT CHARSET=latin2 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
@@ -179,7 +195,15 @@ CREATE TABLE IF NOT EXISTS `users` (
   `defaultAccountId` int(10) unsigned NOT NULL COMMENT 'Default bank account',
   PRIMARY KEY (`userId`),
   KEY `defaultAccountId` (`defaultAccountId`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin2;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin2 AUTO_INCREMENT=3 ;
+
+--
+-- Zrzut danych tabeli `users`
+--
+
+INSERT INTO `users` (`userId`, `email`, `login`, `pass`, `type`, `active`, `registerDate`, `lastLoginDate`, `defaultAccountId`) VALUES
+(1, 'demo@k-budget.net', 'demo', '$2y$15$5GfViOkkIH.uazR9oWYZ1.bJX8obN5SF3kD9E7kVefuqZEqCvSQFO', 2, 1, '2013-01-01 23:59:59', NULL, 1),
+(2, 'admin@k-budget.net', 'admin', '$2y$15$SaRHyvgizjKubVnD3wvjVeeUbgqdCCzqVJ75LE77slG7yelzVa.Cu', 1, 1, '2013-01-01 23:59:59', NULL, 2);
 
 --
 -- Ograniczenia dla zrzutów tabel
