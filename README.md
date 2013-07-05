@@ -32,4 +32,4 @@ INSTALATION
 
 	login: admin
 	password: password
-	and change admin password to your own.
+	change admin password and e-mail to your own.
