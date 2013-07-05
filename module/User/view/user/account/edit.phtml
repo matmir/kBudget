@@ -28,18 +28,18 @@ $this->headLink()->prependStylesheet($this->basePath('/css/user-accounts.css'));
         
         <table class="TableClear">
             <tr>
-                <td colspan="2"><?php echo $this->formHidden($form->get('aid')); ?></td>
+                <td colspan="2"><?php echo $this->formHidden($form->get('accountId')); ?></td>
             </tr>
             <tr>
-                <td><?php echo $form->get('a_name')->getLabel(); ?></td>
-                <td><?php echo $this->formElement($form->get('a_name')) ?></td>
+                <td><?php echo $form->get('accountName')->getLabel(); ?></td>
+                <td><?php echo $this->formElement($form->get('accountName')) ?></td>
             </tr>
             <?php
                 echo $this->formElementErrors()
                     ->setMessageOpenFormat('<tr><td colspan="2">')
                     ->setMessageSeparatorString('</td></tr><tr><td colspan="2">')
                     ->setMessageCloseString('</td></tr>')
-                    ->render($form->get('a_name'));
+                    ->render($form->get('accountName'));
             ?>
             <tr>
                 <td colspan="2"><?php echo $this->formSubmit($form->get('submit')); ?></td>

@@ -42,12 +42,12 @@ class AnalysisController extends BaseController
         // Check if given bank account is correct
         if ($aid == 0) {
             // Load default account id
-            $aid = $this->get('User\UserMapper')->getUser($uid)->default_aid;
+            $aid = $this->get('User\UserMapper')->getUser($uid)->getDefaultAccountId();
         } else { // Is some account identifier
             // Check if given account id is user accout
             if (!$this->get('User\AccountMapper')->isUserAccount($aid, $uid)) {
                 // Load default account id
-                $aid = $this->get('User\UserMapper')->getUser($uid)->default_aid;
+                $aid = $this->get('User\UserMapper')->getUser($uid)->getDefaultAccountId();
             }
         }
 

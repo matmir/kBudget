@@ -178,12 +178,12 @@ class TransferMapper extends BaseMapper
         } else {
             $inId = $transaction->getTransactionId();
             // Get outgoing transaction id
-            $data = $this->getTransaction($transaction->getTransactionId(), $uid, Transfer::OUTGOING_TRANSFER);
+            $data = $this->getTransaction($transaction->getTransactionId(), $uid, Transaction::OUTGOING_TRANSFER);
             $outId = $data['transaction']->getTransactionId();
         }
         
         // Transfer identifier
-        $trId = $data['transferId'];
+        $trId = $data['trid'];
         
         // Delete transactions
         $sql = new Sql($this->getDbAdapter());

@@ -91,9 +91,9 @@ class UserAuthentication extends BaseService
         
             $storage = $this->authService->getStorage();
             $storage->write($this->authAdapter->getAuthDataObject(array(
-                    'uid',
+                    'userId',
                     'login',
-                    'u_type',
+                    'type',
             )));
             
             return true;

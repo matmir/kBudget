@@ -167,6 +167,7 @@ class TransactionMapper extends BaseMapper
     public function saveTransaction(Transaction $transaction)
     {
         $data = $transaction->getArrayCopy();
+        $data['date'] = $transaction->getDate()->format('Y-m-d');
         unset($data['transactionId']);
         
         $sql = new Sql($this->getDbAdapter());

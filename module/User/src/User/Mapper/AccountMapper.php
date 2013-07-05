@@ -37,10 +37,10 @@ class AccountMapper extends BaseMapper
     
         $select->from(array('a' => self::TABLE))
                 ->where(array(
-                    'a.uid' => (int)$uid,
+                    'a.userId' => (int)$uid,
                 ))
                 ->order(array(
-                    'a.a_name ASC',
+                    'a.accountName ASC',
                 ));
     
         $statement = $sql->prepareStatementForSqlObject($select);
@@ -70,8 +70,8 @@ class AccountMapper extends BaseMapper
     
         $select->from(array('a' => self::TABLE))
                 ->where(array(
-                        'a.uid' => (int)$uid,
-                        'a.aid' => $aids
+                        'a.userId' => (int)$uid,
+                        'a.accountId' => $aids
                         )
                 );
 
@@ -107,7 +107,7 @@ class AccountMapper extends BaseMapper
         // Insert values into the return array
         foreach ($accounts as $account)
         {
-            $retArray[$account->aid] = $account->a_name;
+            $retArray[$account->getAccountId()] = $account->getAccountName();
         }
         
         return $retArray;
@@ -127,8 +127,8 @@ class AccountMapper extends BaseMapper
         $select = $sql->select();
         
         $select->from(array('a' => self::TABLE))
-                ->where(array('a.a_name' => (string)$a_name,
-                              'a.uid' => (int)$uid,
+                ->where(array('a.accountName' => (string)$a_name,
+                              'a.userId' => (int)$uid,
                               ));
         
         $statement = $sql->prepareStatementForSqlObject($select);
@@ -142,7 +142,7 @@ class AccountMapper extends BaseMapper
             
         } else {
             
-            return $data['aid'];
+            return $data['accountId'];
             
         }
     }
@@ -178,15 +178,12 @@ class AccountMapper extends BaseMapper
      */
     public function saveAccount(Account $account)
     {
-        $data = array(
-            'uid' => (int)$account->uid,
-            'a_name'  => (string)$account->a_name,
-            'balance' => (float)$account->balance,
-        );
+        $data = $account->getArrayCopy();
+        unset($data['accountId']);
         
         $sql = new Sql($this->getDbAdapter());
 
-        $aid = (int)$account->aid;
+        $aid = (int)$account->getAccountId();
         
         // Add new account
         if ($aid == 0) {
@@ -200,13 +197,13 @@ class AccountMapper extends BaseMapper
             return $val;
         } else { // edit existing account
             // Checks if the account exists
-            if ($this->getAccount($aid, $data['uid'])) {
+            if ($this->getAccount($aid, $data['userId'])) {
                 
                 $update = $sql->update();
                 
                 $update->table(self::TABLE);
                 $update->set($data);
-                $update->where(array('aid' => $aid));
+                $update->where(array('accountId' => $aid));
                 
                 $statement = $sql->prepareStatementForSqlObject($update);
                 $statement->execute();
@@ -232,8 +229,8 @@ class AccountMapper extends BaseMapper
         $select = $sql->select();
         
         $select->from(array('a' => self::TABLE))
-                ->where(array('a.aid' => (int)$aid,
-                              'a.uid' => (int)$uid));
+                ->where(array('a.accountId' => (int)$aid,
+                              'a.userId' => (int)$uid));
         
         $statement = $sql->prepareStatementForSqlObject($select);
         $row = $statement->execute();
@@ -261,8 +258,8 @@ class AccountMapper extends BaseMapper
         
         $select->columns(array('cn' => new Expression('count(*)')))
                 ->from(array('t' => \Budget\Mapper\TransactionMapper::TABLE))
-                ->where(array('t.aid' => (int)$aid,
-                              't.uid' => (int)$uid,
+                ->where(array('t.accountId' => (int)$aid,
+                              't.userId' => (int)$uid,
                               ));
         
         $statement = $sql->prepareStatementForSqlObject($select);
@@ -287,7 +284,7 @@ class AccountMapper extends BaseMapper
         $select->columns(array('cn' => new Expression('count(*)')))
         ->from(array('a' => self::TABLE))
         ->where(array(
-                'a.uid' => (int)$uid,
+                'a.userId' => (int)$uid,
         ));
         
         $statement = $sql->prepareStatementForSqlObject($select);
@@ -314,8 +311,8 @@ class AccountMapper extends BaseMapper
             
             $delete = $sql->delete();
             $delete->from(self::TABLE);
-            $delete->where(array('aid' => (int)$aid,
-                    'uid' => (int)$uid));
+            $delete->where(array('accountId' => (int)$aid,
+                    'userId' => (int)$uid));
             
             $statement = $sql->prepareStatementForSqlObject($delete);
             $row = $statement->execute();

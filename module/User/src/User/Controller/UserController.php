@@ -140,21 +140,21 @@ class UserController extends BaseController
                             
                             // Create new user
                             $user = new User();
-                            $user->login = $u_login;
-                            $user->email = $u_email;
+                            $user->setLogin($u_login);
+                            $user->setEmail($u_email);
                             
                             $bcrypt = new Bcrypt();
                             $bcrypt->setCost(\Auth\Service\UserAuthentication::bCOST);
                             
-                            $user->pass = $bcrypt->create($p1);
+                            $user->setPass($bcrypt->create($p1));
                             // Add user to the database
                             $uid = $this->get('User\UserMapper')->addUser($user);
                             
                             // Create bank account
                             $account = new Account(
                                 array(
-                                    'uid' => $uid,
-                                    'a_name' => (string)$form->get('bankAccount')->getValue()
+                                    'userId' => $uid,
+                                    'accountName' => (string)$form->get('bankAccount')->getValue()
                                 )
                             );
                             // Add bank account to the database
@@ -166,9 +166,9 @@ class UserController extends BaseController
                             // Create hidden category to the transfers
                             $category = new Category(
                                 array(
-                                    'uid' => $uid,
-                                    'c_type' => 2,
-                                    'c_name' => 'Transfer'
+                                    'userId' => $uid,
+                                    'categoryType' => Category::TRANSFER,
+                                    'categoryName' => 'Transfer'
                                 )
                             );
                             // Add category to the database
@@ -240,10 +240,10 @@ class UserController extends BaseController
                     
                     // Prepare e-mail message
                     $msg = array(
-                        'toAddress' => $user->email,
-                        'toName' => $user->login,
+                        'toAddress' => $user->getEmail(),
+                        'toName' => $user->getLogin(),
                         'subject' => 'Reset hasła',
-                        'body' => 'Twój login: '.$user->login."\nTwoje hasło: ".$new_pass
+                        'body' => 'Twój login: '.$user->getLogin()."\nTwoje hasło: ".$new_pass
                     );
                     // Send e-mail
                     $this->get('Base\Mailer')->send($msg);
@@ -275,7 +275,7 @@ class UserController extends BaseController
         // Get user data
         $user = $this->get('User\UserMapper')->getUser($uid);
     
-        $actual_email = $user->email;
+        $actual_email = $user->getEmail();
     
         $form = new EmailForm();
         $formFilters = new EmailFormFilter();
@@ -351,7 +351,7 @@ class UserController extends BaseController
                 
                 // Validation of the actual password
                 $p = (string)$form->get('pass')->getValue();
-                if ($bcrypt->verify($p, $user->pass)) {
+                if ($bcrypt->verify($p, $user->getPass())) {
     
                     // Validation of the new passwords
                     $p1 = (string)$form->get('pass1')->getValue();

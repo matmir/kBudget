@@ -8,7 +8,6 @@ use Zend\View\Model\JsonModel;
 use Zend\View\Model\ViewModel;
 
 use User\Model\Category;
-use User\Model\CategoryMapper;
 
 use User\Form\CategoryForm;
 use User\Form\CategoryFormFilter;
@@ -42,8 +41,8 @@ class CategoryController extends BaseController
         $uid = $this->get('userId');
         
         // Get income and expense categories
-        $cat_profit = $this->get('User\CategoryMapper')->getCategories($uid, 0);
-        $cat_expense = $this->get('User\CategoryMapper')->getCategories($uid, 1);
+        $cat_profit = $this->get('User\CategoryMapper')->getCategories($uid, Category::PROFIT);
+        $cat_expense = $this->get('User\CategoryMapper')->getCategories($uid, Category::EXPENSE);
         
         $view = new ViewModel();
         
@@ -90,7 +89,7 @@ class CategoryController extends BaseController
                         
                         foreach ($categories as $category) {
                             
-                            $view->setVariable($category->c_name, $category->cid);
+                            $view->setVariable($category->getCategoryName(), $category->getCategoryId());
                             
                         }
                         
@@ -150,19 +149,30 @@ class CategoryController extends BaseController
                 // Insert data from POST into the category model
                 $category = new Category($form->getData());
                 
-                $category->uid = $uid;
+                $category->setUserId($uid);
                 
                 // Check if category name exists
-                if ($this->get('User\CategoryMapper')->isCategoryNameExists($category->c_name, $category->c_type, $uid, $category->pcid)==0) {
+                $catExist = $this->get('User\CategoryMapper')->isCategoryNameExists(
+                    $category->getCategoryName(),
+                    $category->getCategoryType(),
+                    $uid,
+                    $category->getParentCategoryId()
+                );
+                if ($catExist==0) {
                     
                     // Add category
                     $this->get('User\CategoryMapper')->saveCategory($category);
                     
                     // Get added category id
-                    $cid = $this->get('User\CategoryMapper')->isCategoryNameExists($category->c_name, $category->c_type, $uid, $category->pcid);
+                    $cid = $this->get('User\CategoryMapper')->isCategoryNameExists(
+                        $category->getCategoryName(),
+                        $category->getCategoryType(),
+                        $uid,
+                        $category->getParentCategoryId()
+                    );
                     
                     $view->setVariable('status', 'OK')
-                        ->setVariable('name', $category->c_name)
+                        ->setVariable('name', $category->getCategoryName())
                         ->setVariable('cid', $cid);
                     
                 } else {

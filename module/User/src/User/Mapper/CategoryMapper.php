@@ -39,11 +39,11 @@ class CategoryMapper extends BaseMapper
     
         $select->from(array('c' => self::TABLE))
                 ->where(array(
-                        'c.uid' => (int)$uid,
+                        'c.userId' => (int)$uid,
                         )
                 )
                 ->order(array(
-                        'c.c_name ASC',
+                        'c.categoryName ASC',
                 ));
     
         // Check category type
@@ -51,21 +51,21 @@ class CategoryMapper extends BaseMapper
     
             // Spr. parametru
             if (!($c_type==0 || $c_type==1)) {
-                throw new \Exception("Incorrect category type!");
+                throw new \Exception('Incorrect category type!');
             }
     
-            $select->where(array('c.c_type' => (int)$c_type));
+            $select->where(array('c.categoryType' => (int)$c_type));
     
         }
     
         // Check parent category id
         if ($pcid !==null) {
     
-            $select->where(array('c.pcid' => (int)$pcid));
+            $select->where(array('c.parentCategoryId' => (int)$pcid));
     
         } else {
             
-            $select->where(array('c.pcid' => null));
+            $select->where(array('c.parentCategoryId' => null));
             
         }
     
@@ -113,8 +113,8 @@ class CategoryMapper extends BaseMapper
     
         $select->from(array('c' => self::TABLE))
                 ->where(array(
-                        'c.uid' => (int)$uid,
-                        'c.cid' => $cids
+                        'c.userId' => (int)$uid,
+                        'c.categoryId' => $cids
                         )
                 );
 
@@ -156,7 +156,7 @@ class CategoryMapper extends BaseMapper
         // Insert values into the return array
         while (($tbl=$results->current())!=null)
         {
-            $retArray[$tbl['cid']] = $tbl['c_name'];
+            $retArray[$tbl['categoryId']] = $tbl['categoryName'];
         }
         
         return $retArray;
@@ -178,14 +178,16 @@ class CategoryMapper extends BaseMapper
         $select = $sql->select();
         
         $select->from(array('c' => self::TABLE))
-                ->where(array('c.c_name' => (string)$c_name,
-                              'c.uid' => (int)$uid,
-                              'c.c_type' => (int)$c_type,
+                ->where(array('c.categoryName' => (string)$c_name,
+                              'c.userId' => (int)$uid,
+                              'c.categoryType' => (int)$c_type,
                               ));
                 
         // Check parent category id
         if (($pcid !== null) && ($pcid !== 0)) {
-            $select->where(array('c.pcid' => (int)$pcid));
+            $select->where(array('c.parentCategoryId' => (int)$pcid));
+        } else {
+            $select->where(array('c.parentCategoryId' => null));
         }
         
         $statement = $sql->prepareStatementForSqlObject($select);
@@ -199,7 +201,7 @@ class CategoryMapper extends BaseMapper
             
         } else {
             
-            return $data['cid'];
+            return $data['categoryId'];
             
         }
     }
@@ -212,37 +214,35 @@ class CategoryMapper extends BaseMapper
      */
     public function saveCategory(Category $category)
     {
-        $data = array(
-            'uid' => (int)$category->uid,
-            'c_type'  => (int)$category->c_type,
-            'c_name'  => (string)$category->c_name,
-        );
+        $data = $category->getArrayCopy();
+        unset($data['categoryId']);
         
-        if (($category->pcid !== null) && ($category->pcid !== 0)) {
-            $data['pcid'] = (int)$category->pcid;
+        if (($category->getParentCategoryId() !== null) && ($category->getParentCategoryId() !== 0)) {
+            $data['parentCategoryId'] = (int)$category->getParentCategoryId();
+        } else {
+            $data['parentCategoryId'] = null;
         }
         
         $sql = new Sql($this->getDbAdapter());
 
-        $cid = (int)$category->cid;
+        $cid = (int)$category->getCategoryId();
         
         // Add new category
         if ($cid == 0) {
             $insert = $sql->insert();
             $insert->into(self::TABLE);
             $insert->values($data);
-            
             $statement = $sql->prepareStatementForSqlObject($insert);
             $statement->execute();
         } else { // edit existing category
             // Checks if the category exists
-            if ($this->getCategory($cid, $data['uid'])) {
+            if ($this->getCategory($cid, $data['userId'])) {
                 
                 $update = $sql->update();
                 
                 $update->table(self::TABLE);
                 $update->set($data);
-                $update->where(array('cid' => $cid));
+                $update->where(array('categoryId' => $cid));
                 
                 $statement = $sql->prepareStatementForSqlObject($update);
                 $statement->execute();
@@ -266,8 +266,8 @@ class CategoryMapper extends BaseMapper
         $select = $sql->select();
         
         $select->from(array('c' => self::TABLE))
-                ->where(array('c.cid' => (int)$cid,
-                              'c.uid' => (int)$uid));
+                ->where(array('c.categoryId' => (int)$cid,
+                              'c.userId' => (int)$uid));
         
         $statement = $sql->prepareStatementForSqlObject($select);
         $row = $statement->execute();
@@ -295,8 +295,8 @@ class CategoryMapper extends BaseMapper
         
         $select->columns(array('cn' => new Expression('count(*)')))
                 ->from(array('t' => \Budget\Mapper\TransactionMapper::TABLE))
-                ->where(array('t.cid' => (int)$cid,
-                              't.uid' => (int)$uid,
+                ->where(array('t.categoryId' => (int)$cid,
+                              't.userId' => (int)$uid,
                               ));
         
         $statement = $sql->prepareStatementForSqlObject($select);
@@ -321,8 +321,8 @@ class CategoryMapper extends BaseMapper
     
         $select->columns(array('cn' => new Expression('count(*)')))
             ->from(array('c' => self::TABLE))
-            ->where(array('c.pcid' => (int)$cid,
-                        'c.uid' => (int)$uid,
+            ->where(array('c.parentCategoryId' => (int)$cid,
+                        'c.userId' => (int)$uid,
         ));
     
         $statement = $sql->prepareStatementForSqlObject($select);
@@ -345,8 +345,8 @@ class CategoryMapper extends BaseMapper
     
         $delete = $sql->delete();
         $delete->from(self::TABLE);
-        $delete->where(array('cid' => (int)$cid,
-                             'uid' => (int)$uid));
+        $delete->where(array('categoryId' => (int)$cid,
+                             'userId' => (int)$uid));
         
         $statement = $sql->prepareStatementForSqlObject($delete);
         $row = $statement->execute();
@@ -367,8 +367,8 @@ class CategoryMapper extends BaseMapper
         $select = $sql->select();
         
         $select->from(array('c' => self::TABLE))
-        ->where(array('c.c_type' => 2,
-                'c.uid' => (int)$uid));
+        ->where(array('c.categoryType' => 2,
+                'c.userId' => (int)$uid));
         
         $statement = $sql->prepareStatementForSqlObject($select);
         $row = $statement->execute();
@@ -383,7 +383,7 @@ class CategoryMapper extends BaseMapper
         
         $category = new Category($row->current());
         
-        return $category->cid;
+        return $category->getCategoryId();
     }
 
 }

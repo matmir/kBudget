@@ -312,7 +312,7 @@ class Transaction extends BaseModel
      */
     public function setValue($value)
     {
-        $this->value = $value;
+        $this->value = abs($value);
 
         return $this;
     }

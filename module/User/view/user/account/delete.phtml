@@ -22,7 +22,7 @@ $this->headLink()->prependStylesheet($this->basePath('/css/user-accounts.css'));
             
             <div class="alert alert-info">
             Czy na pewno usunąć konto bankowe
-                '<?php echo $this->escapeHtml($this->account->a_name); ?>' ?
+                '<?php echo $this->escapeHtml($this->account->getAccountName()); ?>' ?
             </div>
             <?php
             $url = $this->url('user/account/delete', array(
@@ -31,7 +31,7 @@ $this->headLink()->prependStylesheet($this->basePath('/css/user-accounts.css'));
             ?>
             <form action="<?php echo $url; ?>" method="post">
             <div>
-                <input type="hidden" name="aid" value="<?php echo (int) $this->account->aid; ?>" />
+                <input type="hidden" name="aid" value="<?php echo (int) $this->account->getAccountId(); ?>" />
                 <input type="submit" name="del" value="Yes" />
                 <input type="submit" name="del" value="No" />
             </div>

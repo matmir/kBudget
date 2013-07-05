@@ -27,25 +27,25 @@ class CategoryForm extends Form
         // Category id
         $this->add(array(
             'type'  => 'Zend\Form\Element\Hidden',
-            'name' => 'cid',
+            'name' => 'categoryId',
         ));
         
         // Parent category id
         $this->add(array(
                 'type'  => 'Zend\Form\Element\Hidden',
-                'name' => 'pcid',
+                'name' => 'parentCategoryId',
         ));
         
         // Category type (0 - income, 1 - expense)
         $this->add(array(
             'type'  => 'Zend\Form\Element\Hidden',
-            'name' => 'c_type',
+            'name' => 'categoryType',
         ));
         
         // Category name
         $this->add(array(
             'type'  => 'Zend\Form\Element\Text',
-            'name' => 'c_name',
+            'name' => 'categoryName',
             'options' => array(
                 'label' => 'Nazwa: ',
             ),
@@ -89,7 +89,7 @@ class CategoryFormFilter implements InputFilterAwareInterface
 
             // Category d
             $inputFilter->add($factory->createInput(array(
-                'name'     => 'cid',
+                'name'     => 'categoryId',
                 'required' => true,
                 'filters'  => array(
                     array('name' => 'Int'),
@@ -98,7 +98,7 @@ class CategoryFormFilter implements InputFilterAwareInterface
             
             // Parent category id
             $inputFilter->add($factory->createInput(array(
-                    'name'     => 'pcid',
+                    'name'     => 'parentCategoryId',
                     'required' => true,
                     'filters'  => array(
                             array('name' => 'Int'),
@@ -107,7 +107,7 @@ class CategoryFormFilter implements InputFilterAwareInterface
             
             // Category type
             $inputFilter->add($factory->createInput(array(
-                'name'     => 'c_type',
+                'name'     => 'categoryType',
                 'required' => true,
                 'filters'  => array(
                     array('name' => 'Int'),
@@ -116,7 +116,7 @@ class CategoryFormFilter implements InputFilterAwareInterface
             
             // Category name
             $inputFilter->add($factory->createInput(array(
-                'name'     => 'c_name',
+                'name'     => 'categoryName',
                 'required' => true,
                 'filters'  => array(
                     array('name' => 'StripTags'),

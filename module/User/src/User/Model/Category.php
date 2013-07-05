@@ -13,6 +13,13 @@ use Base\Model\BaseModel;
 class Category extends BaseModel
 {
     /**
+     * Categories types
+     */
+    const PROFIT = 0;
+    const EXPENSE = 1;
+    const TRANSFER = 2;
+
+    /**
      * Category identifier
      * 
      * @var int

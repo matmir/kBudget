@@ -300,10 +300,10 @@ $(function() {
         		    url: '/user/category/save',
         		    cache: false,
         		    data: {
-        		    	'cid': null,
-        		    	'pcid': pcid,
-                        'c_type': catType,
-                        'c_name': catName,
+        		    	'categoryId': null,
+        		    	'parentCategoryId': pcid,
+                        'categoryType': catType,
+                        'categoryName': catName,
         		    },
         		    dataType: 'json'
         		}).done(function ( data ) {

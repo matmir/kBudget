@@ -27,13 +27,13 @@ class AccountForm extends Form
         // Account id
         $this->add(array(
             'type'  => 'Zend\Form\Element\Hidden',
-            'name' => 'aid',
+            'name' => 'accountId',
         ));
         
         // Account name
         $this->add(array(
             'type'  => 'Zend\Form\Element\Text',
-            'name' => 'a_name',
+            'name' => 'accountName',
             'options' => array(
                 'label' => 'Nazwa: ',
             ),
@@ -77,7 +77,7 @@ class AccountFormFilter implements InputFilterAwareInterface
 
             // Account id
             $inputFilter->add($factory->createInput(array(
-                'name'     => 'aid',
+                'name'     => 'accountId',
                 'required' => true,
                 'filters'  => array(
                     array('name' => 'Int'),
@@ -86,7 +86,7 @@ class AccountFormFilter implements InputFilterAwareInterface
             
             // Account name
             $inputFilter->add($factory->createInput(array(
-                'name'     => 'a_name',
+                'name'     => 'accountName',
                 'required' => true,
                 'filters'  => array(
                     array('name' => 'StripTags'),

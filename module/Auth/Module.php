@@ -62,7 +62,7 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
                                 throw new \Exception('User is not logged in!');
                             }
                             
-                            return (int)$userAuth->getIdentity()->uid;
+                            return (int)$userAuth->getIdentity()->userId;
                         },
                         // Get logged in user type
                         'userType' =>  function($sm) {
@@ -76,7 +76,7 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
                             $identity = 'anonymous';
                             
                             // Get type
-                            switch ($userAuth->getIdentity()->u_type) {
+                            switch ($userAuth->getIdentity()->type) {
                                 case 0: $identity = 'user'; break;
                                 case 1: $identity = 'admin'; break;
                                 case 2: $identity = 'demo'; break;

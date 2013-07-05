@@ -256,6 +256,8 @@ class ImportController extends BaseController
                 
                 // Check the form
                 if ($form->isValid() && $categoriesValid) {
+
+                    $fData = $form->getData();
                     
                     // Add transactions to the database
                     for ($i=0; $i<$tr_count; $i++) {
@@ -267,23 +269,23 @@ class ImportController extends BaseController
                         }
                         
                         // Check which transaction type we must add
-                        if ($data['t_type-'.$i] == Transaction::PROFIT || $data['t_type-'.$i] == Transaction::EXPENSE) {
+                        if ($fData['t_type-'.$i] == Transaction::PROFIT || $fData['t_type-'.$i] == Transaction::EXPENSE) {
                             
                             // Create transaction object
                             $transaction = new Transaction();
                             $transaction->setAccountId($import->getAccountId());
                             $transaction->setUserId($uid);
                             // Get category id
-                            if ($form->get('ccid-'.$i)->getValue() == -1 || $form->get('ccid-'.$i)->getValue() == 0) {
-                                $cid = $form->get('pcid-'.$i)->getValue();
+                            if ($fData['ccid-'.$i] == -1 || $fData['ccid-'.$i] == 0) {
+                                $cid = $fData['pcid-'.$i];
                             } else {
-                                $cid = $form->get('ccid-'.$i)->getValue();
+                                $cid = $fData['ccid-'.$i];
                             }
                             $transaction->setCategoryId((int)$cid);
-                            $transaction->setTransactionType((int)$form->get('t_type-'.$i)->getValue());
-                            $transaction->setDate(new \DateTime($form->get('t_date-'.$i)->getValue()));
-                            $transaction->setContent((string)$form->get('t_content-'.$i)->getValue());
-                            $transaction->setValue((double)$form->get('t_value-'.$i)->getValue());
+                            $transaction->setTransactionType((int)$fData['t_type-'.$i]);
+                            $transaction->setDate(new \DateTime($fData['t_date-'.$i]));
+                            $transaction->setContent((string)$fData['t_content-'.$i]);
+                            $transaction->setValue($fData['t_value-'.$i]);
                             
                             // Add transaction
                             $this->get('Budget\TransactionMapper')->saveTransaction($transaction);
@@ -295,25 +297,25 @@ class ImportController extends BaseController
                             
                             // Outgoing transfer
                             $outTransaction = new Transaction();
-                            $outTransaction->setAccountId(($data['t_type-'.$i]==2)?($import->getAccountId()):($data['taid-'.$i]));
-                            $outTransaction->setTransferAccountId(($data['t_type-'.$i]==2)?($data['taid-'.$i]):($import->getAccountId()));
+                            $outTransaction->setAccountId(($fData['t_type-'.$i]==2)?($import->getAccountId()):($fData['taid-'.$i]));
+                            $outTransaction->setTransferAccountId(($fData['t_type-'.$i]==2)?($fData['taid-'.$i]):($import->getAccountId()));
                             $outTransaction->setUserId($uid);
                             $outTransaction->setTransactionType(Transaction::OUTGOING_TRANSFER);
                             $outTransaction->setCategoryId($tcid);
-                            $outTransaction->setDate(new \DateTime($data['t_date-'.$i]));
-                            $outTransaction->setContent($data['t_content-'.$i]);
-                            $outTransaction->setValue($data['t_value-'.$i]);
+                            $outTransaction->setDate(new \DateTime($fData['t_date-'.$i]));
+                            $outTransaction->setContent($fData['t_content-'.$i]);
+                            $outTransaction->setValue($fData['t_value-'.$i]);
                             
                             // Incoming transfer
                             $inTransaction = new Transaction();
-                            $inTransaction->setAccountId(($data['t_type-'.$i]==2)?($data['taid-'.$i]):($import->getAccountId()));
-                            $inTransaction->setTransferAccountId(($data['t_type-'.$i]==2)?($import->getAccountId()):($data['taid-'.$i]));
+                            $inTransaction->setAccountId(($fData['t_type-'.$i]==2)?($fData['taid-'.$i]):($import->getAccountId()));
+                            $inTransaction->setTransferAccountId(($fData['t_type-'.$i]==2)?($import->getAccountId()):($fData['taid-'.$i]));
                             $inTransaction->setUserId($uid);
                             $inTransaction->setTransactionType(Transaction::INCOMING_TRANSFER);
                             $inTransaction->setCategoryId($tcid);
-                            $inTransaction->setDate(new \DateTime($data['t_date-'.$i]));
-                            $inTransaction->setContent($data['t_content-'.$i]);
-                            $inTransaction->setValue($data['t_value-'.$i]);
+                            $inTransaction->setDate(new \DateTime($fData['t_date-'.$i]));
+                            $inTransaction->setContent($fData['t_content-'.$i]);
+                            $inTransaction->setValue($fData['t_value-'.$i]);
                             
                             // Save transfer
                             $this->get('Budget\TransferMapper')->saveTransfer($outTransaction, $inTransaction);

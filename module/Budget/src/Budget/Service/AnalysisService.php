@@ -3,6 +3,7 @@
 namespace Budget\Service;
 
 use Base\Service\BaseService;
+use Budget\Model\Transaction;
 
 /**
  * Analysis service (Prepare data for the Highcharts)

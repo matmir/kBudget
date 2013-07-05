@@ -130,7 +130,7 @@ class TransactionController extends BaseController
             'aid' => $aid,
             'sum_expense' => $balanceData['expenses'],
             'sum_profit' => $balanceData['profits'],
-            'accountBalance' => $account->balance,
+            'accountBalance' => $account->getBalance(),
             'monthBalance' => $balanceData['balance'],
             'page' => $page,
         );
@@ -354,7 +354,7 @@ class TransactionController extends BaseController
         // Check if the transaction category has subcategories
         $category = $this->get('User\CategoryMapper')->getCategory($transaction->getCategoryId(), $uid);
         
-        if ($category->getParentCatgoryId() == null) { // this is main category
+        if ($category->getParentCategoryId() == null) { // this is main category
             
             $data['pcid'] = $category->getCategoryId();
             $data['ccid'] = null;
@@ -734,7 +734,7 @@ class TransactionController extends BaseController
             $form->setData($transaction->getArrayCopy());
             
             // Revert bank accounts
-            if ($transaction->t_type==3) {
+            if ($transaction->getTransactionType()==Transaction::INCOMING_TRANSFER) {
                 
                 $form->get('accountId')->setValue($transaction->getTransferAccountId());
                 $form->get('transferAccountId')->setValue($transaction->getAccountId());

@@ -48,7 +48,7 @@ class UserMapper extends BaseMapper
         if ($data === null) {
             return 0;
         } else {
-            return $data['uid'];
+            return $data['userId'];
         }
     }
     
@@ -75,7 +75,7 @@ class UserMapper extends BaseMapper
         if ($data === null) {
             return 0;
         } else {
-            return $data['uid'];
+            return $data['userId'];
         }
     }
     
@@ -93,7 +93,7 @@ class UserMapper extends BaseMapper
         
         $select->from(array('u' => self::TABLE))
                 ->where(array('u.email' => (string)$u_email,
-                              'u.uid' => (int)$uid,
+                              'u.userId' => (int)$uid,
                               ));
         
         $statement = $sql->prepareStatementForSqlObject($select);
@@ -113,12 +113,12 @@ class UserMapper extends BaseMapper
     public function addUser(User $user)
     {
         $data = array(
-            'login'  => $user->login,
-            'email'  => $user->email,
-            'pass' => $user->pass,
-            'u_type' => 0,
+            'login'  => $user->getLogin(),
+            'email'  => $user->getEmail(),
+            'pass' => $user->getPass(),
+            'type' => 0,
             'active' => 1,
-            'register_date' => date('Y-m-d H:i:s'),
+            'registerDate' => date('Y-m-d H:i:s'),
         );
         
         $sql = new Sql($this->getDbAdapter());
@@ -150,7 +150,7 @@ class UserMapper extends BaseMapper
         $update = $sql->update();
         $update->table(self::TABLE);
         $update->set($data);
-        $update->where(array('uid' => (int)$uid));
+        $update->where(array('userId' => (int)$uid));
         
         $statement = $sql->prepareStatementForSqlObject($update);
         $statement->execute();
@@ -173,7 +173,7 @@ class UserMapper extends BaseMapper
         $update = $sql->update();
         $update->table(self::TABLE);
         $update->set($data);
-        $update->where(array('uid' => (int)$uid));
+        $update->where(array('userId' => (int)$uid));
         
         $statement = $sql->prepareStatementForSqlObject($update);
         $statement->execute();
@@ -201,7 +201,7 @@ class UserMapper extends BaseMapper
         $update = $sql->update();
         $update->table(self::TABLE);
         $update->set($data);
-        $update->where(array('uid' => (int)$uid));
+        $update->where(array('userId' => (int)$uid));
         
         $statement = $sql->prepareStatementForSqlObject($update);
         $statement->execute();
@@ -218,8 +218,8 @@ class UserMapper extends BaseMapper
 
         $update = $sql->update();
         $update->table(self::TABLE);
-        $update->set(array('last_login_date' => date('Y-m-d H:i:s')));
-        $update->where(array('uid' => (int)$uid));
+        $update->set(array('lastLoginDate' => date('Y-m-d H:i:s')));
+        $update->where(array('userId' => (int)$uid));
         
         $statement = $sql->prepareStatementForSqlObject($update);
         $statement->execute();
@@ -238,7 +238,7 @@ class UserMapper extends BaseMapper
         $select = $sql->select();
         
         $select->from(array('u' => self::TABLE))
-                ->where(array('u.uid' => (int)$uid));
+                ->where(array('u.userId' => (int)$uid));
         
         $statement = $sql->prepareStatementForSqlObject($select);
         $row = $statement->execute();
@@ -284,7 +284,7 @@ class UserMapper extends BaseMapper
     public function setUserDefaultBankAccount($uid, $aid)
     {
         $data = array(
-            'default_aid' => (int)$aid,
+            'defaultAccountId' => (int)$aid,
         );
         
         $sql = new Sql($this->getDbAdapter());
@@ -292,7 +292,7 @@ class UserMapper extends BaseMapper
         $update = $sql->update();
         $update->table(self::TABLE);
         $update->set($data);
-        $update->where(array('uid' => (int)$uid));
+        $update->where(array('userId' => (int)$uid));
         
         $statement = $sql->prepareStatementForSqlObject($update);
         $statement->execute();

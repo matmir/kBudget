@@ -7,7 +7,6 @@ use Base\Controller\BaseController;
 use Zend\View\Model\ViewModel;
 
 use User\Model\Account;
-use User\Model\AccountMapper;
 
 use User\Form\CategoryForm;
 use User\Form\CategoryFormFilter;
@@ -37,7 +36,7 @@ class AccountController extends BaseController
         $accounts = $this->get('User\AccountMapper')->getAccounts($uid);
         
         // Get user default bank id
-        $daid = $this->get('User\UserMapper')->getUser($uid)->default_aid;
+        $daid = $this->get('User\UserMapper')->getUser($uid)->getDefaultAccountId();
         
         $view = new ViewModel();
         
@@ -72,7 +71,7 @@ class AccountController extends BaseController
         
                 // Create account model
                 $account = new Account($form->getData());
-                $account->uid = $uid;
+                $account->setUserId($uid);
         
                 // Save
                 $this->get('User\AccountMapper')->saveAccount($account);

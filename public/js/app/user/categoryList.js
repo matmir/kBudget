@@ -395,7 +395,7 @@ $(function() {
 						
 						// Check if there is text
 						if (newCatName != "") {
-							
+
 							// Edit category
 							category.saveCategory(cid, newCatName, null, 0);
 							
@@ -514,7 +514,7 @@ $(function() {
 							
 							// Check if there is text
 							if (newCatName != "") {
-								
+
 								// Edit category
 								category.saveCategory(cid, newCatName, pcid, 1);
 								
@@ -672,10 +672,10 @@ $(function() {
         		    url: '/user/category/save',
         		    cache: false,
         		    data: {
-        		    	'cid': cid,
-        		    	'pcid': pcid,
-                        'c_type': catType,
-                        'c_name': catName,
+        		    	'categoryId': cid,
+        		    	'parentCategoryId': pcid,
+                        'categoryType': catType,
+                        'categoryName': catName,
         		    },
         		    dataType: 'json'
         		}).done(function ( data ) {

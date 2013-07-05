@@ -258,13 +258,17 @@ class User extends BaseModel
     /**
      * Sets the User register date.
      *
-     * @param DateTime $registerDate the registerDate
+     * @param DateTime/String $registerDate the registerDate
      *
      * @return self
      */
-    public function setRegisterDate(DateTime $registerDate)
+    public function setRegisterDate($registerDate)
     {
-        $this->registerDate = $registerDate;
+        if (!($registerDate instanceof DateTime)) {
+            $this->registerDate = new DateTime($registerDate);
+        } else {
+            $this->registerDate = $registerDate;
+        }
 
         return $this;
     }
@@ -282,13 +286,17 @@ class User extends BaseModel
     /**
      * Sets the User last login date.
      *
-     * @param DateTime $lastLoginDate the lastLoginDate
+     * @param DateTime/String $lastLoginDate the lastLoginDate
      *
      * @return self
      */
-    public function setLastLoginDate(DateTime $lastLoginDate)
+    public function setLastLoginDate($lastLoginDate)
     {
-        $this->lastLoginDate = $lastLoginDate;
+        if (!($lastLoginDate instanceof DateTime)) {
+            $this->lastLoginDate = new DateTime($lastLoginDate);
+        } else {
+            $this->lastLoginDate = $lastLoginDate;
+        }
 
         return $this;
     }

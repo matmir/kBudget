@@ -36,7 +36,7 @@ $this->headLink()->prependStylesheet($this->basePath('/css/user-categories.css')
     
     <select id="catIncomeParent" size="10" style="width: 130px;">
     <?php foreach ($this->cat_profit as $income): ?>
-         <option value="<?php echo $income->cid; ?>"><?php echo $income->c_name; ?></option>
+         <option value="<?php echo $income->getCategoryId(); ?>"><?php echo $income->getCategoryName(); ?></option>
     <?php endforeach; ?>
     </select>
     
@@ -96,7 +96,7 @@ $this->headLink()->prependStylesheet($this->basePath('/css/user-categories.css')
     
     <select id="catExpenseParent" size="10" style="width: 130px;">
     <?php foreach ($this->cat_expense as $expense): ?>
-         <option value="<?php echo $expense->cid; ?>"><?php echo $expense->c_name; ?></option>
+         <option value="<?php echo $expense->getCategoryId(); ?>"><?php echo $expense->getCategoryName(); ?></option>
     <?php endforeach; ?>
     </select>
     

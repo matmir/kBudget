@@ -27,8 +27,10 @@ abstract class BaseModel
      */
     public function exchangeArray(array $params = array())
     {
-        foreach ($properties as $name => $value) {
-            $this->{'set'.ucwords($name)}($value);
+        foreach ($params as $name => $value) {
+            if (property_exists($this, $name)) {
+                $this->{'set'.ucwords($name)}($value);
+            }
         }
     }
     
