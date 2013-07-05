@@ -6,3 +6,15 @@ body {
 a {
     text-decoration: none;
 }
+
+div.exampleChart {
+	text-align: center;
+}
+
+footer p {
+	text-align: center;
+}
+
+footer p.additionalInfo {
+	font-size: 80%;
+}
