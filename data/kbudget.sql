@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Czas wygenerowania: 24 Maj 2013, 13:24
+-- Czas wygenerowania: 05 Lip 2013, 09:59
 -- Wersja serwera: 5.5.27
 -- Wersja PHP: 5.4.7
 
@@ -17,7 +17,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8 */;
 
 --
--- Baza danych: `kbudget`
+-- Baza danych: `kBudget`
 --
 
 -- --------------------------------------------------------
@@ -26,14 +26,15 @@ SET time_zone = "+00:00";
 -- Struktura tabeli dla tabeli `accounts`
 --
 
+DROP TABLE IF EXISTS `accounts`;
 CREATE TABLE IF NOT EXISTS `accounts` (
-  `aid` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Account identifier',
-  `uid` int(10) unsigned NOT NULL COMMENT 'User identifier',
-  `a_name` varchar(30) NOT NULL COMMENT 'Account name',
+  `accountId` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Account identifier',
+  `userId` int(10) unsigned NOT NULL COMMENT 'User identifier',
+  `accountName` varchar(30) NOT NULL COMMENT 'Account name',
   `balance` decimal(10,2) NOT NULL COMMENT 'Account balance',
-  PRIMARY KEY (`aid`),
-  KEY `uid` (`uid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin2 AUTO_INCREMENT=16 ;
+  PRIMARY KEY (`accountId`),
+  KEY `userId` (`userId`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin2;
 
 -- --------------------------------------------------------
 
@@ -41,17 +42,17 @@ CREATE TABLE IF NOT EXISTS `accounts` (
 -- Struktura tabeli dla tabeli `categories`
 --
 
+DROP TABLE IF EXISTS `categories`;
 CREATE TABLE IF NOT EXISTS `categories` (
-  `cid` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Category identifier',
-  `pcid` int(10) unsigned DEFAULT NULL COMMENT 'Parent category identifier',
-  `uid` int(10) unsigned NOT NULL COMMENT 'User identifier',
-  `c_type` int(10) unsigned NOT NULL DEFAULT '1' COMMENT 'Category type (0 - profit, 1 - expense, 2 - transfer)',
-  `c_name` varchar(100) NOT NULL COMMENT 'Category name',
-  PRIMARY KEY (`cid`),
-  KEY `pcid` (`pcid`),
-  KEY `uid` (`uid`),
-  KEY `uid_2` (`uid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin2 AUTO_INCREMENT=138 ;
+  `categoryId` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Category identifier',
+  `parentCategoryId` int(10) unsigned DEFAULT NULL COMMENT 'Parent category identifier',
+  `userId` int(10) unsigned NOT NULL COMMENT 'User identifier',
+  `categoryType` int(10) unsigned NOT NULL DEFAULT '1' COMMENT 'Category type (0 - profit, 1 - expense, 2 - transfer)',
+  `categoryName` varchar(100) NOT NULL COMMENT 'Category name',
+  PRIMARY KEY (`categoryId`),
+  KEY `parentCategoryId` (`parentCategoryId`),
+  KEY `userId` (`userId`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin2;
 
 -- --------------------------------------------------------
 
@@ -59,15 +60,18 @@ CREATE TABLE IF NOT EXISTS `categories` (
 -- Struktura tabeli dla tabeli `imports`
 --
 
+DROP TABLE IF EXISTS `imports`;
 CREATE TABLE IF NOT EXISTS `imports` (
-  `uid` int(10) unsigned NOT NULL COMMENT 'User identifier',
-  `fname` varchar(50) NOT NULL COMMENT 'Uploaded file name',
-  `bank` varchar(50) NOT NULL COMMENT 'Bank name',
-  `fpos` int(10) unsigned NOT NULL COMMENT 'Actual position in file',
-  `nfpos` int(10) unsigned NOT NULL COMMENT 'New position in the file after saving the transaction',
+  `userId` int(10) unsigned NOT NULL COMMENT 'User identifier',
+  `accountId` int(10) unsigned NOT NULL COMMENT 'Bank account identifier into which imports transactions',
+  `fileName` varchar(50) NOT NULL COMMENT 'Uploaded file name',
+  `bankName` varchar(50) NOT NULL COMMENT 'Bank name',
+  `positionInFile` int(10) unsigned NOT NULL COMMENT 'Actual position in file',
+  `newPositionInFile` int(10) unsigned NOT NULL COMMENT 'New position in the file after saving the transaction',
   `count` int(10) unsigned NOT NULL COMMENT 'Number of all transactions in file',
   `counted` int(10) unsigned NOT NULL COMMENT 'Number of imported transactions',
-  PRIMARY KEY (`uid`)
+  PRIMARY KEY (`userId`),
+  KEY `accountId` (`accountId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin2;
 
 -- --------------------------------------------------------
@@ -76,22 +80,23 @@ CREATE TABLE IF NOT EXISTS `imports` (
 -- Struktura tabeli dla tabeli `transactions`
 --
 
+DROP TABLE IF EXISTS `transactions`;
 CREATE TABLE IF NOT EXISTS `transactions` (
-  `tid` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Transaction identifier',
-  `aid` int(10) unsigned NOT NULL COMMENT 'Account identifier',
-  `taid` int(10) unsigned DEFAULT NULL COMMENT 'Account which transfers money',
-  `uid` int(10) unsigned NOT NULL COMMENT 'User identifier',
-  `cid` int(10) unsigned NOT NULL COMMENT 'Category identifier',
-  `t_type` tinyint(3) unsigned NOT NULL COMMENT 'Transaction type (0 - profit, 1 - expense, 2 - outgoing transfer, 3 incoming transfer)',
-  `t_date` date NOT NULL COMMENT 'Transaction date',
-  `t_content` varchar(200) NOT NULL COMMENT 'Transaction description',
-  `t_value` decimal(10,2) NOT NULL COMMENT 'Transaction value',
-  PRIMARY KEY (`tid`),
-  KEY `aid` (`aid`),
-  KEY `uid` (`uid`),
-  KEY `cid` (`cid`),
-  KEY `taid` (`taid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin2 AUTO_INCREMENT=174 ;
+  `transactionId` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Transaction identifier',
+  `accountId` int(10) unsigned NOT NULL COMMENT 'Account identifier',
+  `transferAccountId` int(10) unsigned DEFAULT NULL COMMENT 'Account which transfers money',
+  `userId` int(10) unsigned NOT NULL COMMENT 'User identifier',
+  `categoryId` int(10) unsigned NOT NULL COMMENT 'Category identifier',
+  `transactionType` tinyint(3) unsigned NOT NULL COMMENT 'Transaction type (0 - profit, 1 - expense, 2 - outgoing transfer, 3 incoming transfer)',
+  `date` date NOT NULL COMMENT 'Transaction date',
+  `content` varchar(200) NOT NULL COMMENT 'Transaction description',
+  `value` decimal(10,2) NOT NULL COMMENT 'Transaction value',
+  PRIMARY KEY (`transactionId`),
+  KEY `accountId` (`accountId`),
+  KEY `userId` (`userId`),
+  KEY `categoryId` (`categoryId`),
+  KEY `transferAccountId` (`transferAccountId`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin2;
 
 --
 -- Wyzwalacze `transactions`
@@ -100,10 +105,10 @@ DROP TRIGGER IF EXISTS `update_balance_on_delete`;
 DELIMITER //
 CREATE TRIGGER `update_balance_on_delete` BEFORE DELETE ON `transactions`
  FOR EACH ROW BEGIN
-	IF OLD.t_type = 0 OR OLD.t_type = 3 THEN -- income
- 		UPDATE accounts SET balance = balance - OLD.t_value WHERE aid=OLD.aid;
-	ELSEIF OLD.t_type = 1 OR OLD.t_type = 2 THEN -- expense
- 		UPDATE accounts SET balance = balance + OLD.t_value WHERE aid=OLD.aid;
+	IF OLD.transactionType = 0 OR OLD.transactionType = 3 THEN -- income
+ 		UPDATE accounts SET balance = balance - OLD.value WHERE accountId=OLD.accountId;
+	ELSEIF OLD.transactionType = 1 OR OLD.transactionType = 2 THEN -- expense
+ 		UPDATE accounts SET balance = balance + OLD.value WHERE accountId=OLD.accountId;
 	END IF;
 END
 //
@@ -112,10 +117,10 @@ DROP TRIGGER IF EXISTS `update_balance_on_insert`;
 DELIMITER //
 CREATE TRIGGER `update_balance_on_insert` BEFORE INSERT ON `transactions`
  FOR EACH ROW BEGIN
-	IF NEW.t_type = 0 OR NEW.t_type = 3 THEN
- 		UPDATE accounts SET balance = balance + NEW.t_value WHERE aid=NEW.aid;
-	ELSEIF NEW.t_type = 1 OR NEW.t_type = 2 THEN
- 		UPDATE accounts SET balance = balance - NEW.t_value WHERE aid=NEW.aid;
+	IF NEW.transactionType = 0 OR NEW.transactionType = 3 THEN
+ 		UPDATE accounts SET balance = balance + NEW.value WHERE accountId=NEW.accountId;
+	ELSEIF NEW.transactionType = 1 OR NEW.transactionType = 2 THEN
+ 		UPDATE accounts SET balance = balance - NEW.value WHERE accountId=NEW.accountId;
 	END IF;
 END
 //
@@ -125,12 +130,12 @@ DELIMITER //
 CREATE TRIGGER `update_balance_on_update` BEFORE UPDATE ON `transactions`
  FOR EACH ROW BEGIN
 	DECLARE DIFF DECIMAL(10,2);
-        SET DIFF = (NEW.t_value - OLD.t_value);
+        SET DIFF = (NEW.value - OLD.value);
 	IF DIFF != 0 THEN
-        	IF NEW.t_type=0 OR NEW.t_type=3 THEN -- profit
- 			UPDATE accounts SET balance = balance + DIFF WHERE aid=NEW.aid;
-                ELSEIF NEW.t_type=1 OR NEW.t_type=2 THEN -- expense
-                	UPDATE accounts SET balance = balance - DIFF WHERE aid=NEW.aid;
+        	IF NEW.transactionType=0 OR NEW.transactionType=3 THEN -- profit
+ 			UPDATE accounts SET balance = balance + DIFF WHERE accountId=NEW.accountId;
+                ELSEIF NEW.transactionType=1 OR NEW.transactionType=2 THEN -- expense
+                	UPDATE accounts SET balance = balance - DIFF WHERE accountId=NEW.accountId;
                 END IF;
 	END IF;
 END
@@ -143,16 +148,17 @@ DELIMITER ;
 -- Struktura tabeli dla tabeli `transfers`
 --
 
+DROP TABLE IF EXISTS `transfers`;
 CREATE TABLE IF NOT EXISTS `transfers` (
-  `trid` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Transfer identifier',
-  `uid` int(10) unsigned NOT NULL COMMENT 'User identifier',
-  `tid_out` int(10) unsigned NOT NULL COMMENT 'Outgoing transaction id',
-  `tid_in` int(10) unsigned NOT NULL COMMENT 'Incoming transaction id',
-  PRIMARY KEY (`trid`),
-  KEY `uid` (`uid`),
-  KEY `tid_out` (`tid_out`),
-  KEY `tid_in` (`tid_in`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin2 AUTO_INCREMENT=14 ;
+  `transferId` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Transfer identifier',
+  `userId` int(10) unsigned NOT NULL COMMENT 'User identifier',
+  `outTransactionId` int(10) unsigned NOT NULL COMMENT 'Outgoing transaction id',
+  `inTransactionId` int(10) unsigned NOT NULL COMMENT 'Incoming transaction id',
+  PRIMARY KEY (`transferId`),
+  KEY `userId` (`userId`),
+  KEY `outTransactionId` (`outTransactionId`),
+  KEY `inTransactionId` (`inTransactionId`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin2;
 
 -- --------------------------------------------------------
 
@@ -160,19 +166,20 @@ CREATE TABLE IF NOT EXISTS `transfers` (
 -- Struktura tabeli dla tabeli `users`
 --
 
+DROP TABLE IF EXISTS `users`;
 CREATE TABLE IF NOT EXISTS `users` (
-  `uid` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'User identifier',
+  `userId` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'User identifier',
   `email` varchar(50) NOT NULL COMMENT 'User e-mail',
   `login` varchar(30) NOT NULL COMMENT 'User login',
   `pass` varchar(60) NOT NULL COMMENT 'User password',
-  `u_type` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'User type (0 - user, 1 - admin, 2 - demo)',
+  `type` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'User type (0 - user, 1 - admin, 2 - demo)',
   `active` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Activation flag (0 - inactive, 1 - active)',
-  `register_date` datetime NOT NULL DEFAULT '2013-01-01 00:00:00' COMMENT 'User register date',
-  `last_login_date` datetime DEFAULT NULL COMMENT 'Last login date',
-  `default_aid` int(10) unsigned NOT NULL COMMENT 'Default bank account',
-  PRIMARY KEY (`uid`),
-  KEY `default_aid` (`default_aid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin2 AUTO_INCREMENT=6 ;
+  `registerDate` datetime NOT NULL DEFAULT '2013-01-01 00:00:00' COMMENT 'User register date',
+  `lastLoginDate` datetime DEFAULT NULL COMMENT 'Last login date',
+  `defaultAccountId` int(10) unsigned NOT NULL COMMENT 'Default bank account',
+  PRIMARY KEY (`userId`),
+  KEY `defaultAccountId` (`defaultAccountId`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin2;
 
 --
 -- Ograniczenia dla zrzutów tabel
@@ -182,35 +189,36 @@ CREATE TABLE IF NOT EXISTS `users` (
 -- Ograniczenia dla tabeli `accounts`
 --
 ALTER TABLE `accounts`
-  ADD CONSTRAINT `accounts_ibfk_3` FOREIGN KEY (`uid`) REFERENCES `users` (`uid`);
+  ADD CONSTRAINT `accounts_ibfk_3` FOREIGN KEY (`userId`) REFERENCES `users` (`userId`);
 
 --
 -- Ograniczenia dla tabeli `categories`
 --
 ALTER TABLE `categories`
-  ADD CONSTRAINT `categories_ibfk_5` FOREIGN KEY (`uid`) REFERENCES `users` (`uid`),
-  ADD CONSTRAINT `categories_ibfk_4` FOREIGN KEY (`pcid`) REFERENCES `categories` (`cid`);
+  ADD CONSTRAINT `categories_ibfk_4` FOREIGN KEY (`parentCategoryId`) REFERENCES `categories` (`categoryId`),
+  ADD CONSTRAINT `categories_ibfk_5` FOREIGN KEY (`userId`) REFERENCES `users` (`userId`);
 
 --
 -- Ograniczenia dla tabeli `imports`
 --
 ALTER TABLE `imports`
-  ADD CONSTRAINT `imports_ibfk_3` FOREIGN KEY (`uid`) REFERENCES `users` (`uid`);
+  ADD CONSTRAINT `imports_ibfk_3` FOREIGN KEY (`userId`) REFERENCES `users` (`userId`),
+  ADD CONSTRAINT `imports_ibfk_4` FOREIGN KEY (`accountId`) REFERENCES `accounts` (`accountId`);
 
 --
 -- Ograniczenia dla tabeli `transactions`
 --
 ALTER TABLE `transactions`
-  ADD CONSTRAINT `transactions_ibfk_5` FOREIGN KEY (`uid`) REFERENCES `users` (`uid`),
-  ADD CONSTRAINT `transactions_ibfk_2` FOREIGN KEY (`cid`) REFERENCES `categories` (`cid`),
-  ADD CONSTRAINT `transactions_ibfk_3` FOREIGN KEY (`aid`) REFERENCES `accounts` (`aid`),
-  ADD CONSTRAINT `transactions_ibfk_4` FOREIGN KEY (`taid`) REFERENCES `accounts` (`aid`);
+  ADD CONSTRAINT `transactions_ibfk_2` FOREIGN KEY (`categoryId`) REFERENCES `categories` (`categoryId`),
+  ADD CONSTRAINT `transactions_ibfk_3` FOREIGN KEY (`accountId`) REFERENCES `accounts` (`accountId`),
+  ADD CONSTRAINT `transactions_ibfk_4` FOREIGN KEY (`transferAccountId`) REFERENCES `accounts` (`accountId`),
+  ADD CONSTRAINT `transactions_ibfk_5` FOREIGN KEY (`userId`) REFERENCES `users` (`userId`);
 
 --
 -- Ograniczenia dla tabeli `transfers`
 --
 ALTER TABLE `transfers`
-  ADD CONSTRAINT `transfers_ibfk_2` FOREIGN KEY (`uid`) REFERENCES `users` (`uid`);
+  ADD CONSTRAINT `transfers_ibfk_2` FOREIGN KEY (`userId`) REFERENCES `users` (`userId`);
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
