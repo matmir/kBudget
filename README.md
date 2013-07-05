@@ -1,7 +1,7 @@
 kBudget
 =======
 
-Simple online finance manager
+Simple online finance manager. Version 0.8.0
 
 URL: http://www.k-budget.net
 
