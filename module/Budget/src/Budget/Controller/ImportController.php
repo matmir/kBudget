@@ -132,6 +132,16 @@ class ImportController extends BaseController
                             
                             // Number of the transactions
                             $new_import->setCount($bank->count());
+                            if ($new_import->getCount() == 0) {
+                                // Delete CSV file from the server
+                                if (unlink($upload_config['upload_dir'].$new_import->getFileName()) == false) {
+                                    
+                                    throw new \Exception('Can not delete CSV file!');
+                                    
+                                }
+                                // Redirect to the error page
+                                return $this->redirect()->toRoute('import/error');
+                            }
                             
                             // Save import information
                             $this->get('Budget\ImportMapper')->setUserImport($new_import);
@@ -495,6 +505,14 @@ class ImportController extends BaseController
                                                                'page' => 1,
                                                                ));
         
+    }
+
+    /**
+     * Error action
+     */
+    public function errorAction()
+    {
+
     }
 
 }

@@ -367,6 +367,18 @@ return array(
                             ),
                         ),
                     ),
+                    // Import - error
+                    'error' => array(
+                        'type' => 'segment',
+                        'description' => 'Route to error information',
+                        'options' => array(
+                            'route' => 'error[/]',
+                            'defaults' => array(
+                                'controller' => 'Budget\Controller\Import',
+                                'action' => 'error',
+                            ),
+                        ),
+                    ),
                 ),
             ),
         ),

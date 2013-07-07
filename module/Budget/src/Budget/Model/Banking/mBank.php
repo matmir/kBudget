@@ -31,7 +31,7 @@ class mBank extends Bank
      * 
      * @var string
      */
-    const HEADER = "#Data operacji;#Data księgowania;#Opis operacji;#Tytuł;#Nadawca/Odbiorca;#Numer konta;#Kwota;#Saldo po operacji;";
+    const HEADER = "#Data operacji;";
     
     /**
      *  Constructor
@@ -84,17 +84,29 @@ class mBank extends Bank
             $data = explode(';', $line);
             
             // Check correction of the data
-            if (count($data) != 9) {
+            if (!(count($data)==9 || count($data)==10)) {
                 throw new ParseBankFileError();
             }
             
-            // Insert data into the Transaction object
-            $tr = new Transaction();
-            $tr->setDate(new \DateTime($data[0]));
-            $value = str_replace(array(',',' '),array('.',''),$data[6]);
-            $tr->setTransactionType(($value<0)?(Transaction::EXPENSE):(Transaction::PROFIT));
-            $tr->setValue($value);
-            $tr->setContent(str_replace('"', '', $data[3]));
+            // CSV file from the transaction service
+            if (count($data)==9) {
+                // Insert data into the Transaction object
+                $tr = new Transaction();
+                $tr->setDate(new \DateTime($data[0]));
+                $value = str_replace(array(',',' '),array('.',''),$data[6]);
+                $tr->setTransactionType(($value<0)?(Transaction::EXPENSE):(Transaction::PROFIT));
+                $tr->setValue($value);
+                $tr->setContent(str_replace('"', '', $data[3]));
+            } else if (count($data)==10) { // CSV file from the e-mail bank statement
+                // Insert data into the Transaction object
+                $tr = new Transaction();
+                $tr->setDate(new \DateTime($data[0]));
+                $value = str_replace(array(',',' '),array('.',''),$data[7]);
+                $tr->setTransactionType(($value<0)?(Transaction::EXPENSE):(Transaction::PROFIT));
+                $tr->setValue($value);
+                $tr->setContent($data[6]);
+            }
+            
             
             // Insert into the return array
             array_push($returnArray, $tr);
@@ -201,9 +213,9 @@ class mBank extends Bank
                 // Stop the loop
                 break;
             }
-            
+
             // Check if there is header
-            if ($line == self::HEADER) {
+            if (strpos($line, self::HEADER)!==false) {
                 // Stop the loop
                 break;
             }

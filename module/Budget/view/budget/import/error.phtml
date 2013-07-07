@@ -1,0 +1,19 @@
+<?php
+
+$title = 'kBudget - Błąd przetwrzania';
+$this->headTitle($title);
+
+$this->headLink()->prependStylesheet($this->basePath('/css/import-transaction.css'));
+$this->headScript()->prependFile($this->basePath('/js/app/import/transactionImport.js'));
+
+?>
+<h1><?php echo $this->escapeHtml($title); ?></h1>
+
+<div class="row">
+    <div class="span12">
+        <div class="alert alert-error" style="width: 30%;">
+            Wystąpił błąd podczas przetwarzania pliku!<br />
+            Procedura importu została zatrzymana.
+        </div>
+    </div>
+</div>
