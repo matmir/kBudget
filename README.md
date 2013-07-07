@@ -1,7 +1,7 @@
 kBudget
 =======
 
-Simple online finance manager. Version 0.8.0
+Simple online finance manager. Version 0.8.1
 
 URL: http://www.k-budget.net
 
@@ -20,7 +20,7 @@ INSTALATION
 2) Change chmod-s to 777 on folders:
 
 	import/
-	images/captcha
+	public/images/captcha
 	
 3) create new MySQL database and import into the new database file data/kbudget.sql
 
