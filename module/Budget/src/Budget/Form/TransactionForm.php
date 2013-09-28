@@ -150,8 +150,9 @@ class TransactionForm extends Form
             ),
             'attributes' => array(
                 'id' => 't_value',
+                'class' => 'transaction-value',
                 'maxlength' => 12,
-                'size' => 8,
+                'size' => 4,
             ),
         ));
         

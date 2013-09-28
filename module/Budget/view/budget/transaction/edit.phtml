@@ -4,6 +4,7 @@ $title = 'Edycja transakcji';
 $this->headTitle($title);
 
 $this->headScript()->prependFile($this->basePath('/js/app/transaction/transactionCategory.js'));
+$this->headLink()->prependStylesheet($this->basePath('/css/transaction-form.css'));
 
 ?>
 <h1><?php echo $this->escapeHtml($title); ?></h1>

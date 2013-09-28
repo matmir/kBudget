@@ -227,6 +227,8 @@ class TransactionController extends BaseController
         $form->get('submit')->setValue('Dodaj');
         // Set the transaction type in form
         $form->get('transactionType')->setValue($t_type);
+        // Set default date in the form
+        $form->get('date')->setValue((new \DateTime())->format('Y-m-d'));
 
         $request = $this->getRequest();
         if ($request->isPost()) {
