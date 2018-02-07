@@ -2,15 +2,7 @@ kBudget
 =======
 
 Simple online finance manager. Version 0.8.1
-
-URL: http://www.k-budget.net
-
-Demo application: http://demo.k-budget.net
-
-Demo user:
-
-	login: demo
-	password: demodemo
+Project no longer developed.
 
 INSTALATION
 ===========
